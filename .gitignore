@@ -1,0 +1,35 @@
+# Odoo core source (vendored separately, not part of this repo)
+/.odoo-core/
+
+# Python
+/.venv/
+__pycache__/
+*.pyc
+
+# Odoo runtime artifacts
+/env/odoo.conf
+*.log
+/.pgdata/
+/.odoo-data/
+
+# Database/filestore backups (scripts/backup_db.sh's default output;
+# see also scripts/restore_db.sh)
+/backups/
+*.dump
+*.sql
+*.sql.gz
+
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env*.local
+
+# Environment files with real values
+env/*.env
+!env/*.env.example
+
+# OS / editor
+.DS_Store
+*.swp
+.~lock.*#

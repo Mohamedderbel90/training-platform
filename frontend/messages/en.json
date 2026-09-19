@@ -1,0 +1,130 @@
+{
+  "Common": {
+    "appName": "Noor Al-Qiyadah",
+    "skipToContent": "Skip to main content",
+    "menu": "Menu",
+    "languageSwitchLabel": "Language",
+    "locale": {
+      "ar": "العربية",
+      "en": "English"
+    },
+    "logout": "Log out",
+    "footerNote": "Training Program Management & Evaluation System",
+    "loadingSession": "Loading your session...",
+    "forbiddenTitle": "You don't have access to this page",
+    "forbiddenMessage": "Your account doesn't have the role required to view this page.",
+    "goToMyDashboard": "Go to my dashboard",
+    "retry": "Try again"
+  },
+  "Nav": {
+    "primaryNavigation": "Primary navigation",
+    "trainee": "My Dashboard",
+    "supervisor": "Supervisor",
+    "trainer": "Trainer"
+  },
+  "Auth": {
+    "title": "Welcome back",
+    "subtitle": "Sign in to access your account",
+    "tagline": "A leadership development programme for women principals of Qur'an memorization schools",
+    "hadithQuote": "The best among you are those who learn the Qur'an and teach it.",
+    "hadithSource": "Narrated by Al-Bukhari",
+    "heroFooterTagline": "Development · Empowerment · Lasting Impact",
+    "loginLabel": "Username",
+    "loginPlaceholder": "example@domain.com",
+    "passwordLabel": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "forgotPasswordNotice": "Please contact your program administrator to reset your password.",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "checkingSession": "Checking your session...",
+    "copyright": "© {year} {appName}. All rights reserved."
+  },
+  "Errors": {
+    "titleUnauthenticated": "Session expired",
+    "titleForbidden": "Access denied",
+    "titleNotFound": "Not found",
+    "titleValidation": "Some information is missing or invalid",
+    "titleConflict": "Already submitted",
+    "titleRateLimited": "Too many attempts",
+    "titleNetwork": "Connection problem",
+    "titleInternal": "Something went wrong",
+    "titleGeneric": "Error",
+    "network": "Unable to reach the server. Check your connection and try again.",
+    "badResponse": "The server returned an unexpected response. Please try again."
+  },
+  "Dashboard": {
+    "loading": "Loading your training days...",
+    "emptyTitle": "No training days yet",
+    "emptyTraineeMessage": "You have no enrolled training days to show right now.",
+    "emptySupervisorMessage": "You have no assigned training days to show right now.",
+    "emptyTrainerMessage": "You have no assigned training days to show right now.",
+    "traineeTitle": "My Training Days",
+    "supervisorTitle": "Assigned Training Days",
+    "trainerTitle": "Assigned Training Days",
+    "dateUnknown": "Date not set",
+    "dayState": {
+      "planned": "Planned",
+      "open": "Open",
+      "closed": "Closed",
+      "postponed": "Postponed",
+      "cancelled": "Cancelled"
+    },
+    "surveyState": {
+      "notConfigured": "Not configured",
+      "not_started": "Not started",
+      "in_progress": "In progress",
+      "submitted": "Submitted"
+    },
+    "openSurvey": "Open survey",
+    "viewSurvey": "View survey",
+    "openReport": "Open report",
+    "viewReport": "View report",
+    "attendanceProgress": "Attendance recorded: {recorded}/{total}",
+    "attendanceComplete": "Complete",
+    "manageAttendance": "Manage attendance"
+  },
+  "Survey": {
+    "loadingSurvey": "Loading survey...",
+    "notConfiguredTitle": "No survey configured",
+    "notConfiguredMessage": "No survey has been configured for this training day yet.",
+    "unavailableTitle": "Survey unavailable",
+    "unavailableMessage": "This survey isn't available for submission right now.",
+    "submittedTitle": "Thank you",
+    "submittedMessage": "Your response has been submitted and can no longer be changed.",
+    "submittedAt": "Submitted at {date}",
+    "missingRequiredTitle": "Please answer the required questions",
+    "questionRequiredError": "This question is required.",
+    "requiredLabel": "(required)",
+    "readOnlyNotice": "This response has been submitted and is read-only.",
+    "confirmTitle": "Submit your response?",
+    "confirmMessage": "Once submitted, this response cannot be changed. Do you want to continue?",
+    "confirmYes": "Yes, submit",
+    "confirmCancel": "Cancel",
+    "saveDraft": "Save draft",
+    "savingDraft": "Saving draft...",
+    "submit": "Submit",
+    "submitting": "Submitting...",
+    "draftSaved": "Draft saved"
+  },
+  "Attendance": {
+    "title": "Attendance",
+    "loading": "Loading attendance...",
+    "emptyTitle": "No enrolled trainees",
+    "emptyMessage": "There are no active enrollments for this training day's program.",
+    "nameColumn": "Name",
+    "statusColumn": "Status",
+    "lateMinutesColumn": "Late minutes",
+    "notApplicable": "N/A",
+    "status": {
+      "present": "Present",
+      "absent": "Absent",
+      "late": "Late"
+    },
+    "saving": "Saving...",
+    "save": "Save attendance",
+    "saved": "Attendance saved"
+  }
+}

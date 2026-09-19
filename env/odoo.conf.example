@@ -1,0 +1,20 @@
+; Local development configuration for the Odoo 19 backend.
+; Copy to env/odoo.conf (gitignored) and adjust as needed.
+; No secrets belong in this file for real deployments; local dev only.
+
+[options]
+addons_path = .odoo-core/addons,custom_addons
+data_dir = .odoo-data
+
+; User-space local PostgreSQL cluster created for this project (see README.md).
+; Not the system-wide PostgreSQL service on port 5432.
+db_host = /home/mohamed/projects/training-platform/.pgdata
+db_port = 5433
+db_user = mohamed
+db_password = False
+
+xmlrpc_port = 8069
+list_db = True
+
+; Odoo 19 renamed several legacy option names; keep this file in sync
+; with whatever the installed 19.0 odoo-bin --help reports if it drifts.

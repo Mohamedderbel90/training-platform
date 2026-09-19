@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- No multi-company rules: multi-company support is out of scope
+         for V1 (ADR/decision recorded during M0/M1 planning). -->
+
+    <!-- ================= training.program ================= -->
+    <record id="rule_training_program_trainee" model="ir.rule">
+        <field name="name">Trainee: only programs they are enrolled in</field>
+        <field name="model_id" ref="model_training_program"/>
+        <field name="groups" eval="[(4, ref('group_training_trainee'))]"/>
+        <field name="domain_force">[('enrollment_ids.partner_id', '=', user.partner_id.id)]</field>
+    </record>
+
+    <record id="rule_training_program_supervisor" model="ir.rule">
+        <field name="name">Supervisor: only programs with a day they supervise</field>
+        <field name="model_id" ref="model_training_program"/>
+        <field name="groups" eval="[(4, ref('group_training_supervisor'))]"/>
+        <field name="domain_force">[('course_ids.day_ids.supervisor_id', '=', user.id)]</field>
+    </record>
+
+    <record id="rule_training_program_trainer" model="ir.rule">
+        <field name="name">Trainer: only programs with a day they are assigned to</field>
+        <field name="model_id" ref="model_training_program"/>
+        <field name="groups" eval="[(4, ref('group_training_trainer'))]"/>
+        <field name="domain_force">[('course_ids.day_ids.trainer_ids', 'in', [user.id])]</field>
+    </record>
+
+    <!-- ================= training.course ================= -->
+    <record id="rule_training_course_trainee" model="ir.rule">
+        <field name="name">Trainee: only courses of their enrolled program</field>
+        <field name="model_id" ref="model_training_course"/>
+        <field name="groups" eval="[(4, ref('group_training_trainee'))]"/>
+        <field name="domain_force">[('program_id.enrollment_ids.partner_id', '=', user.partner_id.id)]</field>
+    </record>
+
+    <record id="rule_training_course_supervisor" model="ir.rule">
+        <field name="name">Supervisor: only courses with a day they supervise</field>
+        <field name="model_id" ref="model_training_course"/>
+        <field name="groups" eval="[(4, ref('group_training_supervisor'))]"/>
+        <field name="domain_force">[('day_ids.supervisor_id', '=', user.id)]</field>
+    </record>
+
+    <record id="rule_training_course_trainer" model="ir.rule">
+        <field name="name">Trainer: only courses with a day they are assigned to</field>
+        <field name="model_id" ref="model_training_course"/>
+        <field name="groups" eval="[(4, ref('group_training_trainer'))]"/>
+        <field name="domain_force">[('day_ids.trainer_ids', 'in', [user.id])]</field>
+    </record>
+
+    <!-- ================= training.day ================= -->
+    <record id="rule_training_day_trainee" model="ir.rule">
+        <field name="name">Trainee: only days of their enrolled program</field>
+        <field name="model_id" ref="model_training_day"/>
+        <field name="groups" eval="[(4, ref('group_training_trainee'))]"/>
+        <field name="domain_force">[('course_id.program_id.enrollment_ids.partner_id', '=', user.partner_id.id)]</field>
+    </record>
+
+    <record id="rule_training_day_supervisor" model="ir.rule">
+        <field name="name">Supervisor: only their assigned days</field>
+        <field name="model_id" ref="model_training_day"/>
+        <field name="groups" eval="[(4, ref('group_training_supervisor'))]"/>
+        <field name="domain_force">[('supervisor_id', '=', user.id)]</field>
+    </record>
+
+    <record id="rule_training_day_trainer" model="ir.rule">
+        <field name="name">Trainer: only their assigned days</field>
+        <field name="model_id" ref="model_training_day"/>
+        <field name="groups" eval="[(4, ref('group_training_trainer'))]"/>
+        <field name="domain_force">[('trainer_ids', 'in', [user.id])]</field>
+    </record>
+
+    <!-- ================= training.enrollment ================= -->
+    <record id="rule_training_enrollment_trainee" model="ir.rule">
+        <field name="name">Trainee: only their own enrollment</field>
+        <field name="model_id" ref="model_training_enrollment"/>
+        <field name="groups" eval="[(4, ref('group_training_trainee'))]"/>
+        <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>
+    </record>
+
+    <record id="rule_training_enrollment_supervisor" model="ir.rule">
+        <field name="name">Supervisor: only enrollments of programs with a day they supervise</field>
+        <field name="model_id" ref="model_training_enrollment"/>
+        <field name="groups" eval="[(4, ref('group_training_supervisor'))]"/>
+        <field name="domain_force">[('program_id.course_ids.day_ids.supervisor_id', '=', user.id)]</field>
+    </record>
+    <!-- Trainer has no ACL access at all to training.enrollment (see
+         ir.model.access.csv), so no record rule is needed for them. -->
+
+    <!-- ================= training.attendance ================= -->
+    <record id="rule_training_attendance_supervisor" model="ir.rule">
+        <field name="name">Supervisor: only attendance for their assigned days</field>
+        <field name="model_id" ref="model_training_attendance"/>
+        <field name="groups" eval="[(4, ref('group_training_supervisor'))]"/>
+        <field name="domain_force">[('training_day_id.supervisor_id', '=', user.id)]</field>
+    </record>
+    <!-- Trainee and Trainer have no ACL access at all to
+         training.attendance (see ir.model.access.csv). -->
+
+    <!-- ================= survey.survey / survey.question / survey.question.answer =================
+         Scoped by survey_role only, not by program/course ownership:
+         the sensitive data is in the RESPONSES (survey.user_input),
+         which are tightly scoped below by respondent + training day.
+         Reading an unrelated template's question structure is not a
+         meaningful privacy exposure (documented in ADR-003). -->
+    <record id="rule_survey_survey_trainee" model="ir.rule">
+        <field name="name">Trainee: only trainee-role surveys</field>
+        <field name="model_id" ref="survey.model_survey_survey"/>
+        <field name="groups" eval="[(4, ref('group_training_trainee'))]"/>
+        <field name="domain_force">[('survey_role', '=', 'trainee')]</field>
+    </record>
+    <record id="rule_survey_survey_supervisor" model="ir.rule">
+        <field name="name">Supervisor: only supervisor-role surveys</field>
+        <field name="model_id" ref="survey.model_survey_survey"/>
+        <field name="groups" eval="[(4, ref('group_training_supervisor'))]"/>
+        <field name="domain_force">[('survey_role', '=', 'supervisor')]</field>
+    </record>
+    <record id="rule_survey_survey_trainer" model="ir.rule">
+        <field name="name">Trainer: only trainer-role surveys</field>
+        <field name="model_id" ref="survey.model_survey_survey"/>
+        <field name="groups" eval="[(4, ref('group_training_trainer'))]"/>
+        <field name="domain_force">[('survey_role', '=', 'trainer')]</field>
+    </record>
+
+    <record id="rule_survey_question_trainee" model="ir.rule">
+        <field name="name">Trainee: only questions of trainee-role surveys</field>
+        <field name="model_id" ref="survey.model_survey_question"/>
+        <field name="groups" eval="[(4, ref('group_training_trainee'))]"/>
+        <field name="domain_force">[('survey_id.survey_role', '=', 'trainee')]</field>
+    </record>
+    <record id="rule_survey_question_supervisor" model="ir.rule">
+        <field name="name">Supervisor: only questions of supervisor-role surveys</field>
+        <field name="model_id" ref="survey.model_survey_question"/>
+        <field name="groups" eval="[(4, ref('group_training_supervisor'))]"/>
+        <field name="domain_force">[('survey_id.survey_role', '=', 'supervisor')]</field>
+    </record>
+    <record id="rule_survey_question_trainer" model="ir.rule">
+        <field name="name">Trainer: only questions of trainer-role surveys</field>
+        <field name="model_id" ref="survey.model_survey_question"/>
+        <field name="groups" eval="[(4, ref('group_training_trainer'))]"/>
+        <field name="domain_force">[('survey_id.survey_role', '=', 'trainer')]</field>
+    </record>
+
+    <record id="rule_survey_question_answer_trainee" model="ir.rule">
+        <field name="name">Trainee: only answers of trainee-role surveys</field>
+        <field name="model_id" ref="survey.model_survey_question_answer"/>
+        <field name="groups" eval="[(4, ref('group_training_trainee'))]"/>
+        <field name="domain_force">[('question_id.survey_id.survey_role', '=', 'trainee')]</field>
+    </record>
+    <record id="rule_survey_question_answer_supervisor" model="ir.rule">
+        <field name="name">Supervisor: only answers of supervisor-role surveys</field>
+        <field name="model_id" ref="survey.model_survey_question_answer"/>
+        <field name="groups" eval="[(4, ref('group_training_supervisor'))]"/>
+        <field name="domain_force">[('question_id.survey_id.survey_role', '=', 'supervisor')]</field>
+    </record>
+    <record id="rule_survey_question_answer_trainer" model="ir.rule">
+        <field name="name">Trainer: only answers of trainer-role surveys</field>
+        <field name="model_id" ref="survey.model_survey_question_answer"/>
+        <field name="groups" eval="[(4, ref('group_training_trainer'))]"/>
+        <field name="domain_force">[('question_id.survey_id.survey_role', '=', 'trainer')]</field>
+    </record>
+
+    <!-- ================= survey.user_input / survey.user_input.line =================
+         This is where the actual privacy boundary lives: each role
+         only ever sees its OWN response, never another respondent's
+         (including another trainer's response on a shared training
+         day, or any trainee's individual response). -->
+    <record id="rule_survey_user_input_trainee" model="ir.rule">
+        <field name="name">Trainee: only their own trainee response</field>
+        <field name="model_id" ref="survey.model_survey_user_input"/>
+        <field name="groups" eval="[(4, ref('group_training_trainee'))]"/>
+        <field name="domain_force">[('respondent_role', '=', 'trainee'), ('partner_id', '=', user.partner_id.id)]</field>
+    </record>
+    <record id="rule_survey_user_input_supervisor" model="ir.rule">
+        <field name="name">Supervisor: only their own supervisor response for assigned days</field>
+        <field name="model_id" ref="survey.model_survey_user_input"/>
+        <field name="groups" eval="[(4, ref('group_training_supervisor'))]"/>
+        <field name="domain_force">[('respondent_role', '=', 'supervisor'), ('training_day_id.supervisor_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_survey_user_input_trainer" model="ir.rule">
+        <field name="name">Trainer: only their own trainer response for assigned days</field>
+        <field name="model_id" ref="survey.model_survey_user_input"/>
+        <field name="groups" eval="[(4, ref('group_training_trainer'))]"/>
+        <field name="domain_force">[('respondent_role', '=', 'trainer'), ('training_day_id.trainer_ids', 'in', [user.id]), ('partner_id', '=', user.partner_id.id)]</field>
+    </record>
+
+    <record id="rule_survey_user_input_line_trainee" model="ir.rule">
+        <field name="name">Trainee: only lines of their own trainee response</field>
+        <field name="model_id" ref="survey.model_survey_user_input_line"/>
+        <field name="groups" eval="[(4, ref('group_training_trainee'))]"/>
+        <field name="domain_force">[('user_input_id.respondent_role', '=', 'trainee'), ('user_input_id.partner_id', '=', user.partner_id.id)]</field>
+    </record>
+    <record id="rule_survey_user_input_line_supervisor" model="ir.rule">
+        <field name="name">Supervisor: only lines of their own supervisor response</field>
+        <field name="model_id" ref="survey.model_survey_user_input_line"/>
+        <field name="groups" eval="[(4, ref('group_training_supervisor'))]"/>
+        <field name="domain_force">[('user_input_id.respondent_role', '=', 'supervisor'), ('user_input_id.training_day_id.supervisor_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_survey_user_input_line_trainer" model="ir.rule">
+        <field name="name">Trainer: only lines of their own trainer response</field>
+        <field name="model_id" ref="survey.model_survey_user_input_line"/>
+        <field name="groups" eval="[(4, ref('group_training_trainer'))]"/>
+        <field name="domain_force">[('user_input_id.respondent_role', '=', 'trainer'), ('user_input_id.training_day_id.trainer_ids', 'in', [user.id]), ('user_input_id.partner_id', '=', user.partner_id.id)]</field>
+    </record>
+</odoo>

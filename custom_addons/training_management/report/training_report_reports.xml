@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- QWeb PDF report for training.report (DEVELOPMENT_PLAN M8).
+         Uses web.html_container/web.external_layout, which already
+         resolve dir="rtl"/"ltr" from the rendering language's
+         res.lang.direction (verified against the vendored Odoo 19
+         source, odoo/addons/web/views/report_templates.xml); no
+         custom RTL CSS is added here. Arabic rendering requires the
+         "ar_001" language to be active in the target database, an
+         already-documented operational prerequisite (see ADR-005);
+         if it is not active, the report simply renders LTR in
+         whatever language is active, matching the same fallback the
+         rest of this addon uses. -->
+    <template id="report_training_report_document">
+        <t t-foreach="docs" t-as="doc">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <h2>
+                        <span t-field="doc.name"/>
+                    </h2>
+                    <div t-if="doc.state == 'approved'" class="o_training_report_stamp"
+                         style="border: 3px solid #2e7d32; color: #2e7d32; display: inline-block;
+                                padding: 6px 16px; transform: rotate(-8deg); font-weight: bold;
+                                text-transform: uppercase; margin-bottom: 12px;">
+                        <div>Approved</div>
+                        <div style="font-size: 11px; font-weight: normal; text-transform: none;">
+                            <span t-field="doc.approved_by.name"/> —
+                            <span t-field="doc.approved_date"/>
+                        </div>
+                    </div>
+                    <table class="table table-sm o_table_bordered">
+                        <tbody>
+                            <tr>
+                                <td><strong>Program</strong></td>
+                                <td><span t-field="doc.program_id.name"/></td>
+                            </tr>
+                            <tr t-if="doc.course_id">
+                                <td><strong>Course</strong></td>
+                                <td><span t-field="doc.course_id.name"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Period</strong></td>
+                                <td>
+                                    <span t-field="doc.resolved_date_from"/> -
+                                    <span t-field="doc.resolved_date_to"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Version</strong></td>
+                                <td><span t-field="doc.version_no"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>KPI Summary</h3>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>KPI</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="doc._kpi_summary_rows()" t-as="row">
+                                <tr t-if="row[2]">
+                                    <td><t t-esc="row[0]"/></td>
+                                    <td>
+                                        <t t-if="row[1] is not None">
+                                            <t t-esc="'%.2f' % row[1]"/>
+                                        </t>
+                                        <t t-else="else">No data</t>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <h3 t-if="doc.show_attendance">Attendance</h3>
+                    <table t-if="doc.show_attendance" class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Present</th>
+                                <th>Late</th>
+                                <th>Absent</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span t-field="doc.present_count"/></td>
+                                <td><span t-field="doc.late_count"/></td>
+                                <td><span t-field="doc.absent_count"/></td>
+                                <td><span t-field="doc.total_attendance_count"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_training_report">
+        <t t-call="web.html_container">
+            <t t-call="training_management.report_training_report_document"/>
+        </t>
+    </template>
+
+    <record id="action_report_training_report" model="ir.actions.report">
+        <field name="name">Training Report</field>
+        <field name="model">training.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">training_management.report_training_report</field>
+        <field name="report_file">training_management.report_training_report</field>
+        <field name="print_report_name">object.name</field>
+        <field name="binding_model_id" ref="model_training_report"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+</odoo>

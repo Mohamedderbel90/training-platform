@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Admin/Assistant Admin only (see ir.model.access.csv: Trainee,
+         Supervisor and Trainer have no ACL row at all on
+         training.report, which also gates access to its
+         ir.attachment PDF/Excel output; PROJECT_SPEC section 15 /
+         DEVELOPMENT_PLAN M8: "Unauthorized attachment access
+         denied"). -->
+    <record id="view_training_report_list" model="ir.ui.view">
+        <field name="name">training.report.list</field>
+        <field name="model">training.report</field>
+        <field name="arch" type="xml">
+            <list string="Training Reports">
+                <field name="name"/>
+                <field name="report_type"/>
+                <field name="program_id"/>
+                <field name="course_id"/>
+                <field name="version_no"/>
+                <field name="state"/>
+                <field name="generated_date"/>
+                <field name="approved_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_training_report_form" model="ir.ui.view">
+        <field name="name">training.report.form</field>
+        <field name="model">training.report</field>
+        <field name="arch" type="xml">
+            <form string="Training Report">
+                <header>
+                    <button name="action_generate" type="object" string="Generate"
+                            class="btn-primary"
+                            invisible="state == 'approved'"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="btn-primary"
+                            groups="training_management.group_training_admin"
+                            invisible="state != 'generated'"/>
+                    <button name="action_new_version" type="object"
+                            string="Create New Version"
+                            invisible="state == 'draft'"/>
+                    <button name="action_view_pdf" type="object" string="View PDF"
+                            invisible="not pdf_attachment_id"/>
+                    <button name="action_export_excel" type="object"
+                            string="Export Excel"
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,generated,approved"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="report_type"
+                                   readonly="state != 'draft'"/>
+                            <field name="program_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="course_id"
+                                   readonly="state != 'draft'"
+                                   invisible="report_type != 'course'"
+                                   required="report_type == 'course'"/>
+                        </group>
+                        <group>
+                            <field name="date_from" readonly="state != 'draft'"/>
+                            <field name="date_to" readonly="state != 'draft'"/>
+                            <field name="version_no"/>
+                            <field name="previous_report_id"/>
+                        </group>
+                    </group>
+                    <group string="Sections to Include">
+                        <field name="show_trainer_score" readonly="state != 'draft'"/>
+                        <field name="show_content_score" readonly="state != 'draft'"/>
+                        <field name="show_environment_score" readonly="state != 'draft'"/>
+                        <field name="show_attendance" readonly="state != 'draft'"/>
+                        <field name="show_response_rate" readonly="state != 'draft'"/>
+                    </group>
+                    <group string="KPI Snapshot" invisible="state == 'draft'">
+                        <group>
+                            <field name="kpi_trainer_score" readonly="1"
+                                   invisible="not kpi_trainer_score_has_data"/>
+                            <field name="kpi_content_score" readonly="1"
+                                   invisible="not kpi_content_score_has_data"/>
+                            <field name="kpi_environment_score" readonly="1"
+                                   invisible="not kpi_environment_score_has_data"/>
+                            <field name="response_rate" readonly="1"
+                                   invisible="not response_rate_has_data"/>
+                        </group>
+                        <group>
+                            <field name="present_count" readonly="1"/>
+                            <field name="late_count" readonly="1"/>
+                            <field name="absent_count" readonly="1"/>
+                            <field name="attendance_rate" readonly="1"
+                                   invisible="not attendance_rate_has_data"/>
+                        </group>
+                    </group>
+                    <group string="Approval" invisible="state != 'approved'">
+                        <field name="approved_by" readonly="1"/>
+                        <field name="approved_date" readonly="1"/>
+                    </group>
+                    <group invisible="1">
+                        <field name="active"/>
+                        <field name="kpi_trainer_score_has_data"/>
+                        <field name="kpi_content_score_has_data"/>
+                        <field name="kpi_environment_score_has_data"/>
+                        <field name="attendance_rate_has_data"/>
+                        <field name="absence_rate_has_data"/>
+                        <field name="late_rate_has_data"/>
+                        <field name="response_rate_has_data"/>
+                        <field name="pdf_attachment_id"/>
+                        <field name="excel_attachment_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_training_report_search" model="ir.ui.view">
+        <field name="name">training.report.search</field>
+        <field name="model">training.report</field>
+        <field name="arch" type="xml">
+            <search string="Training Reports">
+                <field name="name"/>
+                <field name="program_id"/>
+                <field name="course_id"/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_generated" string="Generated" domain="[('state', '=', 'generated')]"/>
+                <filter name="filter_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <group>
+                    <filter name="group_by_program" string="Program" context="{'group_by': 'program_id'}"/>
+                    <filter name="group_by_course" string="Course" context="{'group_by': 'course_id'}"/>
+                    <filter name="group_by_state" string="State" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_training_report" model="ir.actions.act_window">
+        <field name="name">Reports</field>
+        <field name="res_model">training.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_training_report_search"/>
+    </record>
+</odoo>

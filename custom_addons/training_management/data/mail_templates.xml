@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- M9: daily task reminder, one per (training day, role,
+             respondent); model is training.notification.log itself
+             (not training.day), since personalization (recipient name/
+             language) belongs to the log row, not the day. subject/
+             body_html are translate=True standard Odoo fields (verified
+             against mail/models/mail_template.py); Arabic translations
+             live in i18n/ar.po like every other user-facing string in
+             this addon, not a parallel *_ar field.
+             auto_delete is deliberately False (unlike most "one-shot"
+             Odoo templates): M9 needs the resulting mail.mail's own
+             state kept around for "delivery status tracking where
+             supported" (training.notification.log.mail_state, a related
+             field). -->
+        <record id="mail_template_daily_task_reminder" model="mail.template">
+            <field name="name">Training: Daily Task Reminder</field>
+            <field name="model_id" ref="model_training_notification_log"/>
+            <field name="subject">Reminder: pending task for {{ object.training_day_id.course_id.name }}</field>
+            <field name="partner_to">{{ object.partner_id.id }}</field>
+            <field name="lang">{{ object.partner_id.lang }}</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333333;">
+    <p>Dear <t t-out="object.partner_id.name or ''">Trainee</t>,</p>
+    <p>
+        You have a pending task for
+        <strong><t t-out="object.training_day_id.course_id.name or ''">Course</t></strong>
+        on <t t-out="object.training_day_id.date or ''">Date</t>.
+    </p>
+    <p>Please complete it in the training portal as soon as possible.</p>
+</div>
+            </field>
+        </record>
+    </data>
+</odoo>

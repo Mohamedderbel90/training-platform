@@ -1,0 +1,130 @@
+{
+  "Common": {
+    "appName": "نور القيادة",
+    "skipToContent": "الانتقال إلى المحتوى الرئيسي",
+    "menu": "القائمة",
+    "languageSwitchLabel": "اللغة",
+    "locale": {
+      "ar": "العربية",
+      "en": "English"
+    },
+    "logout": "تسجيل الخروج",
+    "footerNote": "نظام إدارة وتقييم البرامج التدريبية",
+    "loadingSession": "جارٍ تحميل جلستك...",
+    "forbiddenTitle": "لا تملكين صلاحية الوصول إلى هذه الصفحة",
+    "forbiddenMessage": "حسابك لا يملك الدور المطلوب لعرض هذه الصفحة.",
+    "goToMyDashboard": "الذهاب إلى لوحتي",
+    "retry": "إعادة المحاولة"
+  },
+  "Nav": {
+    "primaryNavigation": "التنقل الرئيسي",
+    "trainee": "لوحتي",
+    "supervisor": "المشرفة",
+    "trainer": "المدربة"
+  },
+  "Auth": {
+    "title": "مرحباً بعودتكِ",
+    "subtitle": "سجّلي الدخول للوصول إلى حسابكِ",
+    "tagline": "برنامج تطوير مديرات المدارس النسائية لتحفيظ القرآن الكريم",
+    "hadithQuote": "«خَيْرُكُمْ\nمَنْ تَعَلَّمَ الْقُرْآنَ\nوَعَلَّمَهُ»",
+    "hadithSource": "رواه البخاري",
+    "heroFooterTagline": "إعداد · تمكين · أثر مستدام",
+    "loginLabel": "اسم الدخول",
+    "loginPlaceholder": "example@domain.com",
+    "passwordLabel": "كلمة المرور",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور",
+    "rememberMe": "تذكرني",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "forgotPasswordNotice": "يرجى التواصل مع مسؤولة البرنامج لإعادة تعيين كلمة المرور.",
+    "signIn": "تسجيل الدخول",
+    "signingIn": "جارٍ تسجيل الدخول...",
+    "checkingSession": "جارٍ التحقق من جلستك...",
+    "copyright": "جميع الحقوق محفوظة © {year} {appName}"
+  },
+  "Errors": {
+    "titleUnauthenticated": "انتهت صلاحية الجلسة",
+    "titleForbidden": "الوصول مرفوض",
+    "titleNotFound": "غير موجود",
+    "titleValidation": "بعض المعلومات مفقودة أو غير صحيحة",
+    "titleConflict": "تم الإرسال مسبقاً",
+    "titleRateLimited": "عدد كبير جداً من المحاولات",
+    "titleNetwork": "مشكلة في الاتصال",
+    "titleInternal": "حدث خطأ ما",
+    "titleGeneric": "خطأ",
+    "network": "تعذّر الوصول إلى الخادم. تحققي من اتصالك وحاولي مرة أخرى.",
+    "badResponse": "أعاد الخادم استجابة غير متوقعة. يرجى المحاولة مرة أخرى."
+  },
+  "Dashboard": {
+    "loading": "جارٍ تحميل أيامك التدريبية...",
+    "emptyTitle": "لا توجد أيام تدريبية بعد",
+    "emptyTraineeMessage": "لا توجد لديكِ أيام تدريبية مسجَّلة لعرضها حالياً.",
+    "emptySupervisorMessage": "لا توجد لديكِ أيام تدريبية مسندة لعرضها حالياً.",
+    "emptyTrainerMessage": "لا توجد لديكِ أيام تدريبية مسندة لعرضها حالياً.",
+    "traineeTitle": "أيامي التدريبية",
+    "supervisorTitle": "الأيام التدريبية المسندة",
+    "trainerTitle": "الأيام التدريبية المسندة",
+    "dateUnknown": "التاريخ غير محدد",
+    "dayState": {
+      "planned": "مخطط له",
+      "open": "مفتوح",
+      "closed": "مغلق",
+      "postponed": "مؤجل",
+      "cancelled": "ملغى"
+    },
+    "surveyState": {
+      "notConfigured": "غير مُهيأ",
+      "not_started": "لم يبدأ",
+      "in_progress": "قيد التنفيذ",
+      "submitted": "تم الإرسال"
+    },
+    "openSurvey": "فتح الاستبانة",
+    "viewSurvey": "عرض الاستبانة",
+    "openReport": "فتح التقرير",
+    "viewReport": "عرض التقرير",
+    "attendanceProgress": "الحضور المسجَّل: {recorded}/{total}",
+    "attendanceComplete": "مكتمل",
+    "manageAttendance": "إدارة الحضور"
+  },
+  "Survey": {
+    "loadingSurvey": "جارٍ تحميل الاستبانة...",
+    "notConfiguredTitle": "لا توجد استبانة مُهيأة",
+    "notConfiguredMessage": "لم يتم تهيئة استبانة لهذا اليوم التدريبي بعد.",
+    "unavailableTitle": "الاستبانة غير متاحة",
+    "unavailableMessage": "هذه الاستبانة غير متاحة للإرسال في الوقت الحالي.",
+    "submittedTitle": "شكراً لكِ",
+    "submittedMessage": "تم إرسال إجابتك ولا يمكن تعديلها بعد الآن.",
+    "submittedAt": "تم الإرسال في {date}",
+    "missingRequiredTitle": "يرجى الإجابة عن الأسئلة المطلوبة",
+    "questionRequiredError": "هذا السؤال مطلوب.",
+    "requiredLabel": "(مطلوب)",
+    "readOnlyNotice": "تم إرسال هذه الإجابة وهي للقراءة فقط.",
+    "confirmTitle": "هل تريدين إرسال إجابتك؟",
+    "confirmMessage": "بعد الإرسال، لا يمكن تعديل هذه الإجابة. هل تريدين المتابعة؟",
+    "confirmYes": "نعم، إرسال",
+    "confirmCancel": "إلغاء",
+    "saveDraft": "حفظ كمسودة",
+    "savingDraft": "جارٍ حفظ المسودة...",
+    "submit": "إرسال",
+    "submitting": "جارٍ الإرسال...",
+    "draftSaved": "تم حفظ المسودة"
+  },
+  "Attendance": {
+    "title": "الحضور",
+    "loading": "جارٍ تحميل بيانات الحضور...",
+    "emptyTitle": "لا يوجد متدربون مسجَّلون",
+    "emptyMessage": "لا توجد تسجيلات فعّالة في برنامج هذا اليوم التدريبي.",
+    "nameColumn": "الاسم",
+    "statusColumn": "الحالة",
+    "lateMinutesColumn": "دقائق التأخير",
+    "notApplicable": "لا ينطبق",
+    "status": {
+      "present": "حاضر",
+      "absent": "غائب",
+      "late": "متأخر"
+    },
+    "saving": "جارٍ الحفظ...",
+    "save": "حفظ الحضور",
+    "saved": "تم حفظ الحضور"
+  }
+}

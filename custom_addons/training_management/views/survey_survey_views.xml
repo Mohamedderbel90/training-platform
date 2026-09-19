@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit the standard Survey form view; do not rebuild the
+         Survey Builder (PROJECT_SPEC section 8: "Do not build a
+         parallel survey builder"). Only project linkage/version
+         metadata fields and a "clone as new version" action are added. -->
+    <record id="view_survey_survey_form_inherit_training" model="ir.ui.view">
+        <field name="name">survey.survey.form.inherit.training.management</field>
+        <field name="model">survey.survey</field>
+        <field name="inherit_id" ref="survey.survey_survey_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_clone_as_new_version" string="Clone as New Version"
+                        type="object" invisible="not has_submitted_responses"/>
+            </xpath>
+            <xpath expr="//notebook" position="before">
+                <field name="has_submitted_responses" invisible="1"/>
+                <group string="Training Program Linkage">
+                    <group>
+                        <field name="survey_role"/>
+                        <field name="training_program_id"/>
+                        <field name="training_course_id"/>
+                    </group>
+                    <group>
+                        <field name="version_no" readonly="has_submitted_responses"/>
+                        <field name="previous_version_id" readonly="1"/>
+                        <field name="effective_from"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_survey_survey_list_inherit_training" model="ir.ui.view">
+        <field name="name">survey.survey.list.inherit.training.management</field>
+        <field name="model">survey.survey</field>
+        <field name="inherit_id" ref="survey.survey_survey_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="survey_role" optional="show"/>
+                <field name="version_no" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_survey_survey_search_inherit_training" model="ir.ui.view">
+        <field name="name">survey.survey.search.inherit.training.management</field>
+        <field name="model">survey.survey</field>
+        <field name="inherit_id" ref="survey.survey_survey_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="survey_role"/>
+                <filter name="filter_training_role" string="Training Surveys" domain="[('survey_role', '!=', False)]"/>
+                <group>
+                    <filter name="group_by_survey_role" string="Role" context="{'group_by': 'survey_role'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Filtered action for the "Surveys" menu (Odoo standard Survey UI,
+         scoped to this project's surveys only). -->
+    <record id="action_training_survey" model="ir.actions.act_window">
+        <field name="name">Surveys</field>
+        <field name="res_model">survey.survey</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('survey_role', '!=', False)]</field>
+        <field name="context">{'search_default_filter_training_role': 1}</field>
+    </record>
+</odoo>

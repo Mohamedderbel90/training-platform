@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit the standard Survey User Input (response) views; only
+         project linkage fields are added. No parallel response engine
+         is built (PROJECT_SPEC section 3). -->
+    <record id="view_survey_user_input_form_inherit_training" model="ir.ui.view">
+        <field name="name">survey.user_input.form.inherit.training.management</field>
+        <field name="model">survey.user_input</field>
+        <field name="inherit_id" ref="survey.survey_user_input_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="training_day_id"/>
+                <field name="respondent_role"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_survey_user_input_list_inherit_training" model="ir.ui.view">
+        <field name="name">survey.user_input.list.inherit.training.management</field>
+        <field name="model">survey.user_input</field>
+        <field name="inherit_id" ref="survey.survey_user_input_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="training_day_id" optional="show"/>
+                <field name="respondent_role" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_survey_user_input_search_inherit_training" model="ir.ui.view">
+        <field name="name">survey.user_input.search.inherit.training.management</field>
+        <field name="model">survey.user_input</field>
+        <field name="inherit_id" ref="survey.survey_user_input_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="training_day_id"/>
+                <field name="respondent_role"/>
+                <group>
+                    <filter name="group_by_respondent_role" string="Respondent Role" context="{'group_by': 'respondent_role'}"/>
+                    <filter name="group_by_training_day" string="Training Day" context="{'group_by': 'training_day_id'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

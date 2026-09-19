@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit the standard Survey Question form view; only the
+         optional KPI category field is added (PROJECT_SPEC section 6),
+         plus the addon-defined rating_value column on the standard
+         suggested-answers list (M3: language-independent numeric
+         mapping for the approved descriptive rating scale). -->
+    <record id="view_survey_question_form_inherit_training" model="ir.ui.view">
+        <field name="name">survey.question.form.inherit.training.management</field>
+        <field name="model">survey.question</field>
+        <field name="inherit_id" ref="survey.survey_question_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='question_type']" position="after">
+                <field name="kpi_category"/>
+            </xpath>
+            <xpath expr="//field[@name='suggested_answer_ids']/list/field[@name='value']" position="after">
+                <field name="rating_value"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

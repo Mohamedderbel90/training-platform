@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- General Supervisor/Admin works primarily in Odoo Web Client
+         (PROJECT_SPEC section 2.1). Trainee/Supervisor/Trainer use
+         Next.js only, so these backend menus are not shown to them,
+         though menu visibility is never relied on as the actual
+         security mechanism (ACL/Record Rules in security/ enforce
+         that regardless of menu visibility). -->
+    <menuitem id="menu_training_management_root"
+              name="Training Management"
+              groups="group_training_admin,group_training_assistant_admin"
+              sequence="10"/>
+
+    <!-- PROJECT_SPEC section 8 lists "Dashboard / Analytics" as the
+         first submenu. Admin/Assistant Admin only; see
+         training_survey_response_kpi.py / ir.model.access.csv. -->
+    <menuitem id="menu_training_dashboard"
+              name="Dashboard / Analytics"
+              parent="menu_training_management_root"
+              action="action_training_survey_response_kpi"
+              sequence="5"/>
+
+    <menuitem id="menu_training_program"
+              name="Programs"
+              parent="menu_training_management_root"
+              action="action_training_program"
+              sequence="10"/>
+
+    <menuitem id="menu_training_course"
+              name="Courses"
+              parent="menu_training_management_root"
+              action="action_training_course"
+              sequence="20"/>
+
+    <menuitem id="menu_training_day"
+              name="Training Days"
+              parent="menu_training_management_root"
+              action="action_training_day"
+              sequence="30"/>
+
+    <menuitem id="menu_training_day_attendance"
+              name="Attendance Records"
+              parent="menu_training_day"
+              action="action_training_attendance"
+              sequence="10"/>
+
+    <menuitem id="menu_training_enrollment"
+              name="Enrollments"
+              parent="menu_training_management_root"
+              action="action_training_enrollment"
+              sequence="40"/>
+
+    <!-- Standard Odoo Survey UI, filtered to this project's surveys
+         (PROJECT_SPEC section 8: "Use Odoo Survey standard UI ... Do
+         not build a parallel survey builder"). -->
+    <menuitem id="menu_training_survey"
+              name="Surveys"
+              parent="menu_training_management_root"
+              action="action_training_survey"
+              sequence="50"/>
+
+    <!-- PROJECT_SPEC section 8 / DEVELOPMENT_PLAN M8: course/program
+         reports, versioning, approval, PDF/Excel export. Admin and
+         Assistant Admin only (Approve itself is further restricted to
+         Admin only, in the form view and in action_approve(); see
+         models/training_report.py). -->
+    <menuitem id="menu_training_report"
+              name="Reports"
+              parent="menu_training_management_root"
+              action="action_training_report"
+              sequence="60"
+              groups="group_training_admin,group_training_assistant_admin"/>
+
+    <!-- PROJECT_SPEC section 8 lists "Notifications" as menu item 8.
+         Reminder configuration itself lives under Settings (see
+         views/res_config_settings_views.xml); this menu is the
+         traceable delivery log (M9 exit criterion). -->
+    <menuitem id="menu_training_notification"
+              name="Notifications"
+              parent="menu_training_management_root"
+              action="action_training_notification_log"
+              sequence="70"
+              groups="group_training_admin,group_training_assistant_admin"/>
+
+    <!-- PROJECT_SPEC section 8 lists "Audit" as menu item 9 (M10:
+         docs/adr/ADR-010-hardening-and-deployment-readiness.md). -->
+    <menuitem id="menu_training_audit"
+              name="Audit"
+              parent="menu_training_management_root"
+              action="action_training_audit_log"
+              sequence="80"
+              groups="group_training_admin,group_training_assistant_admin"/>
+</odoo>

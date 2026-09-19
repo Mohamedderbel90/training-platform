@@ -1,0 +1,17 @@
+from . import training_program  # noqa: F401
+from . import training_course  # noqa: F401
+from . import training_day  # noqa: F401
+from . import training_enrollment  # noqa: F401
+from . import training_attendance  # noqa: F401
+from . import survey_survey  # noqa: F401
+from . import survey_question  # noqa: F401
+from . import survey_question_answer  # noqa: F401
+from . import survey_user_input  # noqa: F401
+from . import training_analytics  # noqa: F401
+from . import training_survey_response_kpi  # noqa: F401
+from . import training_report  # noqa: F401
+from . import training_notification  # noqa: F401
+from . import training_audit_log  # noqa: F401
+from . import res_config_settings  # noqa: F401
+from . import res_users  # noqa: F401
+from . import ir_http  # noqa: F401

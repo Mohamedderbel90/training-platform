@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_training_enrollment_list" model="ir.ui.view">
+        <field name="name">training.enrollment.list</field>
+        <field name="model">training.enrollment</field>
+        <field name="arch" type="xml">
+            <list string="Enrollments">
+                <field name="program_id"/>
+                <field name="partner_id"/>
+                <field name="enrollment_date"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_training_enrollment_form" model="ir.ui.view">
+        <field name="name">training.enrollment.form</field>
+        <field name="model">training.enrollment</field>
+        <field name="arch" type="xml">
+            <form string="Enrollment">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <group>
+                        <field name="program_id"/>
+                        <field name="partner_id"/>
+                        <field name="user_id"/>
+                    </group>
+                    <group>
+                        <field name="state"/>
+                        <field name="enrollment_date"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_training_enrollment_search" model="ir.ui.view">
+        <field name="name">training.enrollment.search</field>
+        <field name="model">training.enrollment</field>
+        <field name="arch" type="xml">
+            <search string="Enrollments">
+                <field name="program_id"/>
+                <field name="partner_id"/>
+                <filter name="filter_active" string="Active" domain="[('state', '=', 'active')]"/>
+                <filter name="filter_archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_by_program" string="Program" context="{'group_by': 'program_id'}"/>
+                    <filter name="group_by_state" string="State" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_training_enrollment" model="ir.actions.act_window">
+        <field name="name">Enrollments</field>
+        <field name="res_model">training.enrollment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_training_enrollment_search"/>
+    </record>
+</odoo>

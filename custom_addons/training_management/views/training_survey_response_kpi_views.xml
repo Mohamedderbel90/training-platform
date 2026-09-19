@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Standard Odoo Pivot/Graph/List views over the reporting
+         projection (see models/training_survey_response_kpi.py for why
+         a SQL-view model is used instead of a computed Float field or a
+         custom OWL dashboard). Admin/Assistant Admin only; see
+         ir.model.access.csv; this aggregates individual trainee survey
+         data and must never be exposed to Trainee/Supervisor/Trainer
+         (PROJECT_SPEC section 7, M3 point 11). -->
+    <record id="view_training_survey_response_kpi_pivot" model="ir.ui.view">
+        <field name="name">training.survey.response.kpi.pivot</field>
+        <field name="model">training.survey.response.kpi</field>
+        <field name="arch" type="xml">
+            <pivot string="Training KPIs">
+                <field name="program_id" type="row"/>
+                <field name="course_id" type="row"/>
+                <field name="kpi_category" type="col"/>
+                <field name="score" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_training_survey_response_kpi_graph" model="ir.ui.view">
+        <field name="name">training.survey.response.kpi.graph</field>
+        <field name="model">training.survey.response.kpi</field>
+        <field name="arch" type="xml">
+            <graph string="Training KPIs" type="bar">
+                <field name="course_id"/>
+                <field name="kpi_category"/>
+                <field name="score" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_training_survey_response_kpi_list" model="ir.ui.view">
+        <field name="name">training.survey.response.kpi.list</field>
+        <field name="model">training.survey.response.kpi</field>
+        <field name="arch" type="xml">
+            <list string="Training KPIs" create="false" edit="false" delete="false">
+                <field name="training_day_id"/>
+                <field name="course_id"/>
+                <field name="program_id"/>
+                <field name="respondent_role"/>
+                <field name="kpi_category"/>
+                <field name="score" avg="Average Score"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_training_survey_response_kpi_search" model="ir.ui.view">
+        <field name="name">training.survey.response.kpi.search</field>
+        <field name="model">training.survey.response.kpi</field>
+        <field name="arch" type="xml">
+            <search string="Training KPIs">
+                <field name="program_id"/>
+                <field name="course_id"/>
+                <field name="training_day_id"/>
+                <filter name="filter_trainer_performance" string="Trainer Performance" domain="[('kpi_category', '=', 'trainer_performance')]"/>
+                <filter name="filter_content" string="Content" domain="[('kpi_category', '=', 'content')]"/>
+                <filter name="filter_environment" string="Environment" domain="[('kpi_category', '=', 'environment')]"/>
+                <group>
+                    <filter name="group_by_program" string="Program" context="{'group_by': 'program_id'}"/>
+                    <filter name="group_by_course" string="Course" context="{'group_by': 'course_id'}"/>
+                    <filter name="group_by_kpi_category" string="KPI Category" context="{'group_by': 'kpi_category'}"/>
+                    <filter name="group_by_respondent_role" string="Respondent Role" context="{'group_by': 'respondent_role'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_training_survey_response_kpi" model="ir.actions.act_window">
+        <field name="name">Dashboard / Analytics</field>
+        <field name="res_model">training.survey.response.kpi</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="view_training_survey_response_kpi_search"/>
+        <field name="context">{'group_by': ['program_id', 'course_id']}</field>
+    </record>
+</odoo>

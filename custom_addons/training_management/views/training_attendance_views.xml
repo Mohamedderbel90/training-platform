@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_training_attendance_list" model="ir.ui.view">
+        <field name="name">training.attendance.list</field>
+        <field name="model">training.attendance</field>
+        <field name="arch" type="xml">
+            <list string="Attendance Records" editable="bottom">
+                <field name="training_day_id"/>
+                <field name="enrollment_id"/>
+                <field name="status"/>
+                <field name="late_minutes" invisible="status != 'late'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_training_attendance_form" model="ir.ui.view">
+        <field name="name">training.attendance.form</field>
+        <field name="model">training.attendance</field>
+        <field name="arch" type="xml">
+            <form string="Attendance">
+                <sheet>
+                    <group>
+                        <field name="training_day_id"/>
+                        <field name="enrollment_id"/>
+                    </group>
+                    <group>
+                        <field name="status"/>
+                        <field name="late_minutes" invisible="status != 'late'"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_training_attendance_search" model="ir.ui.view">
+        <field name="name">training.attendance.search</field>
+        <field name="model">training.attendance</field>
+        <field name="arch" type="xml">
+            <search string="Attendance Records">
+                <field name="training_day_id"/>
+                <field name="enrollment_id"/>
+                <field name="course_id"/>
+                <field name="program_id"/>
+                <filter name="filter_present" string="Present" domain="[('status', '=', 'present')]"/>
+                <filter name="filter_absent" string="Absent" domain="[('status', '=', 'absent')]"/>
+                <filter name="filter_late" string="Late" domain="[('status', '=', 'late')]"/>
+                <group>
+                    <filter name="group_by_day" string="Training Day" context="{'group_by': 'training_day_id'}"/>
+                    <filter name="group_by_course" string="Course" context="{'group_by': 'course_id'}"/>
+                    <filter name="group_by_program" string="Program" context="{'group_by': 'program_id'}"/>
+                    <filter name="group_by_status" string="Status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Counts by status are inherently safe to pivot/graph (a plain
+         group-by count on the stored "status" Selection field never
+         confuses "no data" with a real value, unlike an averaged rate
+         field would; see training_survey_response_kpi.py for the
+         contrasting case that does need a dedicated reporting view).
+         Rates (attendance/absence/late %) are computed by
+         training.analytics and are not exposed as a stored/computed
+         field here for that reason. -->
+    <record id="view_training_attendance_pivot" model="ir.ui.view">
+        <field name="name">training.attendance.pivot</field>
+        <field name="model">training.attendance</field>
+        <field name="arch" type="xml">
+            <pivot string="Attendance">
+                <field name="program_id" type="row"/>
+                <field name="course_id" type="row"/>
+                <field name="status" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_training_attendance_graph" model="ir.ui.view">
+        <field name="name">training.attendance.graph</field>
+        <field name="model">training.attendance</field>
+        <field name="arch" type="xml">
+            <graph string="Attendance" type="bar">
+                <field name="course_id"/>
+                <field name="status"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_training_attendance" model="ir.actions.act_window">
+        <field name="name">Attendance Records</field>
+        <field name="res_model">training.attendance</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="search_view_id" ref="view_training_attendance_search"/>
+    </record>
+</odoo>

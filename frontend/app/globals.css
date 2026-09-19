@@ -1,0 +1,1524 @@
+/* =====================================================================
+   Design system — Noor Al-Qiyadah (نور القيادة)
+   Direction: calm, elegant, educational, trustworthy; a quiet nod to
+   Islamic geometric tradition (see .geo-pattern) rather than literal
+   ornament. Brand palette per spec: deep emerald primary (#153F38),
+   muted gold accent (#C6A66B), warm ivory background (#F8F6F0), white
+   cards, dark ink text (#24332F).
+   Every color/spacing/radius value is a token here so every
+   component (and both RTL/LTR, both color schemes) stays consistent.
+   Layout uses CSS logical properties throughout (inset-inline-*,
+   margin-inline-*, border-inline-*, text-align: start/end) instead of
+   left/right, so this file needs no separate RTL variant -- the
+   sidebar lands on the correct side (right for Arabic, left for
+   English) purely from `dir` on <html>.
+   ===================================================================== */
+
+:root {
+  /* ---- surfaces & text ---- */
+  --color-bg: #f8f6f0;
+  --color-bg-raised: #f1ede2;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3f0e6;
+  --color-border: #e6e0d1;
+  --color-border-strong: #d6cdb4;
+  --color-text: #24332f;
+  --color-text-muted: #5c6b64;
+  --color-text-subtle: #8b978e;
+
+  /* ---- brand: deep emerald primary, muted gold accent ---- */
+  --color-primary: #153f38;
+  --color-primary-hover: #1c5147;
+  --color-primary-active: #0e2c27;
+  --color-primary-contrast: #ffffff;
+  --color-primary-soft: #e4ece9;
+  --color-primary-soft-strong: #cddcd6;
+  --color-accent: #c6a66b;
+  --color-accent-hover: #b6935a;
+  --color-accent-soft: #f4ecdb;
+  --color-accent-contrast: #2c2007;
+
+  /* ---- semantic ---- */
+  --color-danger: #a3352a;
+  --color-danger-hover: #872c22;
+  --color-danger-bg: #f8eae7;
+  --color-success: #2f7d54;
+  --color-success-bg: #e7f2ea;
+  --color-warning-text: #7d5a12;
+  --color-warning-bg: #f8efd9;
+  --focus-ring: #153f38;
+
+  /* ---- elevation (kept deliberately subtle -- no oversized shadows) ---- */
+  --shadow-sm: 0 1px 2px rgba(21, 30, 27, 0.06);
+  --shadow-md: 0 4px 12px rgba(21, 30, 27, 0.08);
+  --shadow-lg: 0 10px 28px rgba(21, 30, 27, 0.12);
+
+  /* ---- shape & spacing ---- */
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+  --space-8: 3.5rem;
+
+  /* ---- layout ---- */
+  --sidebar-width: 17rem;
+  --topbar-height: 4.25rem;
+  --content-max-width: 52rem;
+
+  /* ---- type: Inter (Latin) + IBM Plex Sans Arabic (Arabic) ---- */
+  --font-latin: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+  --font-arabic: var(--font-latin);
+  --transition-base: 140ms ease-out;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0f1613;
+    --color-bg-raised: #141f1a;
+    --color-surface: #17221d;
+    --color-surface-muted: #1b2822;
+    --color-border: #293a32;
+    --color-border-strong: #384c42;
+    --color-text: #f1eee3;
+    --color-text-muted: #a9b6ae;
+    --color-text-subtle: #778a80;
+
+    --color-primary: #5fbba0;
+    --color-primary-hover: #7bcbb2;
+    --color-primary-active: #97d8c2;
+    --color-primary-contrast: #06231c;
+    --color-primary-soft: #17332c;
+    --color-primary-soft-strong: #1e4038;
+    --color-accent: #d9b679;
+    --color-accent-hover: #e5c793;
+    --color-accent-soft: #2e2818;
+    --color-accent-contrast: #2c2007;
+
+    --color-danger: #ff8c82;
+    --color-danger-hover: #ffa79f;
+    --color-danger-bg: #3a1d1a;
+    --color-success: #7fdba6;
+    --color-success-bg: #123424;
+    --color-warning-text: #f0cc7e;
+    --color-warning-bg: #362b10;
+    --focus-ring: #5fbba0;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* =========================== base reset =========================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-family: var(--font-latin);
+  font-size: 15.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html[dir="rtl"] body {
+  font-family: var(--font-arabic), var(--font-latin);
+}
+
+html[dir="ltr"] body {
+  font-family: var(--font-latin), var(--font-arabic);
+}
+
+a {
+  color: inherit;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0 0 var(--space-3);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.skip-link {
+  position: absolute;
+  inset-inline-start: -9999px;
+  top: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: var(--space-2) var(--space-4);
+  z-index: 100;
+  border-radius: 0 0 var(--radius) 0;
+  box-shadow: var(--shadow-md);
+}
+
+.skip-link:focus {
+  inset-inline-start: 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ======================= decorative geometry ========================
+   A single, quiet 8-point star lattice, used only as a low-opacity
+   watermark (never as noisy repeated ornament) behind the login hero
+   and the sidebar's brand block -- the closest this design gets to
+   literal Islamic-geometric decoration, deliberately restrained. */
+
+.geo-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.16' stroke-width='1'%3E%3Cpath d='M42 2 L60 24 L82 24 L66 42 L82 60 L60 60 L42 82 L24 60 L2 60 L18 42 L2 24 L24 24 Z'/%3E%3Ccircle cx='42' cy='42' r='13'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 168px 168px;
+  pointer-events: none;
+}
+
+/* ============================ app shell ============================= */
+
+.app-shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell--with-sidebar {
+  flex-direction: row;
+}
+
+/* ---- top bar ---- */
+
+.app-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 var(--space-5);
+  height: var(--topbar-height);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 20;
+}
+
+.app-topbar__start {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.app-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ---- brand mark ---- */
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: 1.02rem;
+  white-space: nowrap;
+}
+
+.brand__mark {
+  inline-size: 2.15rem;
+  block-size: 2.15rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(155deg, var(--color-primary), var(--color-primary-active));
+  color: var(--color-primary-contrast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.brand__name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brand__name small {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  letter-spacing: 0.01em;
+}
+
+/* ---- sidebar / mobile drawer ----
+   One <aside> serves both roles so the nav's links exist exactly
+   once in the DOM. Mobile-first: fixed, off-canvas, slides in via
+   `data-open`. From 960px up it becomes a normal sticky sidebar
+   column (`.app-shell--with-sidebar` switches to a row layout). */
+
+.app-sidebar {
+  position: fixed;
+  top: 0;
+  inset-inline-start: 0;
+  z-index: 30;
+  width: min(20rem, 82vw);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-inline-end: 1px solid var(--color-border);
+  padding: var(--space-5) var(--space-4);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(-100%);
+  transition: transform var(--transition-base);
+}
+
+html[dir="rtl"] .app-sidebar {
+  transform: translateX(100%);
+}
+
+/* `html[dir="rtl"] .app-sidebar` above has higher specificity than a
+   plain `.app-sidebar[data-open="true"]` (the added `html` type
+   selector outweighs the extra attribute selector), so the open
+   state must be repeated with the same `html[dir="rtl"]` prefix or it
+   would silently lose the cascade and the mobile drawer would never
+   visibly open in Arabic. */
+.app-sidebar[data-open="true"],
+html[dir="rtl"] .app-sidebar[data-open="true"] {
+  transform: translateX(0);
+}
+
+.sidebar-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+  background: rgba(15, 20, 17, 0.45);
+  border: none;
+  padding: 0;
+  animation: fade-in var(--transition-base) ease-out;
+}
+
+.app-sidebar__brand {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: linear-gradient(150deg, var(--color-primary) 0%, var(--color-primary-active) 100%);
+  color: var(--color-primary-contrast);
+  padding: var(--space-5) var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.app-sidebar__brand .brand {
+  color: inherit;
+  position: relative;
+  z-index: 1;
+}
+
+.app-sidebar__brand .brand__mark {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: none;
+}
+
+.app-sidebar__brand .brand__name small {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.app-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.app-sidebar__footer {
+  margin-top: auto;
+  padding-top: var(--space-4);
+  color: var(--color-text-subtle);
+  font-size: 0.78rem;
+}
+
+/* ---- nav links (shared shape for sidebar + mobile drawer) ---- */
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.65rem var(--space-3);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--color-text-muted);
+  font-size: 0.94rem;
+  font-weight: 600;
+  transition: background var(--transition-base), color var(--transition-base);
+}
+
+.nav-link:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.nav-link[aria-current="page"] {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.nav-link__icon {
+  inline-size: 1.2rem;
+  block-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+/* ---- mobile nav toggle ---- */
+
+.app-nav-toggle {
+  display: inline-flex;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---- main content ---- */
+
+.app-content-column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-4) var(--space-8);
+}
+
+/* The login page (see AppShell.tsx's bare branch) is full-bleed --
+   no max-width/padding constraint like the normal `.app-main`. */
+.app-main--bare {
+  flex: 1;
+  width: 100%;
+}
+
+.app-footer {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-text-subtle);
+  font-size: 0.78rem;
+}
+
+@media (min-width: 960px) {
+  .app-shell--with-sidebar {
+    flex-direction: row;
+  }
+
+  /* Same specificity trap as the drawer's open state above: the RTL
+     closed-state rule (`html[dir="rtl"] .app-sidebar`) outranks this
+     plain two-class selector, so without the explicit RTL-prefixed
+     copy the sidebar stayed translated off-canvas at desktop widths
+     in Arabic -- this was the reported bug. */
+  .app-shell--with-sidebar .app-sidebar,
+  html[dir="rtl"] .app-shell--with-sidebar .app-sidebar {
+    position: sticky;
+    width: var(--sidebar-width);
+    box-shadow: none;
+    transform: none;
+  }
+
+  .app-shell--with-sidebar .app-nav-toggle,
+  .app-shell--with-sidebar .sidebar-scrim {
+    display: none;
+  }
+
+  .app-shell--with-sidebar .app-topbar {
+    padding-inline-start: var(--space-6);
+  }
+
+  .app-shell--with-sidebar .app-main {
+    padding: var(--space-7) var(--space-6) var(--space-8);
+  }
+}
+
+@media (max-width: 640px) {
+  .app-topbar {
+    padding: 0 var(--space-3);
+  }
+
+  .app-main {
+    padding: var(--space-5) var(--space-3) var(--space-7);
+  }
+}
+
+/* ---- locale switch + user menu ---- */
+
+.locale-switch {
+  display: flex;
+  gap: 2px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 2px;
+}
+
+.locale-switch a {
+  padding: 0.32rem 0.75rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition: background var(--transition-base), color var(--transition-base);
+}
+
+.locale-switch a[aria-current="true"] {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.user-menu__avatar {
+  inline-size: 2.1rem;
+  block-size: 2.1rem;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-contrast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.user-menu__name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  display: none;
+}
+
+@media (min-width: 560px) {
+  .user-menu__name {
+    display: inline;
+  }
+}
+
+/* ============================== buttons ============================== */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 1.25rem;
+  font-size: 0.94rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 2.6rem;
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  transition: background var(--transition-base), border-color var(--transition-base),
+    transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.button:hover {
+  background: var(--color-primary-hover);
+}
+
+.button:active {
+  background: var(--color-primary-active);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button--secondary {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border-color: var(--color-border-strong);
+}
+
+.button--secondary:hover {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+}
+
+.button--danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.button--danger:hover {
+  background: var(--color-danger-hover);
+}
+
+.button--ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  border-color: transparent;
+  padding: 0.55rem 0.9rem;
+}
+
+.button--ghost:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.button--icon {
+  padding: 0.5rem;
+  min-height: 2.4rem;
+  inline-size: 2.4rem;
+}
+
+.button-row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: var(--space-5);
+}
+
+.button-row--tight {
+  margin-top: 0;
+}
+
+/* =============================== forms ================================ */
+
+.field {
+  margin-bottom: var(--space-5);
+}
+
+.field label,
+.field legend {
+  display: block;
+  font-weight: 600;
+  font-size: 0.94rem;
+  margin-bottom: var(--space-2);
+}
+
+.field .required-marker {
+  color: var(--color-danger);
+  margin-inline-start: var(--space-1);
+}
+
+.field input[type="text"],
+.field input[type="password"],
+.field input[type="number"],
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.field input:focus-visible,
+.field textarea:focus-visible,
+.field select:focus-visible {
+  border-color: var(--color-primary);
+}
+
+.field textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.field-hint {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  margin-top: var(--space-1);
+}
+
+.field-error {
+  color: var(--color-danger);
+  font-size: 0.85rem;
+  margin-top: var(--space-1);
+  font-weight: 600;
+}
+
+.field[data-invalid="true"] input,
+.field[data-invalid="true"] textarea {
+  border-color: var(--color-danger);
+}
+
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.75rem var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: var(--color-surface);
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.option-item:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.option-item:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  font-weight: 600;
+}
+
+.option-item input {
+  inline-size: 1.15rem;
+  block-size: 1.15rem;
+  accent-color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.error-summary {
+  border: 1px solid var(--color-danger);
+  background: var(--color-danger-bg);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.error-summary h2 {
+  margin: 0 0 var(--space-2);
+  font-size: 1rem;
+}
+
+.error-summary ul {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+}
+
+.error-summary a {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+/* ========================== cards & lists ============================ */
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.card--interactive:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
+}
+
+.card__title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.card__title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.card__meta {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  margin: var(--space-1) 0 0;
+}
+
+.card__meta--inline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.card__body {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.badge::before {
+  content: "";
+  inline-size: 0.4rem;
+  block-size: 0.4rem;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+.badge--success {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border-color: transparent;
+}
+
+.badge--warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border-color: transparent;
+}
+
+.badge--danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border-color: transparent;
+}
+
+/* ------------------------- page header ------------------------- */
+
+.page-header {
+  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.page-header__eyebrow {
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 var(--space-2);
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.page-header__subtitle {
+  color: var(--color-text-muted);
+  margin: var(--space-2) 0 0;
+  max-width: 38rem;
+}
+
+.page-header__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* ============================== tables ================================ */
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 32rem;
+}
+
+.data-table th,
+.data-table td {
+  text-align: start;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background: var(--color-surface-muted);
+}
+
+.data-table th {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-subtle);
+  background: var(--color-surface-muted);
+}
+
+.status-radio-group {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.status-radio-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition: border-color var(--transition-base), background var(--transition-base),
+    color var(--transition-base);
+}
+
+.status-radio-group label:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.status-radio-group input {
+  accent-color: var(--color-primary);
+}
+
+.late-minutes-input {
+  width: 6rem;
+}
+
+/* =========================== state views =============================== */
+
+.state-view {
+  padding: var(--space-7) var(--space-4);
+  text-align: center;
+  border-radius: var(--radius);
+}
+
+.state-view--error {
+  background: var(--color-danger-bg);
+}
+
+.state-view__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: 50%;
+  margin-bottom: var(--space-4);
+  background: var(--color-surface-muted);
+  color: var(--color-text-subtle);
+}
+
+.state-view--error .state-view__icon {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.state-view--success .state-view__icon {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.state-view__title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin: 0 0 var(--space-2);
+}
+
+.state-view__message {
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-4);
+}
+
+.state-view__request-id {
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
+}
+
+.spinner {
+  display: inline-block;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  margin-bottom: var(--space-4);
+  border-radius: 50%;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================== misc ================================== */
+
+.section-title {
+  margin: var(--space-6) 0 var(--space-3);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.readonly-notice {
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-primary-soft-strong);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-bottom: var(--space-5);
+}
+
+/* =====================================================================
+   Login page -- approved design (noor-login/README.md +
+   approved-login-reference.png). `background-login.png` is a single
+   pre-composed background image (photo + emerald panel + subtle gold
+   pattern baked in, no text) applied once on `.auth-page`; there are
+   no separate photo/scrim/pattern layers built in CSS anymore. Only
+   the hadith quote overlay and the form are real HTML on top of it.
+
+   The image's dark decorative area sits on its physical left and its
+   plain light area on its physical right in BOTH languages -- the
+   approved reference shows this exact fixed composition for Arabic
+   (RTL) too -- so the quote overlay and the form panel are pinned
+   with physical CSS (`inset-inline-start` is intentionally NOT used
+   here; see each rule), not mirrored per direction. Each still
+   carries a real `dir={locale direction}` attribute (set in
+   login/page.tsx) so the text *inside* it resolves correctly per
+   locale. */
+
+.auth-page {
+  position: relative;
+  min-height: 100dvh;
+  width: 100%;
+  background-color: var(--color-bg);
+  background-image: url("/noor-login/background-login.png");
+  background-repeat: no-repeat;
+  /* `cover` scales without distorting the image's own aspect ratio.
+     Anchored left so the dark-green/Quran area stays visible and on
+     the left at every size; overridden to `100%` (right) on mobile
+     below. */
+  background-position: left;
+  background-size: cover;
+}
+
+@media (max-width: 767px) {
+  .auth-page {
+    background-position: 100%;
+  }
+}
+
+/* Physically fixed to the top-right corner in both languages, not
+   `inset-inline-end` -- the quote overlay is *also* pinned to a fixed
+   physical side regardless of locale (see the file-level comment
+   above), so a logical position here would put this pill on the same
+   physical corner as the quote text for Arabic specifically,
+   overlapping it. The approved reference keeps it beside the form in
+   both languages. */
+.auth-page__lang-switch {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.4rem 0.6rem;
+  border-radius: 999px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text-muted);
+}
+
+.auth-page__lang-switch a {
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.auth-page__lang-switch a[aria-current="true"] {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+/* Hidden below the desktop breakpoint: at narrow/tall mobile aspect
+   ratios, `cover` crops away almost all of the background image's
+   dark decorative area (see `.auth-page` above), leaving this text
+   with no legible backdrop. */
+.auth-hero-overlay {
+  display: none;
+}
+
+.auth-hero__quote {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 0 var(--space-3);
+  color: #f8f6f0;
+  text-align: center;
+}
+
+.auth-hero__quote p {
+  /* `pre-line` honors the `\n` line breaks in the Arabic translation
+     (matching the reference's exact three-line grouping) while still
+     wrapping normally if a translation doesn't fit on one line. */
+  white-space: pre-line;
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 0 0 var(--space-5);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+}
+
+.auth-hero__quote footer {
+  color: #c6a66b;
+  font-size: 1rem;
+  font-weight: 600;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+}
+
+/* `left` only (no `right`) is deliberate: with both offsets set, the
+   box spanned most of the panel's width and the default RTL
+   flex-start alignment then packed the icon+text group against that
+   box's *right* edge, landing it far from the physical left edge the
+   approved reference shows. Shrink-to-content by only anchoring
+   `left` pins it there regardless of `dir`. */
+.auth-hero__footer {
+  position: absolute;
+  left: var(--space-7);
+  bottom: var(--space-7);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: #f8f6f0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  word-spacing: 0.05em;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+}
+
+.auth-hero__footer-icon {
+  flex-shrink: 0;
+  display: block;
+}
+
+/* Measured directly off approved-login-reference.png (1536x1024): the
+   form sits toward the right side with a fixed top offset and the
+   copyright line underneath it, not as a page-wide footer. On mobile
+   the form is simply centered instead, since the background image no
+   longer shows a distinct "left/right" split at that aspect ratio. */
+.auth-page__form-panel {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-6) var(--space-5);
+  overflow-y: auto;
+}
+
+.auth-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 39rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-7) var(--space-7) var(--space-5);
+  box-shadow: var(--shadow-lg);
+}
+
+.auth-card__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-1);
+}
+
+.auth-card__logo {
+  height: 8.75rem;
+  width: auto;
+  margin-bottom: var(--space-1);
+}
+
+.auth-card__brand-name {
+  margin: 0;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* "Noor Al-Qiyadah" wraps to two lines at narrow phone widths with
+   the desktop size -- step it down rather than let it wrap. */
+@media (max-width: 420px) {
+  .auth-card__brand-name {
+    font-size: 1.7rem;
+  }
+}
+
+.auth-card__tagline {
+  margin: var(--space-1) auto 0;
+  max-width: 19rem;
+  color: var(--color-primary);
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.auth-card__divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 60%;
+  max-width: 20rem;
+  margin: var(--space-5) auto;
+  color: var(--color-accent);
+}
+
+.auth-card__divider span {
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-strong);
+}
+
+.auth-card__divider-icon {
+  flex-shrink: 0;
+  display: block;
+}
+
+.auth-card h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0 0 var(--space-2);
+  text-align: center;
+}
+
+.auth-card__subtitle {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  margin-bottom: var(--space-6);
+}
+
+.auth-card .field {
+  margin-bottom: var(--space-5);
+}
+
+.auth-card .button-row {
+  margin-top: var(--space-5);
+}
+
+.auth-card .button {
+  width: 100%;
+}
+
+/* Icon-decorated inputs used only by the login form, matching the
+   approved reference's layout: a fixed-height rounded-rect "pill"
+   (not a full circle-ended pill -- reference border-radius is
+   ~14px), and the field's own <label> moved inside the bordered box,
+   stacked above the input, matching the reference's two-line
+   "label + value" look instead of a separate label above the box.
+   The leading icon (envelope/lock) and the trailing toggle button
+   use plain logical ordering here (no forced `direction`): in RTL
+   the leading icon (first in DOM) lands at the inline-start, i.e.
+   the right, and the toggle (last in DOM) lands at the inline-end,
+   i.e. the left; both mirror for LTR. This is intentionally
+   direction-aware, unlike the page background/hero content above,
+   which stays physical.
+   The `.field__input` class deliberately outranks the generic
+   `.field input[type="..."]` rule (3 class selectors vs. that rule's
+   2 classes + 1 attribute + 1 type) so this override wins regardless
+   of source order -- see the RTL sidebar specificity bug fixed
+   earlier for why relying on source order alone is fragile. */
+.field--icon .field__control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 4.375rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  padding-inline: 1.1rem;
+  transition: border-color var(--transition-base);
+}
+
+.field--icon .field__control:focus-within {
+  border-color: var(--color-primary);
+}
+
+.field--icon[data-invalid="true"] .field__control {
+  border-color: var(--color-danger);
+}
+
+.field--icon .field__icon {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  font-size: 1.35rem;
+}
+
+.field--icon .field__control-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.field--icon .field__control-body label {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.field--icon .field__control .field__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  min-height: 0;
+  font-size: 1rem;
+  color: var(--color-text-muted);
+}
+
+.field--icon .field__control .field__input::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.field--icon .field__control .field__input:focus-visible {
+  outline: none;
+}
+
+.field__toggle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  border-radius: 999px;
+}
+
+.field__toggle:hover {
+  color: var(--color-primary-hover);
+}
+
+.auth-form__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
+
+.auth-form__remember {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.auth-form__remember input {
+  accent-color: var(--color-primary);
+  inline-size: 1.05rem;
+  block-size: 1.05rem;
+}
+
+.auth-form__forgot {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--transition-base);
+}
+
+.auth-form__forgot:hover {
+  text-decoration-color: currentColor;
+}
+
+.auth-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 4.375rem;
+  border-radius: var(--radius);
+  font-size: 1.02rem;
+}
+
+.auth-page__form-panel[dir="ltr"] .auth-submit__icon {
+  transform: scaleX(-1);
+}
+
+.auth-page__copyright {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 39rem;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  text-align: center;
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
+}
+
+/* Tablet tier: still single-column/centered (the hero's arch and
+   photo crop only read well once the column has real room -- see
+   the 960px breakpoint below), but with roomier padding than a
+   phone-width viewport instead of just stretching the mobile
+   spacing. There is no reference image for a tablet composition, so
+   this is a deliberately conservative, unverified-against-a-mock
+   adjustment rather than a guessed two-column layout. */
+@media (min-width: 640px) and (max-width: 959.98px) {
+  .auth-page__form-panel {
+    padding: var(--space-8) var(--space-7);
+  }
+}
+
+@media (min-width: 960px) {
+  .auth-hero-overlay {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: min(42%, 27rem);
+    /* Matches the reference's quote position: noticeably lower than
+       the top edge, not pinned right under the language switcher. */
+    padding: 13rem var(--space-6) var(--space-7);
+  }
+
+  /* Pushed to the physical right (not a grid column anymore, since
+     the whole background is now one image on `.auth-page`) via
+     `margin-left: auto` -- a physical property, so it pushes right
+     regardless of locale, matching the reference's fixed composition. */
+  .auth-page__form-panel {
+    margin-left: auto;
+    width: 46.5%;
+    /* Flush against the panel's own left edge with a fixed top
+       offset (matches the reference's measured card position). */
+    align-items: flex-end;
+    /* Physical padding (not logical): 0 on the left flushes the card
+       against that edge in both languages -- see the file-level
+       comment for why this region stays physical. */
+    padding: 5.5rem 2rem 2.5rem 0;
+  }
+
+  .auth-page__form-panel[dir="ltr"] {
+    align-items: flex-start;
+  }
+}

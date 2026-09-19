@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- M9 exit criterion: "Reminders run automatically and have
+             traceable results." Runs as base.user_root (matching the
+             standard sms.ir_cron_sms_scheduler_action convention
+             verified in .odoo-core/addons/sms/data/ir_cron_data.xml),
+             since it must scan every training day/enrollment regardless
+             of any one admin's own record-rule scope; this is a system
+             automation, not a user action. All eligibility/duplicate
+             -prevention/retry logic lives in
+             training.notification.log.cron_send_reminders(); nothing
+             here is business logic. -->
+        <record id="ir_cron_training_notification_reminders" model="ir.cron">
+            <field name="name">Training Management: Send Daily Task Reminders</field>
+            <field name="model_id" ref="model_training_notification_log"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_send_reminders()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>
