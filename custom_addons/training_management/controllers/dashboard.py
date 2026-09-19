@@ -20,19 +20,19 @@ class OperationalDashboardController(http.Controller):
     @handle_api_errors
     def trainee_dashboard(self, request_id, **kwargs):
         self._require_role("trainee")
-        days = request.env["training.day"].get_dashboard("trainee")
-        return api_response(data={"days": days}, request_id=request_id)
+        summary = request.env["training.day"].get_dashboard_summary("trainee")
+        return api_response(data=summary, request_id=request_id)
 
     @http.route("/api/v1/dashboard/supervisor", type="json2", auth="user", methods=["GET"])
     @handle_api_errors
     def supervisor_dashboard(self, request_id, **kwargs):
         self._require_role("supervisor")
-        days = request.env["training.day"].get_dashboard("supervisor")
-        return api_response(data={"days": days}, request_id=request_id)
+        summary = request.env["training.day"].get_dashboard_summary("supervisor")
+        return api_response(data=summary, request_id=request_id)
 
     @http.route("/api/v1/dashboard/trainer", type="json2", auth="user", methods=["GET"])
     @handle_api_errors
     def trainer_dashboard(self, request_id, **kwargs):
         self._require_role("trainer")
-        days = request.env["training.day"].get_dashboard("trainer")
-        return api_response(data={"days": days}, request_id=request_id)
+        summary = request.env["training.day"].get_dashboard_summary("trainer")
+        return api_response(data=summary, request_id=request_id)

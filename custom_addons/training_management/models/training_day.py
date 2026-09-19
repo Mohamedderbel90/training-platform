@@ -540,13 +540,101 @@ class TrainingDay(models.Model):
         days = self.with_user(user).search([], order="date desc, start_datetime desc")
         return [day._build_dashboard_entry(role, user) for day in days]
 
+    def get_dashboard_summary(self, role, user=None):
+        """Dashboard home aggregates (welcome/stat-card/next-session
+        blocks): the same ``days`` list get_dashboard() already returns,
+        plus a "current program" snapshot, plain counts derived from it,
+        and the nearest upcoming session -- all computed from data
+        already scoped by the M1 record rules, with no new stored KPI
+        and no formula duplicated out of training.analytics (M5 point
+        7/8). ``program``/``stats``/``next_session`` are None when the
+        user has no accessible training days at all, never a misleading
+        zeroed-out block.
+        """
+        user = user or self.env.user
+        days = self.with_user(user).search([], order="date desc, start_datetime desc")
+        entries = [day._build_dashboard_entry(role, user) for day in days]
+
+        program = None
+        stats = None
+        next_session = None
+
+        if days:
+            today = fields.Date.context_today(self)
+            # `days` is ordered date desc, so within the filtered subset
+            # the nearest upcoming day is the LAST element, not the first.
+            upcoming = days.filtered(
+                lambda d: d.state in ("planned", "open") and d.date and d.date >= today
+            )
+            current_day = upcoming[-1] if upcoming else days[0]
+            current_program = current_day.course_id.program_id
+
+            if current_program:
+                program_days = days.filtered(
+                    lambda d: d.course_id.program_id.id == current_program.id
+                )
+                training_days_count = len(program_days)
+                closed_count = len(
+                    program_days.filtered(lambda d: d.state == "closed")
+                )
+                training_hours = sum(
+                    (d.end_datetime - d.start_datetime).total_seconds() / 3600.0
+                    for d in program_days
+                    if d.start_datetime and d.end_datetime
+                )
+                stats = {
+                    "courses_count": len(program_days.mapped("course_id")),
+                    "training_days_count": training_days_count,
+                    "training_hours": round(training_hours, 1),
+                    "progress_percent": (
+                        round((closed_count / training_days_count) * 100.0, 1)
+                        if training_days_count
+                        else None
+                    ),
+                }
+                program = {
+                    "id": current_program.id,
+                    "name": current_program.name,
+                    "start_date": fields.Date.to_string(current_program.start_date),
+                    "end_date": fields.Date.to_string(current_program.end_date),
+                }
+
+            if upcoming:
+                next_session = current_day._build_dashboard_entry(role, user)
+                # Trainer identity is ordinary scheduling info (who is
+                # teaching a given day), not a sensitive survey answer,
+                # so it is safe to expose to every role viewing the day.
+                next_session["trainers"] = [
+                    {"id": trainer.id, "name": trainer.name}
+                    for trainer in current_day.trainer_ids
+                ]
+
+        return {
+            "days": entries,
+            "program": program,
+            "stats": stats,
+            "next_session": next_session,
+        }
+
     def _build_dashboard_entry(self, role, user):
         self.ensure_one()
         entry = {
             "training_day_id": self.id,
+            "course_id": self.course_id.id,
+            "program_id": self.course_id.program_id.id,
             "date": fields.Date.to_string(self.date) if self.date else None,
             "course_name": self.course_id.name,
             "program_name": self.course_id.program_id.name,
+            "start_datetime": (
+                fields.Datetime.to_string(self.start_datetime)
+                if self.start_datetime
+                else None
+            ),
+            "end_datetime": (
+                fields.Datetime.to_string(self.end_datetime)
+                if self.end_datetime
+                else None
+            ),
             "state": self.state,
             "survey_open_at": (
                 fields.Datetime.to_string(self.survey_open_at)

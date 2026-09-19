@@ -5,17 +5,24 @@ import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { getPrimaryRole, ROLE_HOME } from "@/lib/auth/roleHome";
+import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
 import type { OperationalRole } from "@/lib/api/types";
 import { BrandMark } from "@/components/BrandMark";
-import { ClipboardIcon, HomeIcon, LogoutIcon, MenuIcon, UsersIcon } from "@/components/icons";
+import { ProgramInfoBox } from "@/components/dashboard/ProgramInfoBox";
+import {
+  CalendarIcon,
+  ClipboardIcon,
+  HomeIcon,
+  LogoutIcon,
+  MenuIcon,
+  UsersIcon,
+} from "@/components/icons";
 
-const NAV_BY_ROLE: Record<
-  OperationalRole,
-  { href: string; key: string; icon: typeof HomeIcon }
-> = {
-  trainee: { href: "/trainee", key: "trainee", icon: HomeIcon },
-  supervisor: { href: "/supervisor", key: "supervisor", icon: UsersIcon },
-  trainer: { href: "/trainer", key: "trainer", icon: ClipboardIcon },
+const ROLE_ICON: Record<OperationalRole, typeof HomeIcon> = {
+  trainee: HomeIcon,
+  supervisor: UsersIcon,
+  trainer: ClipboardIcon,
 };
 
 function initialsOf(name: string) {
@@ -25,15 +32,14 @@ function initialsOf(name: string) {
   return (first + last).toUpperCase();
 }
 
-/** Global app shell (M5 point 3): brand, role-based nav, locale
- * switch, and the user/session menu. Mounted once in the locale
- * layout so every page gets consistent chrome, loading affordances
- * excepted (each page renders its own body content into <main>).
- *
- * Nav links exist exactly once in the DOM (`.app-sidebar`); CSS
- * alone repositions that single element as a persistent sidebar on
- * desktop and as an off-canvas drawer (driven by `navOpen`/`data-open`)
- * on narrow viewports, avoiding duplicated links/landmarks. */
+/** Global app shell (M5 point 3): brand, role-based nav ("Dashboard" +
+ * "Training Days" per operational role the user holds, plus Logout),
+ * the shared header (current-program box, locale switch, user
+ * identity), and the sidebar's decorative bottom illustration. Mounted
+ * once in the locale layout so every authenticated page gets
+ * consistent chrome; the approved Login page (see noor-login/README.md)
+ * opts out entirely via the bare branch below and is never touched by
+ * anything here. */
 export function AppShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("Common");
   const tNav = useTranslations("Nav");
@@ -43,8 +49,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { status, profile, roles, logout } = useAuth();
   const [navOpen, setNavOpen] = useState(false);
 
-  const navItems = roles.map((role) => NAV_BY_ROLE[role]).filter(Boolean);
-  const hasNav = status === "authenticated" && navItems.length > 0;
+  const hasNav = status === "authenticated" && roles.length > 0;
+  const primaryRole = getPrimaryRole(roles);
+  const { data: dashboard } = useDashboardSummary(hasNav ? primaryRole : null);
 
   const handleLogout = async () => {
     await logout();
@@ -87,35 +94,53 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {hasNav ? (
         <aside className="app-sidebar" data-open={navOpen}>
-          <div className="app-sidebar__brand">
-            <span className="brand">
-              <span className="brand__mark">
+          <div className="app-sidebar__content">
+            <div className="app-sidebar__brand">
+              <span className="app-sidebar__brand-mark">
                 <BrandMark />
               </span>
-              <span className="brand__name">{t("appName")}</span>
-            </span>
+              <span className="app-sidebar__brand-name">{t("appName")}</span>
+              <span className="app-sidebar__brand-tagline">{t("appTagline")}</span>
+            </div>
+            <nav
+              id="app-nav"
+              className="app-sidebar__nav"
+              aria-label={tNav("primaryNavigation")}
+            >
+              {roles.map((role) => {
+                const RoleIcon = ROLE_ICON[role];
+                const home = ROLE_HOME[role];
+                const roleLabel = roles.length > 1 ? tNav(`roleLabel.${role}`) : null;
+                return (
+                  <div className="app-sidebar__nav-group" key={role}>
+                    <Link
+                      href={home}
+                      className="nav-link"
+                      aria-current={pathname === home ? "page" : undefined}
+                      onClick={() => setNavOpen(false)}
+                    >
+                      <RoleIcon className="nav-link__icon" />
+                      {roleLabel ? `${tNav("dashboard")} · ${roleLabel}` : tNav("dashboard")}
+                    </Link>
+                    <Link
+                      href={`${home}/days`}
+                      className="nav-link"
+                      aria-current={pathname === `${home}/days` ? "page" : undefined}
+                      onClick={() => setNavOpen(false)}
+                    >
+                      <CalendarIcon className="nav-link__icon" />
+                      {roleLabel ? `${tNav("trainingDays")} · ${roleLabel}` : tNav("trainingDays")}
+                    </Link>
+                  </div>
+                );
+              })}
+            </nav>
+            <button type="button" className="nav-link nav-link--action" onClick={handleLogout}>
+              <LogoutIcon className="nav-link__icon" />
+              {t("logout")}
+            </button>
           </div>
-          <nav
-            id="app-nav"
-            className="app-sidebar__nav"
-            aria-label={tNav("primaryNavigation")}
-          >
-            {navItems.map((item) => {
-              const ItemIcon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="nav-link"
-                  aria-current={pathname === item.href ? "page" : undefined}
-                  onClick={() => setNavOpen(false)}
-                >
-                  <ItemIcon className="nav-link__icon" />
-                  {tNav(item.key)}
-                </Link>
-              );
-            })}
-          </nav>
+          <div className="app-sidebar__decor" aria-hidden="true" />
         </aside>
       ) : null}
 
@@ -141,9 +166,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <span className="brand__name">{t("appName")}</span>
               </span>
             )}
-          </div>
-
-          <div className="app-topbar__actions">
             <nav className="locale-switch" aria-label={t("languageSwitchLabel")}>
               {routing.locales.map((candidate) => (
                 <Link
@@ -161,17 +183,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <span className="user-menu__avatar" aria-hidden="true">
                   {initialsOf(profile.name)}
                 </span>
-                <span className="user-menu__name">{profile.name}</span>
-                <button
-                  type="button"
-                  className="button button--secondary"
-                  onClick={handleLogout}
-                >
-                  <LogoutIcon />
-                  {t("logout")}
-                </button>
+                <span className="user-menu__details">
+                  <span className="user-menu__name">{profile.name}</span>
+                  {primaryRole ? (
+                    <span className="user-menu__role">{tNav(`roleLabel.${primaryRole}`)}</span>
+                  ) : null}
+                </span>
               </div>
             ) : null}
+          </div>
+
+          <div className="app-topbar__end">
+            <ProgramInfoBox program={dashboard?.program ?? null} />
           </div>
         </header>
         <main id="main-content" className="app-main">

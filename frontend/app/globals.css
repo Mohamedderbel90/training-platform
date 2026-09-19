@@ -46,6 +46,8 @@
   --color-success-bg: #e7f2ea;
   --color-warning-text: #7d5a12;
   --color-warning-bg: #f8efd9;
+  --color-info-text: #2b5f8a;
+  --color-info-bg: #e7f0f8;
   --focus-ring: #153f38;
 
   /* ---- elevation (kept deliberately subtle -- no oversized shadows) ---- */
@@ -107,6 +109,8 @@
     --color-success-bg: #123424;
     --color-warning-text: #f0cc7e;
     --color-warning-bg: #362b10;
+    --color-info-text: #8fc1e8;
+    --color-info-bg: #16283a;
     --focus-ring: #5fbba0;
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
@@ -246,17 +250,25 @@ p {
   z-index: 20;
 }
 
+/* `__start` sits at the sidebar's inline-start edge (M5 point 3): the
+ * mobile nav toggle, locale switch, and user identity all live here,
+ * closest to the sidebar -- matching the approved reference's layout
+ * (mirrored automatically for LTR by `inset-inline-start` on the
+ * sidebar itself, no separate rule needed here). `__end` holds the
+ * current-program box, at the far edge from the sidebar. */
 .app-topbar__start {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.app-topbar__end {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   min-width: 0;
-}
-
-.app-topbar__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
 }
 
 /* ---- brand mark ---- */
@@ -315,10 +327,24 @@ p {
   flex-direction: column;
   background: var(--color-surface);
   border-inline-end: 1px solid var(--color-border);
-  padding: var(--space-5) var(--space-4);
   box-shadow: var(--shadow-lg);
   transform: translateX(-100%);
   transition: transform var(--transition-base);
+  overflow: hidden;
+}
+
+/* Content sits in its own stacking context above `.app-sidebar__decor`
+ * (see below) regardless of DOM/paint order, and scrolls independently
+ * if the nav list ever grows taller than the viewport. */
+.app-sidebar__content {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-6) var(--space-4) var(--space-5);
+  overflow-y: auto;
 }
 
 html[dir="rtl"] .app-sidebar {
@@ -347,41 +373,57 @@ html[dir="rtl"] .app-sidebar[data-open="true"] {
 }
 
 .app-sidebar__brand {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius);
-  background: linear-gradient(150deg, var(--color-primary) 0%, var(--color-primary-active) 100%);
-  color: var(--color-primary-contrast);
-  padding: var(--space-5) var(--space-4);
-  margin-bottom: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2) var(--space-6);
+  margin-bottom: var(--space-4);
 }
 
-.app-sidebar__brand .brand {
-  color: inherit;
-  position: relative;
-  z-index: 1;
+.app-sidebar__brand-mark {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  color: var(--color-primary);
+  margin-bottom: var(--space-1);
 }
 
-.app-sidebar__brand .brand__mark {
-  background: rgba(255, 255, 255, 0.16);
-  box-shadow: none;
+.app-sidebar__brand-mark svg {
+  width: 100%;
+  height: 100%;
 }
 
-.app-sidebar__brand .brand__name small {
-  color: rgba(255, 255, 255, 0.75);
+.app-sidebar__brand-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.app-sidebar__brand-tagline {
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  max-width: 13rem;
 }
 
 .app-sidebar__nav {
   display: flex;
   flex-direction: column;
+  gap: var(--space-4);
+}
+
+.app-sidebar__nav-group {
+  display: flex;
+  flex-direction: column;
   gap: var(--space-1);
 }
 
-.app-sidebar__footer {
-  margin-top: auto;
-  padding-top: var(--space-4);
-  color: var(--color-text-subtle);
-  font-size: 0.78rem;
+/* The decorative illustration owns the lower part of the sidebar
+ * uncontested (M5 point 4), so the nav block above it does not need to
+ * stretch to fill the remaining height. */
+.app-sidebar__content > .nav-link--action {
+  margin-top: var(--space-6);
 }
 
 /* ---- nav links (shared shape for sidebar + mobile drawer) ---- */
@@ -390,13 +432,24 @@ html[dir="rtl"] .app-sidebar[data-open="true"] {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: 0.65rem var(--space-3);
-  border-radius: var(--radius-sm);
+  padding: 0.7rem var(--space-3);
+  border-radius: var(--radius);
   text-decoration: none;
   color: var(--color-text-muted);
   font-size: 0.94rem;
   font-weight: 600;
   transition: background var(--transition-base), color var(--transition-base);
+}
+
+/* `.nav-link--action` (Logout) is a real <button>, not a <Link>; reset
+ * its native button chrome so it matches the link rows exactly. */
+button.nav-link {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
 }
 
 .nav-link:hover {
@@ -405,14 +458,45 @@ html[dir="rtl"] .app-sidebar[data-open="true"] {
 }
 
 .nav-link[aria-current="page"] {
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  box-shadow: var(--shadow-sm);
 }
 
 .nav-link__icon {
   inline-size: 1.2rem;
   block-size: 1.2rem;
   flex-shrink: 0;
+}
+
+/* ---- sidebar decorative illustration (M5 point 4) ----
+ * `bg-sidebar.png` is a tall poster-style asset whose usable art (the
+ * mosque/garden scene) sits in its lower ~2/3; the upper third is an
+ * unrelated generation artifact. Anchoring the image to the bottom of
+ * a shorter, `overflow: hidden` box crops that artifact off without
+ * stretching, mirroring, or flipping the asset itself -- the aspect
+ * ratio is preserved exactly via `aspect-ratio` on the inner layer. */
+.app-sidebar__decor {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 0;
+  height: 17rem;
+  max-height: 42%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.app-sidebar__decor::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  width: 100%;
+  aspect-ratio: 1024 / 1536;
+  background-image: url("/noor-login/bg-sidebar.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
 
 /* ---- mobile nav toggle ---- */
@@ -442,6 +526,12 @@ html[dir="rtl"] .app-sidebar[data-open="true"] {
   max-width: var(--content-max-width);
   margin-inline: auto;
   padding: var(--space-6) var(--space-4) var(--space-8);
+}
+
+/* The Dashboard home is a card grid, not a prose column -- it gets a
+ * wider ceiling than every other (text-column) authenticated page. */
+.app-main:has(> .dashboard) {
+  max-width: 72rem;
 }
 
 /* The login page (see AppShell.tsx's bare branch) is full-bleed --
@@ -546,15 +636,92 @@ html[dir="rtl"] .app-sidebar[data-open="true"] {
   flex-shrink: 0;
 }
 
+.user-menu__details {
+  display: none;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
 .user-menu__name {
   font-size: 0.88rem;
-  font-weight: 600;
-  display: none;
+  font-weight: 700;
+}
+
+.user-menu__role {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
 }
 
 @media (min-width: 560px) {
-  .user-menu__name {
-    display: inline;
+  .user-menu__details {
+    display: flex;
+  }
+}
+
+/* ---- header current-program box (M5 point 3 HEADER) ----
+ * Informational only -- no dropdown affordance, since the Operational
+ * API has no "switch program" endpoint to back one (see
+ * components/dashboard/ProgramInfoBox.tsx). */
+.program-info-box {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.5rem var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-muted);
+  max-width: 20rem;
+}
+
+.program-info-box__icon {
+  flex-shrink: 0;
+  inline-size: 2.1rem;
+  block-size: 2.1rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.program-info-box__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.program-info-box__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.program-info-box__name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.program-info-box__dates {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 767px) {
+  .program-info-box__dates {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .program-info-box {
+    display: none;
   }
 }
 
@@ -866,6 +1033,12 @@ html[dir="rtl"] .app-sidebar[data-open="true"] {
   border-color: transparent;
 }
 
+.badge--info {
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+  border-color: transparent;
+}
+
 /* ------------------------- page header ------------------------- */
 
 .page-header {
@@ -1061,6 +1234,362 @@ table.data-table {
   color: var(--color-primary);
   font-weight: 600;
   margin-bottom: var(--space-5);
+}
+
+.dashboard-note {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* =====================================================================
+   Dashboard home -- approved design (noor-login/README.md's dashboard
+   reference). `.dashboard` widens past the app's normal
+   `--content-max-width` prose column since this page is a card grid,
+   not text.
+   ===================================================================== */
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.dashboard-note-card {
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 860px) {
+  .dashboard-grid {
+    grid-template-columns: 1.4fr 1fr;
+  }
+
+  .dashboard-grid--wide-first {
+    grid-template-columns: 1fr 1.2fr;
+  }
+}
+
+/* ---- welcome banner ---- */
+
+.welcome-banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 13rem) 1fr;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  min-height: 11rem;
+}
+
+.welcome-banner__image {
+  background-image: url("/noor-login/quran-photo.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
+.welcome-banner__body {
+  background: linear-gradient(155deg, var(--color-primary) 0%, var(--color-primary-active) 100%);
+  color: var(--color-primary-contrast);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.welcome-banner__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.welcome-banner__title-icon {
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
+
+.welcome-banner__subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 34rem;
+}
+
+.welcome-banner__quote {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: flex-start;
+  margin: var(--space-2) 0 0;
+  padding: 0.6rem var(--space-4);
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .welcome-banner {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-banner__image {
+    display: none;
+  }
+}
+
+/* ---- stat cards ---- */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .stat-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat-card {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-5) var(--space-4);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.stat-card__icon {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-card__icon--primary {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.stat-card__icon--accent {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-contrast);
+}
+
+.stat-card__value {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.stat-card__label {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.stat-card__ring {
+  position: absolute;
+  top: var(--space-4);
+  inset-inline-end: var(--space-4);
+  inline-size: 1.9rem;
+  block-size: 1.9rem;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--color-primary) var(--stat-ring-value, 0%),
+    var(--color-border) 0
+  );
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
+}
+
+/* ---- upcoming session card ---- */
+
+.upcoming-session__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.upcoming-session__body {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.upcoming-session__date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  flex-shrink: 0;
+  min-width: 6.5rem;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  text-align: center;
+}
+
+.upcoming-session__weekday {
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
+.upcoming-session__day {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.upcoming-session__month {
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
+.upcoming-session__info {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.upcoming-session__fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* ---- task list ---- */
+
+.task-list__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.task-list__header .card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.task-list__view-all {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.task-list__view-all:hover {
+  text-decoration: underline;
+}
+
+.task-list__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.task-list__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.task-list__link:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.task-list__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.task-list__label {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.task-list__course {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+/* ---- quick stats mini bar chart ---- */
+
+.quick-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.quick-stats__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.quick-stats__bar-track {
+  width: 2.25rem;
+  height: 6rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.quick-stats__bar-fill {
+  width: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: height var(--transition-base);
+}
+
+.quick-stats__label {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.quick-stats__value {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
 /* =====================================================================

@@ -1,20 +1,46 @@
 "use client";
 
-import { useCallback } from "react";
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
-import { dashboardApi } from "@/lib/api/endpoints";
-import { useApiResource } from "@/lib/api/useApiResource";
-import { LoadingState, EmptyState } from "@/components/StateViews";
+import { useAuth } from "@/lib/auth/AuthContext";
+import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
+import {
+  buildTasks,
+  closedDaysRatio,
+  completedCoursesRatio,
+  daysForProgram,
+  submittedSurveyRatio,
+} from "@/lib/dashboard/derive";
+import { LoadingState } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
-import { DayCard, SurveyAvailabilityBadge } from "@/components/DayCard";
-import { PageHeader } from "@/components/PageHeader";
+import { SurveyAvailabilityBadge } from "@/components/DayCard";
+import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
+import { StatCards } from "@/components/dashboard/StatCards";
+import { UpcomingSessionCard } from "@/components/dashboard/UpcomingSessionCard";
+import { TaskList } from "@/components/dashboard/TaskList";
+import { QuickStatsBars } from "@/components/dashboard/QuickStatsBars";
 
 function TrainerDashboardContent() {
   const t = useTranslations("Dashboard");
-  const fetcher = useCallback((loc: string) => dashboardApi.get("trainer", loc), []);
-  const { data, status, error, reload } = useApiResource(fetcher);
+  const { profile } = useAuth();
+  const { data, status, error, reload } = useDashboardSummary("trainer");
+
+  const programDays = useMemo(
+    () => daysForProgram(data?.days ?? [], data?.program?.id),
+    [data],
+  );
+  const tasks = useMemo(
+    () =>
+      buildTasks(
+        programDays,
+        (day) => day.trainer_report,
+        (day) => `/trainer/${day.training_day_id}`,
+        "taskReportRequired",
+      ),
+    [programDays],
+  );
 
   if (status === "loading") {
     return <LoadingState label={t("loading")} />;
@@ -22,28 +48,54 @@ function TrainerDashboardContent() {
   if (status === "error" && error) {
     return <ApiErrorView error={error} onRetry={reload} />;
   }
-  const days = data?.days ?? [];
+
+  const nextEntry = data?.next_session ?? null;
 
   return (
-    <div>
-      <PageHeader title={<h1>{t("trainerTitle")}</h1>} />
-      {days.length === 0 ? (
-        <EmptyState title={t("emptyTitle")} message={t("emptyTrainerMessage")} />
-      ) : (
-        <div className="card-list">
-          {days.map((entry) => (
-            <DayCard key={entry.training_day_id} entry={entry}>
-              <SurveyAvailabilityBadge availability={entry.trainer_report} />
-              <Link className="button button--secondary" href={`/trainer/${entry.training_day_id}`}>
-                {entry.trainer_report?.response?.state === "submitted"
+    <div className="dashboard">
+      <WelcomeBanner name={profile?.name ?? ""} subtitleKey="welcomeSubtitleTrainer" />
+      <StatCards stats={data?.stats ?? null} />
+      <div className="dashboard-grid">
+        <UpcomingSessionCard
+          entry={nextEntry}
+          statusBadge={
+            nextEntry ? <SurveyAvailabilityBadge availability={nextEntry.trainer_report} /> : null
+          }
+          action={
+            nextEntry ? (
+              <Link className="button" href={`/trainer/${nextEntry.training_day_id}`}>
+                {nextEntry.trainer_report?.response?.state === "submitted"
                   ? t("viewReport")
                   : t("openReport")}
               </Link>
-            </DayCard>
-          ))}
-        </div>
-      )}
+            ) : null
+          }
+        />
+        <TaskList tasks={tasks} viewAllHref="/trainer/days" />
+      </div>
+      <div className="dashboard-grid dashboard-grid--wide-first">
+        <ProgramMessageNotice />
+        <QuickStatsBars
+          items={[
+            {
+              labelKey: "quickStatReports",
+              ratio: submittedSurveyRatio(programDays, (day) => day.trainer_report),
+            },
+            { labelKey: "quickStatDays", ratio: closedDaysRatio(programDays) },
+            { labelKey: "quickStatCourses", ratio: completedCoursesRatio(programDays) },
+          ]}
+        />
+      </div>
     </div>
+  );
+}
+
+function ProgramMessageNotice() {
+  const t = useTranslations("Dashboard");
+  return (
+    <section className="card dashboard-note-card">
+      <p className="card__meta">{t("programMessageUnavailable")}</p>
+    </section>
   );
 }
 

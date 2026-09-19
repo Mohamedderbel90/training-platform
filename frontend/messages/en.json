@@ -14,13 +14,18 @@
     "forbiddenTitle": "You don't have access to this page",
     "forbiddenMessage": "Your account doesn't have the role required to view this page.",
     "goToMyDashboard": "Go to my dashboard",
-    "retry": "Try again"
+    "retry": "Try again",
+    "appTagline": "A leadership development programme for women principals of Qur'an memorization schools"
   },
   "Nav": {
     "primaryNavigation": "Primary navigation",
-    "trainee": "My Dashboard",
-    "supervisor": "Supervisor",
-    "trainer": "Trainer"
+    "dashboard": "Dashboard",
+    "trainingDays": "Training Days",
+    "roleLabel": {
+      "trainee": "Trainee",
+      "supervisor": "Supervisor",
+      "trainer": "Trainer"
+    }
   },
   "Auth": {
     "title": "Welcome back",
@@ -84,7 +89,37 @@
     "viewReport": "View report",
     "attendanceProgress": "Attendance recorded: {recorded}/{total}",
     "attendanceComplete": "Complete",
-    "manageAttendance": "Manage attendance"
+    "manageAttendance": "Manage attendance",
+    "welcomeBack": "Welcome back, {name}",
+    "welcomeSubtitleTrainee": "On your journey toward excellence in leading Qur'an memorization schools",
+    "welcomeSubtitleSupervisor": "On your journey toward supporting excellence in Qur'an memorization schools",
+    "welcomeSubtitleTrainer": "On your journey toward enriching the training experience in Qur'an memorization schools",
+    "welcomeQuote": "“And say, My Lord, increase me in knowledge.”",
+    "listSeparator": ", ",
+    "statHours": "Training hours",
+    "statDays": "Training days",
+    "statCourses": "Specialized courses",
+    "statProgress": "Completion rate",
+    "statProgressUnavailable": "—",
+    "statsUnavailable": "Not enough data about the current program yet.",
+    "upcomingSessionTitle": "Upcoming training day",
+    "noUpcomingSessionMessage": "You have no upcoming training days right now.",
+    "tasksTitle": "Current tasks",
+    "tasksViewAll": "View all",
+    "tasksEmptyMessage": "No pending tasks right now.",
+    "taskRequiredBadge": "Required",
+    "taskUpcomingBadge": "Upcoming",
+    "taskSurveyRequired": "Complete the training day survey",
+    "taskSupervisorSurveyRequired": "Complete the supervisor survey",
+    "taskAttendanceRequired": "Record training day attendance",
+    "taskReportRequired": "Complete the training day report",
+    "quickStatsTitle": "Quick statistics",
+    "quickStatSurveys": "Surveys",
+    "quickStatReports": "Reports",
+    "quickStatDays": "Completed days",
+    "quickStatCourses": "Courses",
+    "programCurrentLabel": "Current program",
+    "programMessageUnavailable": "No messages or announcements from the program administration are available through this system yet."
   },
   "Survey": {
     "loadingSurvey": "Loading survey...",

@@ -14,13 +14,18 @@
     "forbiddenTitle": "لا تملكين صلاحية الوصول إلى هذه الصفحة",
     "forbiddenMessage": "حسابك لا يملك الدور المطلوب لعرض هذه الصفحة.",
     "goToMyDashboard": "الذهاب إلى لوحتي",
-    "retry": "إعادة المحاولة"
+    "retry": "إعادة المحاولة",
+    "appTagline": "برنامج تطوير مديرات المدارس النسائية لتحفيظ القرآن الكريم"
   },
   "Nav": {
     "primaryNavigation": "التنقل الرئيسي",
-    "trainee": "لوحتي",
-    "supervisor": "المشرفة",
-    "trainer": "المدربة"
+    "dashboard": "لوحة التحكم",
+    "trainingDays": "الأيام التدريبية",
+    "roleLabel": {
+      "trainee": "متدربة",
+      "supervisor": "مشرفة",
+      "trainer": "مدربة"
+    }
   },
   "Auth": {
     "title": "مرحباً بعودتكِ",
@@ -84,7 +89,37 @@
     "viewReport": "عرض التقرير",
     "attendanceProgress": "الحضور المسجَّل: {recorded}/{total}",
     "attendanceComplete": "مكتمل",
-    "manageAttendance": "إدارة الحضور"
+    "manageAttendance": "إدارة الحضور",
+    "welcomeBack": "مرحباً بك مجدداً يا {name}",
+    "welcomeSubtitleTrainee": "في رحلتك نحو التميز في قيادة مدارس تحفيظ القرآن الكريم",
+    "welcomeSubtitleSupervisor": "في رحلتك نحو دعم التميز في مدارس تحفيظ القرآن الكريم",
+    "welcomeSubtitleTrainer": "في رحلتك نحو إثراء تجربة التدريب في مدارس تحفيظ القرآن الكريم",
+    "welcomeQuote": "«وَقُل رَّبِّ زِدْنِي عِلْمًا»",
+    "listSeparator": "، ",
+    "statHours": "ساعة تدريبية",
+    "statDays": "يوماً تدريبياً",
+    "statCourses": "دورات متخصصة",
+    "statProgress": "نسبة الإنجاز",
+    "statProgressUnavailable": "—",
+    "statsUnavailable": "لا تتوفر بيانات كافية عن البرنامج الحالي بعد.",
+    "upcomingSessionTitle": "اليوم التدريبي القادم",
+    "noUpcomingSessionMessage": "لا توجد لديكِ أيام تدريبية قادمة حالياً.",
+    "tasksTitle": "المهام الحالية",
+    "tasksViewAll": "عرض الكل",
+    "tasksEmptyMessage": "لا توجد مهام معلّقة حالياً.",
+    "taskRequiredBadge": "مطلوب",
+    "taskUpcomingBadge": "قادم",
+    "taskSurveyRequired": "تعبئة استبيان اليوم التدريبي",
+    "taskSupervisorSurveyRequired": "تعبئة استبيان المشرفة لليوم التدريبي",
+    "taskAttendanceRequired": "تسجيل حضور اليوم التدريبي",
+    "taskReportRequired": "تعبئة تقرير اليوم التدريبي",
+    "quickStatsTitle": "إحصائيات سريعة",
+    "quickStatSurveys": "الاستبيانات",
+    "quickStatReports": "التقارير",
+    "quickStatDays": "الأيام المنجزة",
+    "quickStatCourses": "الدورات",
+    "programCurrentLabel": "البرنامج الحالي",
+    "programMessageUnavailable": "لا تتوفر حالياً رسائل أو إعلانات من إدارة البرنامج عبر هذا النظام."
   },
   "Survey": {
     "loadingSurvey": "جارٍ تحميل الاستبانة...",

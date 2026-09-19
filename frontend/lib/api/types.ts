@@ -111,11 +111,20 @@ export type TrainingDayState =
   | "postponed"
   | "cancelled";
 
+export interface DashboardEntryTrainerDto {
+  id: number;
+  name: string;
+}
+
 export interface DashboardEntryDto {
   training_day_id: number;
+  course_id: number;
+  program_id: number;
   date: string | null;
   course_name: string;
   program_name: string;
+  start_datetime: string | null;
+  end_datetime: string | null;
   state: TrainingDayState;
   survey_open_at: string | null;
   survey_close_at: string | null;
@@ -123,10 +132,38 @@ export interface DashboardEntryDto {
   survey?: SurveyAvailabilityDto; // trainee, supervisor
   attendance?: AttendanceSummaryDto; // supervisor only
   trainer_report?: SurveyAvailabilityDto; // trainer only
+  // Only present on `next_session` (see training_day.py
+  // `get_dashboard_summary`), never on the plain `days` list entries.
+  trainers?: DashboardEntryTrainerDto[];
+}
+
+/** The program a user's nearest upcoming (else most recent) training
+ * day belongs to -- there is no "select an active program" concept in
+ * the Operational API today, so this is informational only (M5 point
+ * 5B: "do not display a non-functional selector"). */
+export interface DashboardProgramDto {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+}
+
+/** Plain counts/derived ratios over that program's training.day
+ * records -- never a duplicated copy of a training.analytics formula
+ * (M5 point 7/8). `progress_percent` is null, not 0, when the program
+ * has no training days yet. */
+export interface DashboardStatsDto {
+  courses_count: number;
+  training_days_count: number;
+  training_hours: number;
+  progress_percent: number | null;
 }
 
 export interface DashboardResponseDto {
   days: DashboardEntryDto[];
+  program: DashboardProgramDto | null;
+  stats: DashboardStatsDto | null;
+  next_session: DashboardEntryDto | null;
 }
 
 export interface AttendanceListResponseDto {

@@ -171,6 +171,71 @@ export function ArrowIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function BookIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M10 5.3c-1.6-1-3.6-1.3-5.3-.8v10.2c1.7-.5 3.7-.2 5.3.8" />
+      <path d="M10 5.3c1.6-1 3.6-1.3 5.3-.8v10.2c-1.7-.5-3.7-.2-5.3.8Z" />
+      <path d="M10 5.3v10.5" />
+    </Icon>
+  );
+}
+
+export function CalendarIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <rect x="3.5" y="4.5" width="13" height="12" rx="1.8" />
+      <path d="M3.5 8.3h13M7 3v2.6M13 3v2.6" />
+    </Icon>
+  );
+}
+
+export function ClockIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <circle cx="10" cy="10" r="6.7" />
+      <path d="M10 6.3V10l2.8 1.7" />
+    </Icon>
+  );
+}
+
+export function TrendingUpIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M3.3 13.5 8 8.8l2.7 2.7 6-6" />
+      <path d="M13.2 5.5h3.5V9" />
+    </Icon>
+  );
+}
+
+export function PersonIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <circle cx="10" cy="6.8" r="2.9" />
+      <path d="M4 16.3c0-2.9 2.7-5 6-5s6 2.1 6 5" />
+    </Icon>
+  );
+}
+
+export function BellIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M5 14.5V9a5 5 0 0 1 10 0v5.5l1.3 1.7H3.7Z" />
+      <path d="M8.3 17.3a1.9 1.9 0 0 0 3.4 0" />
+    </Icon>
+  );
+}
+
+export function MegaphoneIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M3.3 8.2v3.6h2.3l6.4 3V5.2l-6.4 3Z" />
+      <path d="M12 6.7a4.2 4.2 0 0 1 0 6.6" />
+      <path d="M5.6 11.8v3.1a1.1 1.1 0 0 0 2.2 0v-1.9" />
+    </Icon>
+  );
+}
+
 export function LeafIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <Icon {...props}>

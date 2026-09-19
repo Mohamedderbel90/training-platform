@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import { renderWithIntl } from "./testUtils";
-import TrainerDashboardPage from "@/app/[locale]/trainer/page";
+import TrainerDashboardPage from "@/app/[locale]/trainer/days/page";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { dashboardApi } from "@/lib/api/endpoints";
 import { ApiError } from "@/lib/api/client";
-import type { DashboardEntryDto } from "@/lib/api/types";
+import type { DashboardEntryDto, DashboardResponseDto } from "@/lib/api/types";
 
 vi.mock("@/i18n/navigation", () => import("./mocks/i18nNavigation"));
 vi.mock("@/lib/auth/AuthContext", () => ({ useAuth: vi.fn() }));
@@ -25,9 +25,13 @@ function mockAuthenticated() {
 function makeEntry(overrides: Partial<DashboardEntryDto> = {}): DashboardEntryDto {
   return {
     training_day_id: 1,
+    course_id: 1,
+    program_id: 1,
     date: "2026-09-16",
     course_name: "Demo Course",
     program_name: "Demo Program",
+    start_datetime: null,
+    end_datetime: null,
     state: "open",
     survey_open_at: null,
     survey_close_at: null,
@@ -36,10 +40,14 @@ function makeEntry(overrides: Partial<DashboardEntryDto> = {}): DashboardEntryDt
   };
 }
 
+function makeSummary(days: DashboardEntryDto[]): DashboardResponseDto {
+  return { days, program: null, stats: null, next_session: null };
+}
+
 describe("Trainer dashboard", () => {
   it("shows a loading state, then renders assigned training days with an Open report link", async () => {
     mockAuthenticated();
-    vi.mocked(dashboardApi.get).mockResolvedValue({ days: [makeEntry()] });
+    vi.mocked(dashboardApi.get).mockResolvedValue(makeSummary([makeEntry()]));
 
     renderWithIntl(<TrainerDashboardPage />);
     expect(screen.getByText("Loading your training days...")).toBeInTheDocument();
@@ -55,8 +63,8 @@ describe("Trainer dashboard", () => {
 
   it("shows a View report link and the Submitted badge once the trainer's own report is final", async () => {
     mockAuthenticated();
-    vi.mocked(dashboardApi.get).mockResolvedValue({
-      days: [
+    vi.mocked(dashboardApi.get).mockResolvedValue(
+      makeSummary([
         makeEntry({
           trainer_report: {
             configured: true,
@@ -65,8 +73,8 @@ describe("Trainer dashboard", () => {
             reason: "already_submitted",
           },
         }),
-      ],
-    });
+      ]),
+    );
 
     renderWithIntl(<TrainerDashboardPage />);
 
@@ -76,7 +84,7 @@ describe("Trainer dashboard", () => {
 
   it("shows the empty-dashboard state when there are no assigned training days", async () => {
     mockAuthenticated();
-    vi.mocked(dashboardApi.get).mockResolvedValue({ days: [] });
+    vi.mocked(dashboardApi.get).mockResolvedValue(makeSummary([]));
 
     renderWithIntl(<TrainerDashboardPage />);
 
