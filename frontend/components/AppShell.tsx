@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
@@ -11,8 +12,10 @@ import type { OperationalRole } from "@/lib/api/types";
 import { BrandMark } from "@/components/BrandMark";
 import { ProgramInfoBox } from "@/components/dashboard/ProgramInfoBox";
 import {
+  BellIcon,
   CalendarIcon,
   ClipboardIcon,
+  GlobeIcon,
   HomeIcon,
   LogoutIcon,
   MenuIcon,
@@ -25,7 +28,15 @@ const ROLE_ICON: Record<OperationalRole, typeof HomeIcon> = {
   trainer: ClipboardIcon,
 };
 
-function initialsOf(name: string) {
+/** Public, unauthenticated screens that render their own full-bleed
+ * AuthPageShell chrome (brand, language switch, footer) and must never
+ * get the authenticated app's topbar/sidebar/footer layered on top. */
+const BARE_CHROME_PATHS = new Set(["/login", "/forgot-password", "/reset-password"]);
+
+/** Also used by the /profile page (PROJECT_SPEC section 9 "Shared"
+ * screens) for its own, larger avatar -- kept as a single
+ * implementation rather than a second copy. */
+export function initialsOf(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   const first = parts[0]?.[0] ?? "";
   const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
@@ -48,10 +59,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { status, profile, roles, logout } = useAuth();
   const [navOpen, setNavOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   const hasNav = status === "authenticated" && roles.length > 0;
   const primaryRole = getPrimaryRole(roles);
   const { data: dashboard } = useDashboardSummary(hasNav ? primaryRole : null);
+  const otherLocale = routing.locales.find((candidate) => candidate !== locale) ?? locale;
 
   const handleLogout = async () => {
     await logout();
@@ -61,9 +74,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // The approved login design (see noor-login/README.md) is a fully
   // immersive, edge-to-edge page with no app chrome of its own -- it
   // builds its own language switcher and footer. Showing the normal
-  // topbar above it would duplicate both. `pathname` here is already
-  // locale-agnostic (matches the plain "/trainee"-style hrefs above).
-  if (pathname === "/login") {
+  // topbar above it would duplicate both. The forgot/reset-password
+  // screens are the same unauthenticated public flow and reuse the
+  // identical AuthPageShell (see components/auth/AuthPageShell.tsx),
+  // so they opt out of app chrome the same way. `pathname` here is
+  // already locale-agnostic (matches the plain "/trainee"-style hrefs
+  // above).
+  if (BARE_CHROME_PATHS.has(pathname)) {
     return (
       <div className="app-shell">
         <a className="skip-link" href="#main-content">
@@ -96,8 +113,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <aside className="app-sidebar" data-open={navOpen}>
           <div className="app-sidebar__content">
             <div className="app-sidebar__brand">
-              <span className="app-sidebar__brand-mark">
-                <BrandMark />
+              <span className="app-sidebar__brand-mark" aria-hidden="true">
+                {/* Real brand mark (dome + open book emblem), matching the
+                 * approved reference -- see noor-login/README.md; this is
+                 * the same asset already used on the login page, not the
+                 * abstract star glyph. */}
+                <Image
+                  src="/noor-login/noor-logo-symbol-approx.png"
+                  alt=""
+                  width={624}
+                  height={496}
+                  priority
+                />
               </span>
               <span className="app-sidebar__brand-name">{t("appName")}</span>
               <span className="app-sidebar__brand-tagline">{t("appTagline")}</span>
@@ -140,7 +167,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {t("logout")}
             </button>
           </div>
-          <div className="app-sidebar__decor" aria-hidden="true" />
+          <div className="app-sidebar__decor" aria-hidden="true">
+            <p className="app-sidebar__decor-text">
+              {t("decorLine1")}
+              <br />
+              {t("decorLine2")}
+            </p>
+          </div>
         </aside>
       ) : null}
 
@@ -166,20 +199,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <span className="brand__name">{t("appName")}</span>
               </span>
             )}
-            <nav className="locale-switch" aria-label={t("languageSwitchLabel")}>
-              {routing.locales.map((candidate) => (
-                <Link
-                  key={candidate}
-                  href={pathname}
-                  locale={candidate}
-                  aria-current={candidate === locale}
-                >
-                  {t(`locale.${candidate}`)}
-                </Link>
-              ))}
-            </nav>
             {status === "authenticated" && profile ? (
-              <div className="user-menu">
+              <Link
+                href="/profile"
+                className="user-menu"
+                aria-current={pathname === "/profile" ? "page" : undefined}
+              >
                 <span className="user-menu__avatar" aria-hidden="true">
                   {initialsOf(profile.name)}
                 </span>
@@ -189,12 +214,48 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <span className="user-menu__role">{tNav(`roleLabel.${primaryRole}`)}</span>
                   ) : null}
                 </span>
-              </div>
+              </Link>
             ) : null}
+            <Link
+              href={pathname}
+              locale={otherLocale}
+              className="button button--ghost button--icon"
+              aria-label={t("switchToLocale", { locale: t(`locale.${otherLocale}`) })}
+            >
+              <GlobeIcon />
+            </Link>
+            <span className="icon-btn-wrap">
+              <button
+                type="button"
+                className="button button--ghost button--icon"
+                aria-expanded={notifOpen}
+                onClick={() => setNotifOpen((open) => !open)}
+              >
+                <BellIcon />
+                <span className="visually-hidden">{t("notifTitle")}</span>
+              </button>
+              {notifOpen ? (
+                <div className="notif-panel" role="dialog" aria-label={t("notifTitle")}>
+                  <p className="notif-panel__title">{t("notifTitle")}</p>
+                  {/* No notifications/activity-log model exists in the
+                   * Operational API yet -- an honest "not available" state
+                   * instead of fabricated demo notifications, matching the
+                   * Dashboard's own programMessageUnavailable pattern. */}
+                  <p className="card__meta">{t("notificationsUnavailable")}</p>
+                </div>
+              ) : null}
+            </span>
           </div>
 
+          {hasNav ? (
+            <div className="app-topbar__center">
+              <p className="topbar-bismillah">{t("bismillah")}</p>
+              <p className="topbar-bismillah__quote">{t("topbarQuote")}</p>
+            </div>
+          ) : null}
+
           <div className="app-topbar__end">
-            <ProgramInfoBox program={dashboard?.program ?? null} />
+            <ProgramInfoBox program={dashboard?.program ?? null} topbar />
           </div>
         </header>
         <main id="main-content" className="app-main">

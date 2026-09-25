@@ -238,10 +238,10 @@ p {
 .app-topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: normal;
   gap: var(--space-3);
   padding: 0 var(--space-5);
-  height: var(--topbar-height);
+  min-height: var(--topbar-height);
   background: color-mix(in srgb, var(--color-surface) 92%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--color-border);
@@ -251,24 +251,101 @@ p {
 }
 
 /* `__start` sits at the sidebar's inline-start edge (M5 point 3): the
- * mobile nav toggle, locale switch, and user identity all live here,
- * closest to the sidebar -- matching the approved reference's layout
- * (mirrored automatically for LTR by `inset-inline-start` on the
- * sidebar itself, no separate rule needed here). `__end` holds the
- * current-program box, at the far edge from the sidebar. */
+ * mobile nav toggle, user identity, language switch and notifications
+ * all live here, nearest-sidebar first -- matching the approved
+ * reference's layout (mirrored automatically for LTR by
+ * `inset-inline-start` on the sidebar itself, no separate rule needed
+ * here). It never loses room to the centered Bismillah. `__center`
+ * holds the Bismillah/quote and is allowed to shrink first; `__end`
+ * holds the current-program box, at the far edge from the sidebar. */
 .app-topbar__start {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
+  flex: 0 0 auto;
   min-width: 0;
   flex-wrap: wrap;
+}
+
+.app-topbar__center {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  padding: 0 var(--space-3);
+}
+
+.topbar-bismillah {
+  margin: 0;
+  font-family: "Amiri", var(--font-arabic);
+  font-weight: 700;
+  font-size: 1.7rem;
+  color: var(--color-primary);
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.topbar-bismillah__quote {
+  margin: 0.1rem 0 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+@media (max-width: 767px) {
+  .app-topbar__center {
+    display: none;
+  }
+}
+
+@media (min-width: 1180px) and (max-width: 1535.98px) {
+  .topbar-bismillah {
+    font-size: 1.4rem;
+  }
+  .topbar-bismillah__quote {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 1179.98px) {
+  .topbar-bismillah {
+    font-size: 1.15rem;
+  }
+  .topbar-bismillah__quote {
+    font-size: 0.74rem;
+  }
 }
 
 .app-topbar__end {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  flex: 0 1 auto;
   min-width: 0;
+}
+
+.icon-btn-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  inset-inline-end: 0;
+  z-index: 40;
+  width: 16rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-4);
+}
+
+.notif-panel__title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin: 0 0 var(--space-2);
 }
 
 /* ---- brand mark ---- */
@@ -325,7 +402,9 @@ p {
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--color-surface);
+  /* Near-white warm surface (measured off the approved reference),
+   * not the flat white `--color-surface` cards use. */
+  background: var(--color-bg);
   border-inline-end: 1px solid var(--color-border);
   box-shadow: var(--shadow-lg);
   transform: translateX(-100%);
@@ -378,20 +457,26 @@ html[dir="rtl"] .app-sidebar[data-open="true"] {
   align-items: center;
   text-align: center;
   gap: var(--space-1);
-  padding: 0 var(--space-2) var(--space-6);
-  margin-bottom: var(--space-4);
+  /* The reference has the nav start immediately below the tagline. */
+  padding: 0 var(--space-2) var(--space-3);
+  margin-bottom: 0;
 }
 
+/* Sized to match the reference's proportions (natural 624:496 aspect,
+ * ~40% of the sidebar width) for the real logo raster (see
+ * AppShell.tsx), not the smaller generic-icon box a placeholder glyph
+ * used. */
 .app-sidebar__brand-mark {
-  inline-size: 2.75rem;
-  block-size: 2.75rem;
-  color: var(--color-primary);
-  margin-bottom: var(--space-1);
+  inline-size: 6.5rem;
+  block-size: auto;
+  margin-bottom: var(--space-2);
 }
 
+.app-sidebar__brand-mark img,
 .app-sidebar__brand-mark svg {
+  display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
 }
 
 .app-sidebar__brand-name {
@@ -410,13 +495,21 @@ html[dir="rtl"] .app-sidebar[data-open="true"] {
 .app-sidebar__nav {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-5);
 }
 
 .app-sidebar__nav-group {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
+}
+
+/* Divider between the role nav groups, matching the approved reference
+ * (a multi-role user's per-role groups read as visually distinct
+ * sections, not just extra gap). */
+.app-sidebar__nav-group + .app-sidebar__nav-group {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
 }
 
 /* The decorative illustration owns the lower part of the sidebar
@@ -426,18 +519,22 @@ html[dir="rtl"] .app-sidebar[data-open="true"] {
   margin-top: var(--space-6);
 }
 
-/* ---- nav links (shared shape for sidebar + mobile drawer) ---- */
-
+/* ---- nav links (shared shape for sidebar + mobile drawer) ----
+ * Reference nav items use the dark brand green for icon+label (not a
+ * muted gray), a noticeably larger icon, more breathing room between
+ * icon and label than a generic list row, and a lighter font-weight
+ * than a typical active-state 600. */
 .nav-link {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 2.25rem;
   padding: 0.7rem var(--space-3);
+  padding-inline-start: 2rem;
   border-radius: var(--radius);
   text-decoration: none;
-  color: var(--color-text-muted);
+  color: var(--color-primary);
   font-size: 0.94rem;
-  font-weight: 600;
+  font-weight: 500;
   transition: background var(--transition-base), color var(--transition-base);
 }
 
@@ -457,15 +554,30 @@ button.nav-link {
   color: var(--color-text);
 }
 
+/* Soft pale-green pill with a slim trailing accent bar, matching the
+ * reference -- lighter than a solid filled active state. */
 .nav-link[aria-current="page"] {
+  position: relative;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.nav-link[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.6rem;
+  inset-inline-end: 0.3rem;
+  inline-size: 0.2rem;
+  border-radius: 999px;
   background: var(--color-primary);
-  color: var(--color-primary-contrast);
-  box-shadow: var(--shadow-sm);
+  opacity: 0.75;
 }
 
 .nav-link__icon {
-  inline-size: 1.2rem;
-  block-size: 1.2rem;
+  inline-size: 1.4rem;
+  block-size: 1.4rem;
   flex-shrink: 0;
 }
 
@@ -485,6 +597,30 @@ button.nav-link {
   max-height: 42%;
   overflow: hidden;
   pointer-events: none;
+}
+
+/* "بالعلم نبني جيلاً / بكتاب الله" overlay, matching the approved
+ * reference -- positioned over the illustration's arch. */
+.app-sidebar__decor-text {
+  position: absolute;
+  inset-inline: 4%;
+  top: 33%;
+  z-index: 1;
+  margin: 0;
+  text-align: center;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  pointer-events: none;
+}
+
+/* The English translation runs noticeably longer than the Arabic
+ * original; step the size down so its widest wrapped line still fits
+ * the illustration's arch without clipping against the overflow-hidden
+ * decor box. */
+html[dir="ltr"] .app-sidebar__decor-text {
+  font-size: 0.76rem;
 }
 
 .app-sidebar__decor::after {
@@ -561,6 +697,8 @@ button.nav-link {
   .app-shell--with-sidebar .app-sidebar,
   html[dir="rtl"] .app-shell--with-sidebar .app-sidebar {
     position: sticky;
+    top: 0;
+    align-self: flex-start;
     width: var(--sidebar-width);
     box-shadow: none;
     transform: none;
@@ -590,36 +728,22 @@ button.nav-link {
   }
 }
 
-/* ---- locale switch + user menu ---- */
-
-.locale-switch {
-  display: flex;
-  gap: 2px;
-  background: var(--color-surface-muted);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 2px;
-}
-
-.locale-switch a {
-  padding: 0.32rem 0.75rem;
-  border-radius: 999px;
-  text-decoration: none;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  transition: background var(--transition-base), color var(--transition-base);
-}
-
-.locale-switch a[aria-current="true"] {
-  background: var(--color-primary);
-  color: var(--color-primary-contrast);
-}
+/* ---- user menu ----
+ * Static identity display, not a dropdown (matches the approved
+ * header, which drops the toggle chevron this used to imply). */
 
 .user-menu {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius);
+}
+
+.user-menu:hover .user-menu__avatar {
+  background: var(--color-accent);
 }
 
 .user-menu__avatar {
@@ -698,6 +822,45 @@ button.nav-link {
   color: var(--color-text-subtle);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+/* Tracked-capitals letter-spacing is meant for Latin text; on Arabic
+ * script it pries connected letterforms apart, so it's neutralized. */
+html[dir="rtl"] .program-info-box__label {
+  letter-spacing: normal;
+}
+
+/* Header-only variant (M5 point 3 HEADER): the icon tile is dropped in
+ * favor of a trailing chevron (per the approved reference), the box
+ * shrinks progressively before the centered Bismillah gives up any of
+ * its own room, and Arabic/English get different width ceilings since
+ * Arabic's label/name/date column is consistently narrower. */
+.program-info-box--topbar {
+  gap: var(--space-2);
+}
+
+.program-info-box__chevron {
+  flex-shrink: 0;
+  margin-inline-start: 0.2rem;
+  color: var(--color-text-subtle);
+}
+
+@media (min-width: 1180px) and (max-width: 1535.98px) {
+  .program-info-box--topbar {
+    max-width: 16rem;
+  }
+  html[dir="rtl"] .program-info-box--topbar {
+    max-width: 18rem;
+  }
+}
+
+@media (max-width: 1179.98px) {
+  .program-info-box--topbar {
+    max-width: 13rem;
+  }
+  html[dir="rtl"] .program-info-box--topbar {
+    max-width: 18rem;
+  }
 }
 
 .program-info-box__name {

@@ -71,7 +71,7 @@ describe("AppShell", () => {
     expect(screen.queryByRole("navigation", { name: "Primary navigation" })).not.toBeInTheDocument();
   });
 
-  it("renders both locale options with the current one marked via aria-current", () => {
+  it("renders a single locale-switch link pointing at the other locale", () => {
     vi.mocked(useAuth).mockReturnValue({
       status: "unauthenticated",
       profile: null,
@@ -86,8 +86,8 @@ describe("AppShell", () => {
       </AppShell>,
       { locale: "en" },
     );
-    expect(screen.getByRole("link", { name: "English" })).toHaveAttribute("aria-current", "true");
-    expect(screen.getByRole("link", { name: "العربية" })).toHaveAttribute("aria-current", "false");
+    const localeLink = screen.getByRole("link", { name: "Switch to العربية" });
+    expect(localeLink).toHaveAttribute("data-locale", "ar");
   });
 
   it("logs out and redirects to /login when the sidebar's logout action is used", async () => {
