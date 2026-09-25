@@ -519,6 +519,12 @@ Contract `.docx` files still reflect the older, unverified
 assumptions and are intentionally left unmodified — PROJECT_SPEC plus
 this ADR are what implementation should follow.
 
+See `docs/REQUIREMENTS_ALIGNMENT.md` for the document authority
+hierarchy, the version-label reconciliation for those `.docx` files
+(their file names, internal versions and citations disagree), the
+requirements traceability matrix, resolved inconsistencies, the open
+product decisions (OPD-xx) and the infrastructure prerequisites.
+
 See also `docs/adr/ADR-002-odoo19-implementation-conventions.md` for
 the Odoo 19 implementation-level conventions discovered while building
 milestone M1 (the `models.Constraint` pattern replacing

@@ -5,6 +5,7 @@
 **Version:** 1.1  
 **Date:** 2026-09-14  
 **Source of truth:** `PROJECT_SPEC_v1.1_BILINGUAL.md`  
+**Document authority / open decisions:** `docs/REQUIREMENTS_ALIGNMENT.md`  
 
 This plan breaks implementation into milestones with clear dependencies and acceptance gates. Do not start a milestone whose prerequisite gate is failing.
 

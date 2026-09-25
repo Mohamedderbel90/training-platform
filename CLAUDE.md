@@ -61,6 +61,8 @@ Do not invent:
 
 If documents conflict, prefer the most recent explicitly approved version.
 
+Document authority, the version-label mapping for the `.docx` sources, superseded/historical references, and the list of **open product decisions** (which must not be decided by guessing) are in `docs/REQUIREMENTS_ALIGNMENT.md`. Read it before using a `.docx` as an implementation instruction. In short: BRD for business intent, `PROJECT_SPEC` for implementation, ADRs for recorded decisions; the API Contract examples showing admin/report endpoints are historical and must not be built for Next.js.
+
 ## Visual Source of Truth
 
 Approved Claude Design prototypes, exported HTML/CSS, screenshots, and approved project assets are the visual source of truth.
