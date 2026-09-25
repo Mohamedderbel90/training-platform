@@ -1,3 +1,5 @@
+import werkzeug.exceptions
+
 from odoo import models
 
 from ..api_common import apply_request_locale, build_error_response, is_api_request
@@ -5,6 +7,36 @@ from ..api_common import apply_request_locale, build_error_response, is_api_requ
 
 class IrHttp(models.AbstractModel):
     _inherit = "ir.http"
+
+    @classmethod
+    def _match(cls, path_info):
+        """A wrong-method request to a path that does exist (e.g. DELETE
+        /api/v1/auth/me) never reaches _handle_error below: werkzeug's
+        own Map.match() (called from this method's base implementation)
+        raises MethodNotAllowed directly out of odoo.http.Request._serve_db,
+        before request.dispatcher is ever switched from the default
+        HttpDispatcher to Json2Dispatcher and before the
+        service_model.retrying()/_update_served_exception() try block
+        that normally routes exceptions into ir.http._handle_error even
+        starts (see ADR-010 section 1). Root's own top-level WSGI handler
+        then falls back to HttpDispatcher.handle_error(), which returns
+        the werkzeug exception itself -- Werkzeug's raw HTML page -- for
+        any HTTPException.
+
+        Odoo's own equivalent case (_update_served_exception) works
+        around this by pre-attaching `error_response` to the exception
+        before it is raised, so Root.__call__'s `if not hasattr(exc,
+        'error_response')` check short-circuits and never calls
+        request.dispatcher.handle_error() at all. The same technique is
+        applied here, scoped to /api/v1/* requests only.
+        """
+        try:
+            return super()._match(path_info)
+        except werkzeug.exceptions.MethodNotAllowed as exc:
+            if is_api_request():
+                apply_request_locale()
+                exc.error_response = build_error_response(exc)
+            raise
 
     @classmethod
     def _handle_error(cls, exception):

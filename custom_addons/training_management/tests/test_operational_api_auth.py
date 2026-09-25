@@ -192,6 +192,30 @@ class TestOperationalApiAuth(OperationalApiCase):
         self.assertNotIn("debug", body)
         self.assertNotIn("Traceback", str(body))
 
+    def test_wrong_http_method_returns_json_envelope_not_werkzeug_html(self):
+        # Regression test (ADR-010 section 1): Odoo's own dispatcher
+        # (odoo/http.py Request._serve_db) raises werkzeug's
+        # MethodNotAllowed directly out of ir.http._match(), before
+        # request.dispatcher is switched to Json2Dispatcher and before
+        # the try/except block that normally routes exceptions into
+        # ir.http._handle_error -- so without IrHttp._match's override
+        # this returns Werkzeug's raw default HTML 405 page instead of
+        # this project's {data, meta, error} envelope.
+        self.authenticate("opapi_trainee", "Test1234!")
+        resp = self.url_open("/api/v1/auth/me", method="DELETE")
+        self.assertEqual(resp.status_code, 405)
+        self.assertIn("application/json", resp.headers.get("Content-Type", ""))
+        body = resp.json()
+        self.assertIn("data", body)
+        self.assertIn("meta", body)
+        self.assertIn("error", body)
+        self.assertIsNone(body["data"])
+        self.assertIn("request_id", body["meta"])
+        self.assertEqual(body["error"]["code"], "BAD_REQUEST")
+        self.assertNotIn("debug", body)
+        self.assertNotIn("Traceback", str(body))
+        self.assertNotIn("<html", resp.text.lower())
+
     def test_password_reset_valid_token_changes_password(self):
         partner = self.trainee_user.partner_id
         partner.sudo().signup_prepare(signup_type="reset")
