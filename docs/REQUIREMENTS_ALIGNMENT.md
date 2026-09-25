@@ -234,20 +234,35 @@ minutes affect any KPI (they do not in any source).
 
 ### 6.E Report filters and show/hide - AMBIGUOUS (OPD-05)
 
-"Full flexibility" (requirement text) is not defined by the BRD. What the
-approved sources actually name:
+"Full flexibility" (requirement text) is not defined by the BRD. It is
+replaced here by an explicit model. **Basis** says where the source
+supports each item; nothing marked *recommended* is a business
+requirement.
 
-- **Documented / required filters:** dashboard FR-055 - course, date,
-  trainer, status. Report FR-063 - filters, date range, courses.
-  SRS-DASH-001 - program, course, day/period, trainer, status.
-- **Implemented for reports:** report type, program, course, date range,
-  plus five show/hide toggles (trainer, content, environment, attendance,
-  response rate).
-- **Not documented as required:** attendance-status filter, survey-completion
-  filter, trainer filter *on reports* (the API Contract preview example shows
-  a trainer filter and a "comments" section; both are illustrative, see R4).
-- **Not to be added as mandatory** without a decision. Treat any extra
-  filter or section as optional customization.
+| Filter | Basis | Dashboard / analytics | Generated report | Class |
+|---|---|---|---|---|
+| Program | BRD FR-016, BR-012, SRS AC-SRS-009 (never mix programs) | scoped by program | `program_id` | Required |
+| Course | BRD FR-055, FR-063 | `get_kpi(course=)` | `course_id` (course report) | Required |
+| Date range | BRD FR-055, FR-063 | `get_kpi(date_from, date_to)` | `date_from`, `date_to` | Required |
+| Trainer | BRD FR-055; SRS-DASH-001 | `get_kpi(trainer=)` | not a report filter (API Contract preview example is illustrative, R4) | Required for dashboard; **report use = recommended** |
+| Status | BRD FR-055 ("status", undefined which entity) | not specified | not specified | **Ambiguous** |
+| Training day | BRD FR-056 (drill-down to a day) | `get_kpi(day=)` | not a report filter | Drill-down, not a report filter |
+| Attendance status (present/absent/late) | none | none | none | *Recommended* only |
+| Survey completion status | none | none | none | *Recommended* only |
+
+Show/hide (BRD FR-064, "sections or indicators before export"):
+
+- **Implemented:** five toggles - trainer score, content score,
+  environment score, attendance, response rate.
+- **Named by the BRD as report content (11.1/11.2) but not toggleable or
+  not generated:** executive summary, highest/lowest indicators,
+  qualitative notes and recommendations, day/course comparison, trend,
+  strengths/opportunities, approval status block.
+- **Rule to preserve:** filters and the applied toggles are stored on the
+  report and locked once generated; a change creates a new version
+  (ADR-008); the report states the period and filters applied (SRS-RPT-001).
+- Any additional filter or toggle is optional customization until OPD-05
+  is answered.
 
 ### 6.F Digital signature vs electronic approval - RESOLVED by BRD
 
@@ -355,8 +370,46 @@ records that they are intentionally left unmodified. This section and
 `CLAUDE.md` are the mechanism that prevents them being used as the active
 source of truth.
 
-## 9. Documentation clarifications applied alongside this file
+## 9. Acceptance criteria for the clarified requirements
 
+Each criterion is a testable behaviour. **Evidence** names an existing test
+(in `custom_addons/training_management/tests/`) or frontend test where one
+exists. **Pending** means the behaviour depends on an open decision and no
+test may be written until the owner decides; the criterion is stated
+conditionally.
+
+| ID | Requirement clarified | Acceptance criterion | Evidence |
+|---|---|---|---|
+| AC-ALN-01 | GS dashboard, analytics, report generation and approval are Odoo | No Next.js route or `/api/v1` endpoint creates, configures, approves or exports a report or serves an admin dashboard; Odoo menus for Analytics, Reports and Approval exist | PROJECT_SPEC 10.7 forbidden list; ADR-008 (no report endpoints); `test_trainee_cannot_access_report_model` |
+| AC-ALN-02 | Submitted response is final | After final submit no edit action or endpoint exists for the trainee; lines cannot be added, changed or deleted; a second submit creates no second record | `test_final_response_lines_cannot_be_added_modified_or_deleted`, `test_duplicate_final_response_prevented_at_db_level`, `test_duplicate_final_response_prevented_by_service`, `test_cannot_edit_after_final_submit` (README) |
+| AC-ALN-03 | Post-submit view (status only, current behaviour) | `my-survey/status` returns only `response_id, state, submitted_at, editable` and never answer content | API trainee tests (ADR-006 section 12) |
+| AC-ALN-04 | Read-back of own answers (OPD-01) | **Pending.** If approved: a trainee can read only her own final answers and never another trainee's; supervisor and trainer still cannot read any | Isolation tests exist: `test_trainee_cannot_access_another_trainee_response`, `test_supervisor_cannot_access_trainee_response`, `test_trainer_cannot_access_trainee_response` |
+| AC-ALN-05 | Survey window | Submit is denied before `survey_open_at` and after `survey_close_at` even when the day is open; the window never changes day state | `test_survey_denied_before_window_opens_even_if_day_open`, `test_survey_denied_after_window_closes_even_if_day_open`, `test_no_automatic_state_transition_from_time_window` |
+| AC-ALN-06 | Reminder exclusion and duplicates | A person with a final response is never a pending recipient; a second cron run creates no duplicate row for the same day/role/person/channel/event, enforced by the database | `test_pending_recipients_includes_unsubmitted_trainee_and_supervisor`, `test_duplicate_prevention_second_cron_run_does_not_duplicate`, `test_duplicate_log_row_blocked_at_db_level` |
+| AC-ALN-07 | Reminder outside the window | The cron skips a day that is not open or is outside its window | `test_cron_skips_day_outside_survey_window` |
+| AC-ALN-08 | Channel fallback and retry | With fallback on, the next channel is tried only after a failure and never after a success; with it off, each enabled channel is attempted independently; automatic retries stop at the configured maximum | `test_fallback_stops_at_first_success`, `test_fallback_tries_next_channel_after_failure`, `test_fallback_disabled_attempts_every_enabled_channel_independently`, `test_retry_budget_exhausted_stops_further_attempts` |
+| AC-ALN-09 | Reminder lead time, count, priority values (OPD-03) | **Pending.** If approved: a reminder is sent at the approved lead time before `survey_close_at`, not more than the approved number of times per recipient, in the approved channel order | none |
+| AC-ALN-10 | Attendance, absence, late rates | For a day with p on time, l late, a absent: attendance = (p+l)/(p+l+a), absence = a/(p+l+a), late = l/(p+l); a zero denominator returns no value, never 0 | `test_attendance_rates`, ADR-004 section 5 |
+| AC-ALN-11 | Survey KPI averages | Category averages ignore skipped and non-rating lines; no valid data returns no value, never 0 | `test_no_valid_data_is_none_not_zero`, `test_no_data_returns_none_not_zero` |
+| AC-ALN-12 | Program/course aggregation | Program averages pool every valid response with equal weight and are not an average of course averages | `test_course_kpi_equal_weight_per_response_not_average_of_days`, `test_program_kpi_pools_all_courses_equal_weight` |
+| AC-ALN-13 | Response rate | Absent trainees are excluded from the denominator; no attendance recorded returns no value | `test_trainee_response_rate_excludes_absent`, `test_trainee_response_rate_pending_when_no_attendance` |
+| AC-ALN-14 | KPI approvals (OPD-04) | **Pending.** If the denominator becomes "enrolled targets", or the mapping, trend period or weighting changes, dashboard and report must both change together and produce identical numbers for identical filters | none |
+| AC-ALN-15 | Dashboard/report consistency | The same filters give the same KPI numbers in analytics and in the generated report (single `training.analytics` service) | ADR-004 section 7; report tests |
+| AC-ALN-16 | Report filters | Scope filters and toggles are fixed once generated; changing them requires a new version; a new version leaves the old one untouched | `test_generated_report_filters_locked_without_new_version`, `test_new_version_creates_independent_draft`, `test_regenerate_allowed_while_generated_not_approved` |
+| AC-ALN-17 | Filter scope (OPD-05) | **Pending.** If additional report filters (trainer, attendance status, survey completion) are approved, the report shows the applied filters and dashboard and report agree | none |
+| AC-ALN-18 | Approval is internal, not legal | Only an admin can approve, only from the generated state; approval stores approver and timestamp, locks the record, writes an audit entry; the PDF carries the approver, date/time and stamp; no PKI signature is produced | `test_approve_requires_admin_group`, `test_approve_requires_generated_state`, `test_approve_sets_metadata_and_locks`, `test_approved_report_is_immutable`, `test_report_approval_is_logged` |
+| AC-ALN-19 | Export | PDF (Arabic RTL) and Excel export succeed for an approved report; a trainee cannot reach the report or its attachment | `test_export_excel_allowed_after_approval`, `test_trainee_cannot_access_report_attachment`; ADR-010 section 3 real PDF render |
+| AC-ALN-20 | Multi-program separation | Program KPIs and reports never mix programs; each program has its own courses, enrollments and reports; the initial data set is the single Quran-school principals program | SRS AC-SRS-009; ORM scoping by `program_id`; a second program (`other_program`) is used in `test_security.py` and the supervisor API tests for record-rule isolation; no test was found that asserts KPI or report separation across two programs |
+| AC-ALN-21 | Document authority | `CLAUDE.md`, `README` and `PROJECT_SPEC` all point to this file; the version table in section 2 decodes every `.docx` citation; sections 5 and 8 mark each superseded example | Manual review of this file and its pointers |
+| AC-ALN-22 | Report content gap (OPD-08) | **Pending.** If the BRD 11.1/11.2 sections are confirmed as required, the generated course report shows the narrative and comparison sections and the program report shows the five-course comparison and 16-week trend | none |
+
+Missing tests worth adding once the decisions above are made are exactly
+the rows whose Evidence is "none" plus a KPI/report two-program separation check
+(AC-ALN-20).
+
+## 10. Documentation clarifications applied alongside this file
+
+- Sections 6.E (explicit filter model) and 9 (acceptance criteria) were added in a second review pass.
 - `PROJECT_SPEC`: authority block, section 9 routes and section 10.5
   endpoints brought in line with ADR-011, section 25 status, pointers to
   this file. No requirement removed.
