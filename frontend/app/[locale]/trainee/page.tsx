@@ -21,6 +21,7 @@ import { StatCards } from "@/components/dashboard/StatCards";
 import { UpcomingSessionCard } from "@/components/dashboard/UpcomingSessionCard";
 import { TaskList } from "@/components/dashboard/TaskList";
 import { QuickStatsBars } from "@/components/dashboard/QuickStatsBars";
+import { ClockIcon, MegaphoneIcon } from "@/components/icons";
 
 function TraineeDashboardContent() {
   const t = useTranslations("Dashboard");
@@ -61,17 +62,22 @@ function TraineeDashboardContent() {
           statusBadge={nextEntry ? <SurveyAvailabilityBadge availability={nextEntry.survey} /> : null}
           action={
             nextEntry ? (
-              <Link className="button" href={`/trainee/${nextEntry.training_day_id}`}>
-                {nextEntry.survey?.response?.state === "submitted"
-                  ? t("viewSurvey")
-                  : t("openSurvey")}
-              </Link>
+              <>
+                <Link className="button" href={`/trainee/${nextEntry.training_day_id}`}>
+                  {nextEntry.survey?.response?.state === "submitted"
+                    ? t("viewSurvey")
+                    : t("openSurvey")}
+                </Link>
+                <Link className="button button--secondary" href="/trainee/days">
+                  {t("viewDetails")}
+                </Link>
+              </>
             ) : null
           }
         />
         <TaskList tasks={tasks} viewAllHref="/trainee/days" />
       </div>
-      <div className="dashboard-grid dashboard-grid--wide-first">
+      <div className="dashboard-grid dashboard-grid--three">
         <ProgramMessageNotice />
         <QuickStatsBars
           items={[
@@ -83,6 +89,7 @@ function TraineeDashboardContent() {
             { labelKey: "quickStatCourses", ratio: completedCoursesRatio(programDays) },
           ]}
         />
+        <RecentActivityCard />
       </div>
     </div>
   );
@@ -96,7 +103,25 @@ function ProgramMessageNotice() {
   const t = useTranslations("Dashboard");
   return (
     <section className="card dashboard-note-card">
-      <p className="card__meta">{t("programMessageUnavailable")}</p>
+      <h2 className="card__title">
+        <MegaphoneIcon aria-hidden="true" /> {t("programMessageTitle")}
+      </h2>
+      <div className="message-card__body">{t("programMessageUnavailable")}</div>
+    </section>
+  );
+}
+
+/** No activity-log/notifications model exists in the backend yet
+ * either (same limitation as the header's notification bell) -- an
+ * honest "not available" state rather than fabricated demo entries. */
+function RecentActivityCard() {
+  const t = useTranslations("Dashboard");
+  return (
+    <section className="card dashboard-note-card">
+      <h2 className="card__title">
+        <ClockIcon aria-hidden="true" /> {t("recentActivityTitle")}
+      </h2>
+      <p className="card__meta">{t("recentActivityUnavailable")}</p>
     </section>
   );
 }

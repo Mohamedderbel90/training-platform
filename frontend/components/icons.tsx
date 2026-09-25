@@ -96,6 +96,14 @@ export function ChevronIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function ChevronDownIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props} strokeWidth="1.8">
+      <path d="M5.5 8 10 12.5 14.5 8" />
+    </Icon>
+  );
+}
+
 export function InboxIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <Icon {...props}>
@@ -232,6 +240,19 @@ export function MegaphoneIcon(props: SVGProps<SVGSVGElement>) {
       <path d="M3.3 8.2v3.6h2.3l6.4 3V5.2l-6.4 3Z" />
       <path d="M12 6.7a4.2 4.2 0 0 1 0 6.6" />
       <path d="M5.6 11.8v3.1a1.1 1.1 0 0 0 2.2 0v-1.9" />
+    </Icon>
+  );
+}
+
+export function DocumentIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props} strokeWidth="1.5">
+      <path
+        d="M5.5 3.5h6l3 3v10a1 1 0 0 1-1 1h-8a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1Z"
+        fill="#fff"
+      />
+      <path d="M11.5 3.5v3h3" />
+      <path d="M7.3 10.5h5.4M7.3 13h3.4" />
     </Icon>
   );
 }

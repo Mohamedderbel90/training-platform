@@ -15,7 +15,14 @@
     "forbiddenMessage": "حسابك لا يملك الدور المطلوب لعرض هذه الصفحة.",
     "goToMyDashboard": "الذهاب إلى لوحتي",
     "retry": "إعادة المحاولة",
-    "appTagline": "برنامج تطوير مديرات المدارس النسائية لتحفيظ القرآن الكريم"
+    "appTagline": "برنامج تطوير مديرات المدارس النسائية لتحفيظ القرآن الكريم",
+    "bismillah": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+    "topbarQuote": "«رَبِّ زِدْنِي عِلْمًا»",
+    "notifTitle": "الإشعارات",
+    "notificationsUnavailable": "لا توجد إشعارات لعرضها حالياً.",
+    "decorLine1": "بالعلم نبني جيلاً",
+    "decorLine2": "بكتاب الله",
+    "switchToLocale": "التبديل إلى {locale}"
   },
   "Nav": {
     "primaryNavigation": "التنقل الرئيسي",
@@ -136,7 +143,11 @@
     "quickStatDays": "الأيام المنجزة",
     "quickStatCourses": "الدورات",
     "programCurrentLabel": "البرنامج الحالي",
-    "programMessageUnavailable": "لا تتوفر حالياً رسائل أو إعلانات من إدارة البرنامج عبر هذا النظام."
+    "programMessageTitle": "رسالة من إدارة البرنامج",
+    "programMessageUnavailable": "لا تتوفر حالياً رسائل أو إعلانات من إدارة البرنامج عبر هذا النظام.",
+    "viewDetails": "عرض التفاصيل",
+    "recentActivityTitle": "أحدث الأنشطة",
+    "recentActivityUnavailable": "لا يوجد نشاط حديث لعرضه حالياً."
   },
   "Survey": {
     "loadingSurvey": "جارٍ تحميل الاستبانة...",

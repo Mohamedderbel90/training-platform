@@ -1,12 +1,13 @@
 import { useTranslations } from "next-intl";
-import { BookIcon, CalendarIcon, ClockIcon, TrendingUpIcon } from "@/components/icons";
+import { BookIcon, ClockIcon, TrendingUpIcon, UsersIcon } from "@/components/icons";
 import type { DashboardStatsDto } from "@/lib/api/types";
 
 /** The four top stat tiles (M5 point 5C). Every value comes straight
  * from the backend-computed `stats` block (training.day.
  * get_dashboard_summary()) -- no hard-coded sample numbers, and a
  * `null` `stats`/`progress_percent` renders an honest "not available"
- * state instead of a misleading zero. */
+ * state instead of a misleading zero. Tint/tone pairing and icon-start
+ * row layout match the approved reference. */
 export function StatCards({ stats }: { stats: DashboardStatsDto | null }) {
   const t = useTranslations("Dashboard");
 
@@ -26,14 +27,14 @@ export function StatCards({ stats }: { stats: DashboardStatsDto | null }) {
       label: t("statHours"),
     },
     {
-      icon: CalendarIcon,
+      icon: UsersIcon,
       tone: "accent" as const,
       value: String(stats.training_days_count),
       label: t("statDays"),
     },
     {
       icon: BookIcon,
-      tone: "primary" as const,
+      tone: "accent" as const,
       value: String(stats.courses_count),
       label: t("statCourses"),
     },
@@ -42,22 +43,26 @@ export function StatCards({ stats }: { stats: DashboardStatsDto | null }) {
   return (
     <div className="stat-grid">
       {items.map((item) => (
-        <article className="stat-card" key={item.label}>
+        <article className={`stat-card stat-card--tint-${item.tone}`} key={item.label}>
           <span className={`stat-card__icon stat-card__icon--${item.tone}`}>
             <item.icon />
           </span>
-          <span className="stat-card__value">{item.value}</span>
-          <span className="stat-card__label">{item.label}</span>
+          <span className="stat-card__text">
+            <span className="stat-card__value">{item.value}</span>
+            <span className="stat-card__label">{item.label}</span>
+          </span>
         </article>
       ))}
-      <article className="stat-card">
-        <span className="stat-card__icon stat-card__icon--accent">
+      <article className="stat-card stat-card--progress">
+        <span className="stat-card__icon stat-card__icon--primary">
           <TrendingUpIcon />
         </span>
-        <span className="stat-card__value">
-          {progress == null ? t("statProgressUnavailable") : `${progress}%`}
+        <span className="stat-card__text">
+          <span className="stat-card__value">
+            {progress == null ? t("statProgressUnavailable") : `${progress}%`}
+          </span>
+          <span className="stat-card__label">{t("statProgress")}</span>
         </span>
-        <span className="stat-card__label">{t("statProgress")}</span>
         {progress != null ? (
           <span
             className="stat-card__ring"

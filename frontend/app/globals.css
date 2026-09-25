@@ -36,7 +36,12 @@
   --color-accent: #c6a66b;
   --color-accent-hover: #b6935a;
   --color-accent-soft: #f4ecdb;
+  --color-accent-soft-strong: #ecdfc1;
   --color-accent-contrast: #2c2007;
+  /* Medium gold-brown for icon glyphs on an accent-soft tile --
+   * distinct from --color-accent-contrast, which is a near-black brown
+   * meant for text sitting on a solid accent fill. */
+  --color-accent-icon: #8a6a37;
 
   /* ---- semantic ---- */
   --color-danger: #a3352a;
@@ -100,7 +105,9 @@
     --color-accent: #d9b679;
     --color-accent-hover: #e5c793;
     --color-accent-soft: #2e2818;
+    --color-accent-soft-strong: #3c331f;
     --color-accent-contrast: #2c2007;
+    --color-accent-icon: #d9b679;
 
     --color-danger: #ff8c82;
     --color-danger-hover: #ffa79f;
@@ -1438,56 +1445,96 @@ table.data-table {
   .dashboard-grid--wide-first {
     grid-template-columns: 1fr 1.2fr;
   }
+
+  .dashboard-grid--three {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 
-/* ---- welcome banner ---- */
-
+/* ---- welcome banner ----
+ * The photo column is ~43% of the banner width (measured off the
+ * reference) and shares the text column's row height via `fr` units.
+ * The whole section paints one diagonal gradient underneath both
+ * children; the photo (on its own `::before` layer so it can be
+ * mirrored for English independently of its own fade mask) is cut with
+ * a mask that fades ITS edge to transparent, uncovering that same
+ * gradient underneath -- so the seam between photo and text lines up
+ * at every row by construction, not by matching a flat fade color. */
 .welcome-banner {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 13rem) 1fr;
+  grid-template-columns: 57fr 43fr;
   overflow: hidden;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
-  min-height: 11rem;
+  min-height: 11.5rem;
+  background: linear-gradient(155deg, var(--color-primary) 0%, var(--color-primary-active) 100%);
 }
 
 .welcome-banner__image {
+  position: relative;
+  order: 1;
+  -webkit-mask-image: linear-gradient(to right, transparent 2%, black 45%);
+  mask-image: linear-gradient(to right, transparent 2%, black 45%);
+}
+
+html[dir="rtl"] .welcome-banner__image {
+  -webkit-mask-image: linear-gradient(to left, transparent 2%, black 45%);
+  mask-image: linear-gradient(to left, transparent 2%, black 45%);
+}
+
+.welcome-banner__image::before {
+  content: "";
+  position: absolute;
+  inset: 0;
   background-image: url("/noor-login/quran-photo.jpg");
   background-size: cover;
-  background-position: center;
+  background-position: center 70%;
+  background-repeat: no-repeat;
+  transform: scaleX(-1);
+}
+
+html[dir="rtl"] .welcome-banner__image::before {
+  transform: none;
 }
 
 .welcome-banner__body {
-  background: linear-gradient(155deg, var(--color-primary) 0%, var(--color-primary-active) 100%);
+  background: transparent;
   color: var(--color-primary-contrast);
   padding: var(--space-6);
+  padding-block: var(--space-5);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
 .welcome-banner__title {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  margin: 0;
-  font-size: 1.3rem;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-1);
+  font-size: 1.9rem;
+  line-height: 1.3;
   font-weight: 700;
 }
 
 .welcome-banner__title-icon {
   flex-shrink: 0;
+  inline-size: 1.6rem;
+  block-size: 1.6rem;
   color: var(--color-accent);
 }
 
 .welcome-banner__subtitle {
   margin: 0;
   color: rgba(255, 255, 255, 0.85);
+  font-size: 1rem;
   max-width: 34rem;
 }
 
+/* Thin warm-gold outline, no fill -- matching the reference's verse
+ * pill (not a translucent-white filled pill). */
 .welcome-banner__quote {
   display: inline-flex;
   align-items: center;
@@ -1495,7 +1542,8 @@ table.data-table {
   align-self: flex-start;
   margin: var(--space-2) 0 0;
   padding: 0.6rem var(--space-4);
-  background: rgba(255, 255, 255, 0.12);
+  background: transparent;
+  border: 1px solid rgba(198, 166, 107, 0.55);
   border-radius: var(--radius);
   font-weight: 600;
 }
@@ -1524,61 +1572,119 @@ table.data-table {
   }
 }
 
+/* Four equal columns leave the progress card's icon + text + ring row
+ * too narrow at tablet width (worst in English); two columns through
+ * the tablet range gives every card enough room, resuming four once
+ * there's space for it. */
+@media (min-width: 640px) and (max-width: 900px) {
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Icon-start / number+label-end row (the widest possible gap between
+ * them), the same physical arrangement in both languages -- a plain
+ * flex row already gives that in English; Arabic needs `row-reverse`
+ * so the icon (first in DOM) lands at the physical left instead of a
+ * plain row's rtl start (physical right). */
 .stat-card {
   position: relative;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  padding: var(--space-5) var(--space-4);
+  padding: var(--space-5) 0.7rem;
   box-shadow: var(--shadow-sm);
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+html[dir="rtl"] .stat-card {
+  flex-direction: row-reverse;
+}
+
+.stat-card--tint-primary {
+  background: var(--color-primary-soft);
+}
+
+.stat-card--tint-accent {
+  background: var(--color-accent-soft);
 }
 
 .stat-card__icon {
-  inline-size: 2.5rem;
-  block-size: 2.5rem;
+  flex-shrink: 0;
+  inline-size: 4.25rem;
+  block-size: 4.25rem;
+  padding: 0.8rem;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
+.stat-card__icon svg {
+  width: 1.7rem;
+  height: 1.7rem;
+}
+
 .stat-card__icon--primary {
-  background: var(--color-primary-soft);
+  background: var(--color-primary-soft-strong);
   color: var(--color-primary);
 }
 
 .stat-card__icon--accent {
-  background: var(--color-accent-soft);
-  color: var(--color-accent-contrast);
+  background: var(--color-accent-soft-strong);
+  color: var(--color-accent-icon);
+}
+
+.stat-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .stat-card__value {
-  font-size: 1.6rem;
+  font-size: 2.1rem;
   font-weight: 700;
 }
 
 .stat-card__label {
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
+  color: var(--color-text);
+  font-size: 0.92rem;
+}
+
+/* Progress card: flat near-white surface (measured off the reference,
+ * not a gradient), with its ring sized to match the icon circle and
+ * pushed to the row's far physical edge instead of overlaid. */
+.stat-card--progress {
+  position: relative;
+  background: #f7f5f3;
+}
+
+.stat-card--progress .stat-card__text {
+  flex: 0 1 auto;
 }
 
 .stat-card__ring {
-  position: absolute;
-  top: var(--space-4);
-  inset-inline-end: var(--space-4);
-  inline-size: 1.9rem;
-  block-size: 1.9rem;
+  position: static;
+  inline-size: 4.25rem;
+  block-size: 4.25rem;
+  /* Physical, deliberately not logical: the row above is already
+   * normalized to a fixed physical order (row/row-reverse per
+   * direction), so pushing to the far edge needs the same physical
+   * margin regardless of direction. */
+  margin-left: auto;
+  flex-shrink: 0;
   border-radius: 50%;
   background: conic-gradient(
     var(--color-primary) var(--stat-ring-value, 0%),
     var(--color-border) 0
   );
-  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 8px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 8px));
 }
 
 /* ---- upcoming session card ---- */
@@ -1594,8 +1700,28 @@ table.data-table {
 .upcoming-session__body {
   display: flex;
   gap: var(--space-4);
-  align-items: flex-start;
+  align-items: stretch;
   flex-wrap: wrap;
+}
+
+.upcoming-session__left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Decorative arch/book thumbnail above the date block -- no matching
+ * illustration asset exists among the approved uploads (only the
+ * Hero Banner photo, sidebar decor and logo are present), so this is
+ * an inline-SVG recreation of the reference's composition rather than
+ * a mismatched photo crop. */
+.upcoming-session__thumb {
+  inline-size: 11.8rem;
+  block-size: 4.6rem;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  display: block;
+  overflow: hidden;
 }
 
 .upcoming-session__date {
@@ -1603,12 +1729,15 @@ table.data-table {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.15rem;
+  gap: 0.3rem;
   flex-shrink: 0;
   min-width: 6.5rem;
-  padding: var(--space-3);
+  padding: var(--space-4);
   border-radius: var(--radius);
-  background: var(--color-primary);
+  /* A distinctly lighter, flat medium green than the primary buttons
+   * next to it (measured off the reference), not the same
+   * --color-primary token those use. */
+  background: #3f7160;
   color: var(--color-primary-contrast);
   text-align: center;
 }
@@ -1619,7 +1748,7 @@ table.data-table {
 }
 
 .upcoming-session__day {
-  font-size: 1.9rem;
+  font-size: 2.6rem;
   font-weight: 700;
   line-height: 1.1;
 }
@@ -1632,12 +1761,22 @@ table.data-table {
 .upcoming-session__info {
   flex: 1;
   min-width: 12rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .upcoming-session__fact {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  /* Reads as the card's own dark-green ink, not the muted gray-green
+   * `.card__meta` uses for secondary text elsewhere. */
+  color: var(--color-primary);
+}
+
+.upcoming-session .button-row {
+  margin-top: auto;
+  padding-top: var(--space-2);
 }
 
 /* ---- task list ---- */
@@ -1656,7 +1795,22 @@ table.data-table {
   gap: var(--space-2);
 }
 
+.card__title-icon {
+  inline-size: 1.9rem;
+  block-size: 1.9rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .task-list__view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--color-primary);
@@ -1667,20 +1821,26 @@ table.data-table {
   text-decoration: underline;
 }
 
+/* Reference's back-pointing arrow points away/back in Arabic and
+ * forward in English. */
+html[dir="ltr"] .task-list__view-all svg {
+  transform: scaleX(-1);
+}
+
 .task-list__items {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 0.6rem;
 }
 
 .task-list__link {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3);
+  padding: 0.8rem 0.9rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   text-decoration: none;
@@ -1691,6 +1851,18 @@ table.data-table {
 .task-list__link:hover {
   border-color: var(--color-primary);
   background: var(--color-primary-soft);
+}
+
+.task-list__icon {
+  flex-shrink: 0;
+  inline-size: 2.1rem;
+  block-size: 2.1rem;
+  border-radius: var(--radius-sm);
+  background: #f1f0ee;
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .task-list__text {
@@ -1707,6 +1879,23 @@ table.data-table {
 .task-list__course {
   color: var(--color-text-muted);
   font-size: 0.82rem;
+}
+
+.badge--plain::before {
+  display: none;
+}
+
+@media (min-width: 1280px) {
+  .task-list__link .task-list__text {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .task-list__link .badge {
+    flex-shrink: 0;
+    width: 5.5rem;
+    justify-content: center;
+    text-align: center;
+  }
 }
 
 /* ---- quick stats mini bar chart ---- */
@@ -1753,6 +1942,62 @@ table.data-table {
   margin: 0;
   font-weight: 700;
   font-size: 0.9rem;
+}
+
+/* ---- program message / recent activity cards ---- */
+
+.message-card__body {
+  background: var(--color-primary-soft);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin-top: var(--space-4);
+  color: var(--color-text);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.card-link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  margin-top: var(--space-3);
+}
+
+.recent-activity__list {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.recent-activity__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.86rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+}
+
+.recent-activity__item:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.recent-activity__date {
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.recent-activity__text {
+  flex: 1;
 }
 
 /* ---- /profile page (PROJECT_SPEC section 9 "Shared" screens) ---- */

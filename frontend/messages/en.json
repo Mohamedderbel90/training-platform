@@ -15,7 +15,14 @@
     "forbiddenMessage": "Your account doesn't have the role required to view this page.",
     "goToMyDashboard": "Go to my dashboard",
     "retry": "Try again",
-    "appTagline": "A leadership development programme for women principals of Qur'an memorization schools"
+    "appTagline": "A leadership development programme for women principals of Qur'an memorization schools",
+    "bismillah": "Bismillah Al-Rahman Al-Rahim",
+    "topbarQuote": "Rabbi zidnī ʿilmā",
+    "notifTitle": "Notifications",
+    "notificationsUnavailable": "No notifications to show yet.",
+    "decorLine1": "Through knowledge we raise a generation",
+    "decorLine2": "with the Book of Allah",
+    "switchToLocale": "Switch to {locale}"
   },
   "Nav": {
     "primaryNavigation": "Primary navigation",
@@ -136,7 +143,11 @@
     "quickStatDays": "Completed days",
     "quickStatCourses": "Courses",
     "programCurrentLabel": "Current program",
-    "programMessageUnavailable": "No messages or announcements from the program administration are available through this system yet."
+    "programMessageTitle": "A message from the program administration",
+    "programMessageUnavailable": "No messages or announcements from the program administration are available through this system yet.",
+    "viewDetails": "View details",
+    "recentActivityTitle": "Recent activity",
+    "recentActivityUnavailable": "No recent activity to show yet."
   },
   "Survey": {
     "loadingSurvey": "Loading survey...",
