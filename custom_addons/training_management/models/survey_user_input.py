@@ -373,7 +373,10 @@ class SurveyUserInputLine(models.Model):
                 raise ValidationError(
                     _("The question does not belong to this survey.")
                 )
-            option_id = vals.get("suggested_answer_id", line.suggested_answer_id.id if line else False)
+            option_id = vals.get(
+                "suggested_answer_id",
+                line.suggested_answer_id.id if line else False,
+            )
             if option_id and option_id not in question.suggested_answer_ids.ids:
                 raise ValidationError(
                     _("Invalid answer option for question '%s'.") % question.title
