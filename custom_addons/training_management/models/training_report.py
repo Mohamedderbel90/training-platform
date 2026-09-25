@@ -163,7 +163,52 @@ class TrainingReport(models.Model):
     # Immutability / versioning enforcement
     # ------------------------------------------------------------------
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        # Approval/generation are workflow transitions (action_generate /
+        # action_approve, audited in write()); a report can never be
+        # *created* already generated/approved or with approval stamps,
+        # which would forge an approved report for an Assistant Admin
+        # (who holds create ACL) without the audit trail.
+        if not self.env.su:
+            for vals in vals_list:
+                if (
+                    vals.get("state", "draft") != "draft"
+                    or vals.get("approved_by")
+                    or vals.get("approved_date")
+                ):
+                    raise AccessError(
+                        _("A report can only be created as a draft.")
+                    )
+        return super().create(vals_list)
+
     def write(self, vals):
+        approving = self.browse()
+        if vals.get("state") == "approved":
+            approving = self.filtered(lambda report: report.state != "approved")
+        if approving and not self.env.su:
+            # PROJECT_SPEC section 7.2/15: only the General Supervisor
+            # approves. Enforced on the write itself, not just in
+            # action_approve(), so an Assistant Admin (who has write ACL
+            # on this model) cannot set state='approved' directly.
+            if not self.env.user.has_group(
+                "training_management.group_training_admin"
+            ):
+                raise AccessError(
+                    _("Only the General Supervisor/Admin can approve a report.")
+                )
+            if any(report.state != "generated" for report in approving):
+                raise UserError(_("Only a generated report can be approved."))
+            # Approver/timestamp are always recorded (FR-080/081), even
+            # for a direct write that did not supply them.
+            vals = dict(vals)
+            # Always the effective user/now: never client-supplied.
+            vals["approved_by"] = self.env.user.id
+            vals["approved_date"] = fields.Datetime.now()
+        elif not self.env.su and {"approved_by", "approved_date"} & set(vals):
+            raise AccessError(
+                _("Approval details can only be set by approving the report.")
+            )
         if not self.env.su:
             touched = set(vals.keys())
             locked_touched = touched - SYSTEM_MANAGED_FIELDS
@@ -185,7 +230,18 @@ class TrainingReport(models.Model):
                         )
                         % report.name
                     )
-        return super().write(vals)
+        result = super().write(vals)
+        # PROJECT_SPEC section 17: report approval is audit-worthy.
+        # Logged on the state transition itself so a direct write of
+        # state='approved' cannot skip the audit trail.
+        for report in approving:
+            self.env["training.audit.log"]._log(
+                "report_approval",
+                _("%(report)s was approved by %(user)s.")
+                % {"report": report.name, "user": self.env.user.name},
+                record=report,
+            )
+        return result
 
     def unlink(self):
         for report in self:
@@ -344,17 +400,10 @@ class TrainingReport(models.Model):
                 }
             )
             # Re-render so the PDF's visual approval stamp reflects the
-            # approval metadata just set above.
+            # approval metadata just set above. The audit entry
+            # (PROJECT_SPEC section 17) is written by write() on the
+            # state transition itself.
             report._render_report_pdf()
-            # PROJECT_SPEC section 17 names "report approval" explicitly
-            # as audit-worthy, alongside its own approved_by/approved_date
-            # fields (M10: docs/adr/ADR-010-hardening-and-deployment-readiness.md).
-            self.env["training.audit.log"]._log(
-                "report_approval",
-                _("%(report)s was approved by %(user)s.")
-                % {"report": report.name, "user": self.env.user.name},
-                record=report,
-            )
         return True
 
     # ------------------------------------------------------------------
@@ -461,7 +510,20 @@ class TrainingReport(models.Model):
             1,
             "%s - %s" % (self.resolved_date_from or "", self.resolved_date_to or ""),
         )
-        row += 2
+        row += 1
+        sheet.write(row, 0, _("Version"))
+        sheet.write(row, 1, self.version_no)
+        row += 1
+        if self.state == "approved":
+            # Same approval block the PDF stamp carries (BRD FR-067/FR-082).
+            sheet.write(row, 0, _("Approved by"))
+            sheet.write(
+                row,
+                1,
+                "%s - %s" % (self.approved_by.name or "", self.approved_date or ""),
+            )
+            row += 1
+        row += 1
 
         sheet.write(row, 0, _("KPI"), bold)
         sheet.write(row, 1, _("Value"), bold)
@@ -473,15 +535,19 @@ class TrainingReport(models.Model):
             sheet.write(row, 1, round(value, 2) if value is not None else _("No data"))
             row += 1
 
-        row += 1
-        sheet.write(row, 0, _("Present"))
-        sheet.write(row, 1, self.present_count)
-        row += 1
-        sheet.write(row, 0, _("Late"))
-        sheet.write(row, 1, self.late_count)
-        row += 1
-        sheet.write(row, 0, _("Absent"))
-        sheet.write(row, 1, self.absent_count)
+        # Attendance counts follow the same show_attendance toggle as
+        # the PDF's Attendance section, so both outputs stay in parity.
+        if self.show_attendance:
+            row += 1
+            for label, value in (
+                (_("Present"), self.present_count),
+                (_("Late"), self.late_count),
+                (_("Absent"), self.absent_count),
+                (_("Total"), self.total_attendance_count),
+            ):
+                sheet.write(row, 0, label)
+                sheet.write(row, 1, value)
+                row += 1
 
         workbook.close()
         output.seek(0)

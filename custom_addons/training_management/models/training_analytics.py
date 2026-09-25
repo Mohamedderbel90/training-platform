@@ -43,6 +43,30 @@ class TrainingAnalytics(models.AbstractModel):
             domain.append(("date", "<=", date_to))
         return self.env["training.day"].search(domain)
 
+    def _survey_input_model(self):
+        """survey.user_input as seen by this service.
+
+        Assistant Admin holds delegated report-generation rights
+        (write ACL on training.report) but deliberately no ACL on
+        survey.user_input (SEC-007: individual evaluations are General
+        Supervisor only), so a plain search would make every generated
+        report silently fail. KPI/response-rate output here is aggregate
+        only (no respondent identity), so for the two Back-office admin
+        roles the aggregation reads through sudo(). Everyone else --
+        including any authenticated user calling this public service
+        method over RPC -- keeps the caller's own ACL/record rules, so
+        it can never be used to read other people's responses. The
+        scope is still bounded by the caller-visible training days.
+        """
+        UserInput = self.env["survey.user_input"]
+        user = self.env.user
+        if not self.env.su and (
+            user.has_group("training_management.group_training_admin")
+            or user.has_group("training_management.group_training_assistant_admin")
+        ):
+            return UserInput.sudo()
+        return UserInput
+
     @staticmethod
     def _safe_ratio(numerator, denominator):
         """Percentage, or None if the denominator is zero/unavailable --
@@ -124,7 +148,7 @@ class TrainingAnalytics(models.AbstractModel):
         response; never average-of-day-averages or
         average-of-course-averages."""
         days = self._resolve_days(program, course, day, trainer, date_from, date_to)
-        responses = self.env["survey.user_input"].search(
+        responses = self._survey_input_model().search(
             [("training_day_id", "in", days.ids), ("state", "=", "done")]
         )
         return {
@@ -187,7 +211,7 @@ class TrainingAnalytics(models.AbstractModel):
         )
         if not eligible_count:
             return None
-        submitted_count = self.env["survey.user_input"].search_count(
+        submitted_count = self._survey_input_model().search_count(
             [
                 ("training_day_id", "in", days.ids),
                 ("respondent_role", "=", "trainee"),
