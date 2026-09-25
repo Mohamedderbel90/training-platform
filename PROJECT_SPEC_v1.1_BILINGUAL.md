@@ -411,19 +411,22 @@ Odoo 19 XML list views must use `<list>`, not legacy `<tree>`.
 
 ## Trainee
 
-- `/trainee`
-- `/trainee/training-days/[dayId]/survey`
-- `/trainee/training-days/[dayId]/survey/result`
+- `/trainee` (dashboard)
+- `/trainee/days` (assigned training days list)
+- `/trainee/[dayId]` (day detail — survey open/submit, or read-only confirmation once submitted)
 
 Flow:
 
 `Login -> Dashboard -> Open Day -> Survey -> Validate -> Confirm -> Submit -> Odoo state=done -> Success/read-only`
 
+Note: a dedicated `.../survey/result` screen that reads back the trainee's own submitted answers was originally listed here but was never built — the trainee survey status API (`GET .../my-survey/status`) intentionally returns only `{response_id, state, submitted_at, editable}`, never answer content, unlike the trainer report API. The current UI shows a read-only "Thank you, submitted at …" confirmation instead. See ADR-006 §12: closing this gap requires a product decision on whether trainees should be able to read back their own final answers, and is not to be auto-implemented as a defect.
+
 ## Supervisor
 
-- `/supervisor`
-- `/supervisor/training-days/[dayId]/attendance`
-- `/supervisor/training-days/[dayId]/evaluation`
+- `/supervisor` (dashboard)
+- `/supervisor/days` (assigned training days list)
+- `/supervisor/[dayId]/attendance`
+- `/supervisor/[dayId]/survey` (daily evaluation)
 
 Flow:
 
@@ -431,8 +434,9 @@ Flow:
 
 ## Trainer
 
-- `/trainer`
-- `/trainer/training-days/[dayId]/report`
+- `/trainer` (dashboard)
+- `/trainer/days` (assigned training days list)
+- `/trainer/[dayId]` (daily report — draft/submit, or read-only once submitted)
 
 Flow:
 

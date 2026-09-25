@@ -102,6 +102,18 @@ needed to change — the underlying implementation was already correct.
 (The supervisor dashboard has the same test-coverage gap; it is
 out of M7's scope and left open here.)
 
+**Post-M10 correction:** at the time of this audit, "the dashboard" was
+the training-days list page at `app/[locale]/trainer/page.tsx`. A later
+UI redesign split that page into a `/days` list route
+(`app/[locale]/trainer/days/page.tsx`) and a separate dashboard
+homepage (`app/[locale]/trainer/page.tsx`, welcome banner/stat cards/
+upcoming-session card/task list), and `tests/TrainerDashboard.test.tsx`
+was renamed to `tests/TrainerDaysPage.test.tsx` along with it — it
+still covers exactly what this section describes (the `/days` list),
+just under its current name. The new dashboard homepage that took over
+the old `tests/TrainerDashboard.test.tsx` name was, for a time, entirely
+untested; see the "Dashboard homepage test coverage" note below.
+
 ## M8 (Reports, Approval and Exports)
 
 Before any change, M8's scope was checked against
@@ -266,7 +278,11 @@ Full details in
   `POST /api/v1/auth/password/forgot|reset` (required since M4,
   previously deferred — standard `auth_signup` reused, with explicit
   anti-enumeration behavior), and a missing
-  `tests/SupervisorDashboard.test.tsx` (flagged since M7).
+  `tests/SupervisorDashboard.test.tsx` (flagged since M7; see the
+  "Post-M10 correction" note under the M7 audit above — this file was
+  later renamed to `tests/SupervisorDaysPage.test.tsx` when the
+  dashboard homepage was split out, so it covers the `/days` list, not
+  the homepage).
 - 14 new backend tests (225 total, 0 failed), `flake8` clean; 5 new
   frontend tests (79 total, 0 failed), lint and build clean; `i18n`
   extended (`.pot` 283 → 302 terms, `ar.po` fully translated for all 19
@@ -275,6 +291,33 @@ Full details in
   real SMS/WhatsApp provider send, TLS/production deployment, and a
   git commit — per this milestone's own instructions, all three
   require separate explicit approval first.
+
+## Dashboard homepage test coverage (post-M10 correction)
+
+A later UI redesign (after the M10 work above) split each role's
+dashboard route into two: `app/[locale]/{trainee,supervisor,trainer}/
+days/page.tsx` (the training-days list, what "the dashboard" meant
+throughout M7-M10 above) and a new `app/[locale]/{trainee,supervisor,
+trainer}/page.tsx` dashboard homepage (welcome banner, stat cards,
+upcoming-session card, task list, quick-stats bars — none of which
+existed when the M7/M10 sections above were written). The frontend
+unit tests named in those sections were renamed alongside the route
+split (`tests/TraineeDashboard.test.tsx` → `tests/
+TraineeDaysPage.test.tsx`, and likewise for supervisor/trainer) and
+still correctly cover the `/days` list pages; they were never updated
+to also cover the new homepage, which briefly had zero direct test
+coverage despite the M7/M10 narrative above reading as if "the
+dashboard" were fully tested.
+
+That gap is now closed: `tests/TraineeDashboard.test.tsx`, `tests/
+SupervisorDashboard.test.tsx`, and `tests/TrainerDashboard.test.tsx`
+(these exact file names, reused for the new homepage now that the old
+content that used to live under them has its own `*DaysPage.test.tsx`
+names) cover the actual dashboard homepage for each role: loading,
+populated/success, empty, and API-error states. `tests/derive.test.ts`
+unit-tests the pure view-model helpers in `lib/dashboard/derive.ts`
+(ratio calculators, `buildTasks`'s at-most-one-upcoming-task cap,
+`buildAttendanceTasks`) directly.
 
 ## Repository layout
 

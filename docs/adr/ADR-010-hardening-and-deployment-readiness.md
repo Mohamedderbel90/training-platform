@@ -323,6 +323,20 @@ Three real, previously-documented gaps were closed:
    `tests/SupervisorDashboard.test.tsx` (new, 5 tests) closes it,
    mirroring `TrainerDashboard.test.tsx`'s structure.
 
+   **Post-M10 correction:** "the dashboard" here meant the
+   training-days list page (`app/[locale]/supervisor/page.tsx` at the
+   time). A later redesign split that route into a `/days` list page
+   and a separate dashboard homepage; `tests/SupervisorDashboard.test.tsx`
+   and `tests/TrainerDashboard.test.tsx` were renamed to
+   `tests/SupervisorDaysPage.test.tsx` / `tests/TrainerDaysPage.test.tsx`
+   along with it, and still correctly cover the `/days` list — not the
+   new homepage. The new homepage was, for a time, untested; new files
+   reusing the original `tests/{Trainee,Supervisor,Trainer}
+   Dashboard.test.tsx` names (now covering the actual homepage) and a
+   `tests/derive.test.ts` for `lib/dashboard/derive.ts`'s pure helpers
+   close that gap. See the README's "Dashboard homepage test coverage
+   (post-M10 correction)" section for the full account.
+
 **Deliberately not touched:** ADR-006 section 12's other flagged gap
 ("no way for a trainee to retrieve their own already-submitted
 answers") remains open — it is explicitly conditional on a future
@@ -352,12 +366,15 @@ milestone's scope, not a defect.
 225 backend tests (211 existing + 14 new: 5 password-recovery, 7
 audit-log, 1 E2E scenario, 1 health-check), all passing. `flake8`
 clean. Frontend:
-79 tests (74 existing + 5 new `SupervisorDashboard.test.tsx`), all
-passing (one run mid-milestone showed the exact same `AuthContext`
--adjacent full-suite timing flakiness ADR-007 already diagnosed and
-attributed to sandboxed-machine worker contention, not a code defect;
-re-running produced a clean pass with normal timing, consistent with
-that diagnosis); `npm run lint` and `npm run build` both clean.
+79 tests (74 existing + 5 new, at the time named
+`tests/SupervisorDashboard.test.tsx` — later renamed to
+`tests/SupervisorDaysPage.test.tsx`; see section 8 point 3's
+"Post-M10 correction"), all passing (one run mid-milestone showed the
+exact same `AuthContext`-adjacent full-suite timing flakiness ADR-007
+already diagnosed and attributed to sandboxed-machine worker
+contention, not a code defect; re-running produced a clean pass with
+normal timing, consistent with that diagnosis); `npm run lint` and
+`npm run build` both clean.
 
 ## Remaining Blockers (Explicit, Per This Milestone's Own Instruction)
 
