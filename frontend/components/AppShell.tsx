@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
@@ -83,6 +83,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const primaryRole = getPrimaryRole(roles);
   const { data: dashboard } = useDashboardSummary(hasNav ? primaryRole : null);
   const otherLocale = routing.locales.find((candidate) => candidate !== locale) ?? locale;
+
+  // Escape dismisses the mobile drawer / notifications popover.
+  useEffect(() => {
+    if (!navOpen && !notifOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setNavOpen(false);
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [navOpen, notifOpen]);
 
   const handleLogout = async () => {
     await logout();

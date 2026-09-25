@@ -2598,3 +2598,27 @@ html[dir="ltr"] .task-list__view-all svg {
 .breadcrumbs__sep[data-direction="rtl"] svg {
   transform: scaleX(-1);
 }
+
+/* Below the desktop breakpoint the closed drawer is off-canvas only
+ * visually; hide it from the tab order/AT too. The delayed visibility
+ * flip keeps the slide-out animation intact. */
+@media (max-width: 959.98px) {
+  .app-shell--with-sidebar .app-sidebar:not([data-open="true"]) {
+    visibility: hidden;
+    transition: transform var(--transition-base), visibility 0s linear var(--transition-base);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .spinner {
+    animation: none;
+  }
+}
