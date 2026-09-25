@@ -627,6 +627,18 @@ class TestSecurityReviewRegressions(AlignmentCase):
                 }
             )
 
+    def test_direct_line_with_zero_scale_below_minimum_rejected(self):
+        response = self._own(training_day_id=self.day.id)
+        with self.assertRaises(ValidationError):
+            self.env["survey.user_input.line"].with_user(self.trainee).create(
+                {
+                    "user_input_id": response.id,
+                    "question_id": self.scale_q.id,
+                    "answer_type": "scale",
+                    "value_scale": 0,
+                }
+            )
+
     def test_direct_duplicate_single_choice_line_rejected(self):
         response = self._own(training_day_id=self.day.id)
         Line = self.env["survey.user_input.line"].with_user(self.trainee)

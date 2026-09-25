@@ -382,7 +382,15 @@ class SurveyUserInputLine(models.Model):
                     _("Invalid answer option for question '%s'.") % question.title
                 )
             scale = vals.get("value_scale")
-            if scale and not (question.scale_min <= scale <= question.scale_max):
+            if (
+                question.question_type == "scale"
+                and "value_scale" in vals
+                and not vals.get("skipped")
+                and (
+                    scale is None
+                    or not (question.scale_min <= scale <= question.scale_max)
+                )
+            ):
                 raise ValidationError(
                     _("The value for '%s' is out of range.") % question.title
                 )
