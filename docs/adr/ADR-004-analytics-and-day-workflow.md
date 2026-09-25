@@ -228,3 +228,10 @@ through Odoo's standard translation mechanism exactly like M1/M2's;
 `training_management.pot`/`ar.po` were regenerated and the new entries
 verified loaded into a real database and read back from PostgreSQL,
 consistent with the process established in M1/M2.
+
+## Update (2026-09-26): reopen is now audited
+
+The statement above that `action_reopen` has no audit trail is superseded:
+every `closed -> open` transition (statusbar or direct write included) is
+logged as `day_reopen`, and every transition to `closed` as `day_close`
+(`training.audit.log`, ADR-010). The KPI formulas in this ADR are unchanged.

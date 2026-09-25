@@ -295,3 +295,16 @@ loadlang`/`import`, then reading translated `ir.model.fields`
 `excel_attachment_id` → "تصدير إكسل", `resolved_date_from` → "تاريخ
 البداية الفعلي") — not just checked for `.po` syntax, matching the
 verification bar every prior milestone's i18n work has used.
+
+## Update (2026-09-26): approval enforced at write/create level
+
+Approval no longer depends on calling `action_approve`. For non-`su`
+callers, `write` enforces the admin group, the `generated -> approved`
+transition, always stamps `approved_by`/`approved_date` with the effective
+user and current time, and writes the `report_approval` audit entry;
+`create` rejects any state other than `draft` and any client-supplied
+approver/date; non-admin writes of the approval fields are rejected. The
+Excel export now honours `show_attendance` and carries the version and
+approval status, matching the PDF. Assistant Admin can generate reports:
+`training.analytics` aggregates through sudo for admin and assistant-admin
+callers only, for aggregate output only.

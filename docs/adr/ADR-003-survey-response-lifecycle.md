@@ -249,3 +249,19 @@ module's own locking logic, caught by the test suite and fixed by
 adding the `survey.question.create()` guard described above before
 this ADR was written. No other Odoo 19 runtime behavior in this area
 diverged from what was expected.
+
+## Update (2026-09-26): model-level guards for non-privileged callers
+
+The `env.su`-gated lock described above remains, and the API remains the
+normal path. A gap analysis found the API-only rules could be bypassed by
+direct ORM/RPC use by an authenticated operational user, so
+`survey.user_input` and `survey.user_input.line` now also enforce, for
+non-`su` callers who are not General Supervisor: creation only for the
+caller's own partner and only when `check_survey_access` passes (day open,
+inside the window, correct survey); no creation as `done`; no change of
+day/role/partner/survey and no attaching a day-less response to a day;
+finalising re-checks the window; and line values must belong to the
+response's survey/question (option belongs to question, scale value within
+`scale_min..scale_max`, one line per single-answer question). No API shape
+changed. The standard `/survey/...` token route is a recorded residual risk
+(`docs/REQUIREMENTS_ALIGNMENT.md` 6.L).

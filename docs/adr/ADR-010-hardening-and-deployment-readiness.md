@@ -413,3 +413,13 @@ provision, and must happen before go-live:**
 No code was deployed anywhere beyond this development environment, and
 no git commit was made, per this task's explicit instruction to stop
 after M10 and wait for approval.
+
+## Update (2026-09-26): audit event coverage
+
+Events now logged in `training.audit.log`: `day_reopen`, `day_close`,
+`report_approval`, `permission_change` (the five project groups, via
+`res.users` create/write and `res.groups` user changes). Not logged and
+not required by PROJECT_SPEC section 17: day open/postpone/cancel, login,
+user edit/disable, published-survey edits. Not logged because no mechanism
+exists: exceptional administrative correction of a final response (OPD-11
+in `docs/REQUIREMENTS_ALIGNMENT.md`).

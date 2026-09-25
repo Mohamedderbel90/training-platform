@@ -83,7 +83,7 @@ files, ADRs, tests present). They are not a substitute for the QA pass.
 | 3a | Trainee survey items (trainer, style, interaction, content, material, comprehensiveness, practical value, environment, organisation, facilities, logistics) | BRD FR-021..024 | Question content is authored in Odoo Survey; KPI category mapping on `survey.question` | Not code | Initial question set is not seeded and its approval is a stated SRS readiness gate (OPD-09). |
 | 3b | Supervisor daily evaluation (attendance, absence, lateness, environment, flow) | BRD FR-031..034 | `training.attendance` + Odoo Survey | Covered | None. |
 | 3c | Trainer report (response, notes, recommendations) | BRD FR-041..043 | Odoo Survey via trainer-report API | Covered | None. |
-| 4a | GS dashboard aggregates the three inputs automatically after submit | BRD FR-050, AC-006; SRS-DASH-001 | `training.analytics` computes from source data (ADR-004); Odoo Graph/Pivot views on attendance and survey KPI | Partial | Trainee-survey and attendance KPIs are verified. Whether supervisor-survey and trainer-report inputs appear in the admin analytics views was not verified; confirm in QA. |
+| 4a | GS dashboard aggregates the three inputs automatically after submit | BRD FR-050, AC-006; SRS-DASH-001 | `training.analytics` computes from source data (ADR-004); Odoo Graph/Pivot views on attendance and survey KPI | Partial | Verified (gap analysis 2026-09-26): the survey KPI view carries `respondent_role`, so supervisor-survey and trainer-report *ratings* appear, and Trainee/Supervisor/Trainer filters were added. Free-text answers are not KPIs and do not appear. |
 | 4b | Day-by-day tracking, cumulative course performance, any of five courses, history | BRD FR-051..056 | Odoo Graph/Pivot + filters; `get_kpi(program, course, day, trainer, dates)` | Partial | Standard views only (permitted by UI Flow 1 / PROJECT_SPEC 8). Bespoke five-course comparison and trend views are not confirmed; see OPD-04 for the undefined trend definition. |
 | 4c | Where the GS dashboard lives | UI Flow 1-3, 14, OD-10; PROJECT_SPEC 2.1; API 11 | Odoo Back-office. No admin dashboard in Next.js. | Covered / resolved | See 6.A and R3. |
 | 5a | Course-end report (trainer, content, environment, attendance/absence) | BRD FR-060/061, 11.1; SRS-RPT-001 | `training.report` (ADR-008): KPI summary + attendance sections, PDF, Excel | Partial | BRD 11.1 also lists executive summary, highest/lowest indicators, qualitative notes and recommendations, day comparison/trend. These sections are **not** in the generated report. |
@@ -98,7 +98,7 @@ files, ADRs, tests present). They are not a substitute for the QA pass.
 | 7 | Participant list import from Excel | BRD FR-015, D-09; SRS AC-SRS-014 | Odoo standard import + `unique(program_id, partner_id)` (PROJECT_SPEC 18) | Partial | The SRS acceptance criterion asks for a valid/invalid-row **preview**; no custom preview wizard exists. Standard Odoo import is the documented path. Confirm it is acceptable (OPD-10). |
 | 8 | Multiple programs with separated data | BRD FR-016, BR-012, D-15, NFR-008; SRS NFR-004 | `program_id` scoping on courses/enrollments/reports | Covered | See 6.G. |
 | 9 | Bilingual Arabic RTL / English LTR from first release | BRD "approved decision" section; PROJECT_SPEC 2A | next-intl, `dir` per locale, message parity (ADR-006/010) | Covered | R2. |
-| 10 | Audit of sensitive events | BRD NFR-006, FR-005; SRS 6.11 | `training.audit.log` for day reopen and report approval; tracking | Partial | SRS 6.11 also lists login/admin changes, user edits, permission changes; only day reopen/close and report approval are confirmed in code. Confirm scope with the owner. |
+| 10 | Audit of sensitive events | BRD NFR-006, FR-005; SRS 6.11; PROJECT_SPEC 17 | `training.audit.log`: `day_reopen`, `day_close`, `report_approval`, `permission_change` (project groups via `res.users` create/write and `res.groups` user changes), on every code path | Partial | PROJECT_SPEC 17 events are logged except **exceptional administrative correction of a final response**, for which no workflow exists (OPD-11). SRS 6.11 also lists login, user edit/disable and published-survey edits; PROJECT_SPEC 17 does not require them and they are not logged. |
 | 11 | AI-assisted analysis | BRD 12 (Phase 2/3) | Not built | Out of phase | Future scope. Must remain human-approved (BRD 12). |
 
 ## 5. Resolved inconsistencies
@@ -336,6 +336,31 @@ credentials (section 7).
 | OPD-08 | Confirm the report-content gap: are the BRD 11.1/11.2 narrative and comparison sections required in the generated report? | Documented in the BRD, absent in the build (5a/5b) |
 | OPD-09 | Approval of the initial survey question sets (three roles) | SRS section 19 readiness item; no seeded surveys |
 | OPD-10 | Is standard Odoo import (no preview wizard) acceptable for FR-015? | SRS AC-SRS-014 asks for preview |
+| OPD-11 | Administrative correction of a final response: workflow, "Administratively Corrected" state, reason, before/after audit | BRD BR-004, SRS 5.3/6.11 and PROJECT_SPEC 17 require it to be audited but define no workflow; today nobody can alter a done response without `su`, and a `su` write is unaudited |
+| OPD-12 | Attendance edit window: may a supervisor edit attendance after the day is closed/postponed/cancelled, and for how long? | BRD says "within a defined time window" without a value; the API currently does not check day state |
+| OPD-13 | Should Assistant Admin see anonymous per-response scores (`training.survey.response.kpi`, no identity)? | Read access exists; tension with BR-008/SEC-007 if "individual details" includes scores |
+
+### 6.L Residual risks recorded by the 2026-09-26 gap analysis (not decisions)
+
+- **Standard Odoo `/survey/start/<token>` route.** Trainees have read access
+  to `survey.survey`, which includes its `access_token`; the API never
+  returns it. Responses created through the standard route are not linked
+  to a training day, so they do not enter KPIs, but they bypass the
+  project's window checks. Not changed (survey access mode is Odoo
+  configuration); recommended follow-up: set survey access to invitation/
+  login-required and hide the token from operational roles.
+- **No minimum cohort size** for aggregates: an Assistant Admin (or any
+  reader of aggregates) filtering to one day or trainer can see effectively
+  one person's score. No identity is exposed. Needs a policy if individual
+  scores must stay General Supervisor-only.
+- **Environment KPI mixes roles.** `get_kpi` pools trainee and supervisor
+  ratings for the same category; SRS 6.7 wants separate indicators or a
+  labelled composite (part of OPD-04).
+- **Cancelled days** are not excluded from analytics; SRS 5.2 has a
+  historical-data caveat (part of OPD-04).
+- **Group `implied_ids` propagation** that grants a project group is not
+  audited (project groups imply only base/survey groups today).
+- **PostgreSQL 13+** suite run still pending (section 7).
 
 ## 7. Infrastructure and deployment prerequisites
 
