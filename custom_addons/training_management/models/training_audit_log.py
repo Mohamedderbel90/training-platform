@@ -9,6 +9,7 @@ from odoo.exceptions import UserError
 # administrative correction of final response/data; report approval;
 # permission/role changes."
 EVENT_TYPES = [
+    ("day_close", "Training Day Closed"),
     ("day_reopen", "Training Day Reopened"),
     ("report_approval", "Report Approved"),
     ("permission_change", "Permission/Role Change"),

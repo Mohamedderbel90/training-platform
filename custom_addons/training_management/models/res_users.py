@@ -1,4 +1,4 @@
-from odoo import _, models
+from odoo import api, models
 
 # Odoo groups are the authoritative role source (PROJECT_SPEC section 7,
 # M4 point 8). The client never supplies a role; it is always derived
@@ -26,46 +26,64 @@ CAPABILITIES_BY_ROLE = {
 }
 
 
+def _project_groups(env):
+    return env["res.groups"].browse(
+        [env.ref(xmlid).id for xmlid in ROLE_GROUPS.values()]
+    )
+
+
+def _log_role_change(env, user, added, removed):
+    """One audit entry per user whose project role set changed
+    (PROJECT_SPEC section 17: "permission/role changes"). Scoped to this
+    project's own five groups only -- not every res.groups membership
+    change on the system (M10: docs/adr/ADR-010)."""
+    if not (added or removed):
+        return
+    env["training.audit.log"]._log(
+        "permission_change",
+        env._(
+            "%(user)s's training roles were changed by "
+            "%(actor)s: added %(added)s, removed %(removed)s."
+        )
+        % {
+            "user": user.name,
+            "actor": env.user.name,
+            "added": ", ".join(added.mapped("name")) or "-",
+            "removed": ", ".join(removed.mapped("name")) or "-",
+        },
+        record=user,
+    )
+
+
 class ResUsers(models.Model):
     _inherit = "res.users"
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        users = super().create(vals_list)
+        # A user created already holding a project role is a role
+        # grant too; audit it (no "before" state, everything is added).
+        project_groups = _project_groups(self.env)
+        for user in users:
+            _log_role_change(
+                self.env, user, user.group_ids & project_groups, project_groups.browse()
+            )
+        return users
 
     def write(self, vals):
         project_groups = None
         before_by_user = {}
         if "group_ids" in vals:
-            project_groups = self.env["res.groups"].browse(
-                [self.env.ref(xmlid).id for xmlid in ROLE_GROUPS.values()]
-            )
+            project_groups = _project_groups(self.env)
             before_by_user = {
                 user.id: user.group_ids & project_groups for user in self
             }
         result = super().write(vals)
-        # PROJECT_SPEC section 17: "permission/role changes" is
-        # audit-worthy. Scoped to this project's own five groups only --
-        # not every res.groups membership change on the system, which
-        # would be far too broad and unrelated to this project's own
-        # roles (M10: docs/adr/ADR-010-hardening-and-deployment-readiness.md).
         if project_groups is not None:
             for user in self:
                 after = user.group_ids & project_groups
                 before = before_by_user[user.id]
-                added = after - before
-                removed = before - after
-                if added or removed:
-                    self.env["training.audit.log"]._log(
-                        "permission_change",
-                        _(
-                            "%(user)s's training roles were changed by "
-                            "%(actor)s: added %(added)s, removed %(removed)s."
-                        )
-                        % {
-                            "user": user.name,
-                            "actor": self.env.user.name,
-                            "added": ", ".join(added.mapped("name")) or "-",
-                            "removed": ", ".join(removed.mapped("name")) or "-",
-                        },
-                        record=user,
-                    )
+                _log_role_change(self.env, user, after - before, before - after)
         return result
 
     def _get_operational_roles(self):
@@ -102,3 +120,28 @@ class ResUsers(models.Model):
             "roles": roles,
             "capabilities": self._get_operational_capabilities(roles),
         }
+
+
+class ResGroups(models.Model):
+    _inherit = "res.groups"
+
+    def write(self, vals):
+        # Assigning users from the group form (or `user_ids` over RPC)
+        # writes res.groups, not res.users, so ResUsers.write() above
+        # never sees it. Same audit event, same project-only scope.
+        tracked = "user_ids" in vals
+        before = {}
+        if tracked:
+            project_groups = _project_groups(self.env)
+            before = {
+                group.id: group.user_ids
+                for group in self & project_groups
+            }
+        result = super().write(vals)
+        for group in self.browse(list(before)):
+            after = group.user_ids
+            for user in after - before[group.id]:
+                _log_role_change(self.env, user, group, group.browse())
+            for user in before[group.id] - after:
+                _log_role_change(self.env, user, group.browse(), group)
+        return result

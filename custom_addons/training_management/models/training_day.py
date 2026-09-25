@@ -163,8 +163,9 @@ class TrainingDay(models.Model):
         "open": {"closed", "postponed", "cancelled"},
         "postponed": {"open", "cancelled"},
         # Reopening a closed day is an exceptional event (PROJECT_SPEC
-        # section 17 lists it as audit-worthy); allowed here, but no
-        # audit trail exists yet -- see ADR-004 and the M3 report.
+        # section 17 lists it as audit-worthy); allowed here and
+        # audited centrally in write() below, so every path (button,
+        # statusbar, direct write) is logged.
         "closed": {"open"},
         "cancelled": set(),
     }
@@ -189,7 +190,34 @@ class TrainingDay(models.Model):
                             "to_state": new_state,
                         }
                     )
-        return super().write(vals)
+        reopened = self.browse()
+        closed = self.browse()
+        if new_state == "open":
+            reopened = self.filtered(lambda day: day.state == "closed")
+        elif new_state == "closed":
+            closed = self.filtered(lambda day: day.state != "closed")
+        result = super().write(vals)
+        # PROJECT_SPEC section 17: exceptional reopen of a training day
+        # is audit-worthy. Logged here (not only in action_reopen) so a
+        # statusbar click or a direct write({'state': 'open'}) on a
+        # closed day cannot bypass the audit trail.
+        for day in reopened:
+            self.env["training.audit.log"]._log(
+                "day_reopen",
+                _("Training day on %(date)s was reopened by %(user)s.")
+                % {"date": day.date, "user": self.env.user.name},
+                record=day,
+            )
+        # SRS 6.11 also lists day closing (closing freezes the day's
+        # responses, BR-004), so the actor/time of every close is kept.
+        for day in closed:
+            self.env["training.audit.log"]._log(
+                "day_close",
+                _("Training day on %(date)s was closed by %(user)s.")
+                % {"date": day.date, "user": self.env.user.name},
+                record=day,
+            )
+        return result
 
     def action_open(self):
         """planned -> open, or postponed -> open (after rescheduling).
@@ -223,6 +251,8 @@ class TrainingDay(models.Model):
         reopen/close of a training day"). M3/ADR-004 deliberately left
         this unaudited because training.audit.log did not exist yet;
         M10 closes that gap (see docs/adr/ADR-010-hardening-and-deployment-readiness.md).
+        The audit entry itself is written by write() so it also covers
+        non-button paths.
         """
         for day in self:
             if day.state != "closed":
@@ -234,13 +264,6 @@ class TrainingDay(models.Model):
                     % {"date": day.date, "state": day.state}
                 )
         self.write({"state": "open"})
-        for day in self:
-            self.env["training.audit.log"]._log(
-                "day_reopen",
-                _("Training day on %s was reopened by %s.")
-                % (day.date, self.env.user.name),
-                record=day,
-            )
 
     def action_postpone(self):
         """planned/open -> postponed."""
