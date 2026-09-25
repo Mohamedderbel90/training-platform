@@ -41,11 +41,28 @@
     "hidePassword": "Hide password",
     "rememberMe": "Remember me",
     "forgotPassword": "Forgot password?",
-    "forgotPasswordNotice": "Please contact your program administrator to reset your password.",
     "signIn": "Sign in",
     "signingIn": "Signing in...",
     "checkingSession": "Checking your session...",
-    "copyright": "© {year} {appName}. All rights reserved."
+    "copyright": "© {year} {appName}. All rights reserved.",
+    "forgotTitle": "Reset your password",
+    "forgotSubtitle": "Enter your username and we'll send a password reset link to your registered email.",
+    "forgotSubmit": "Send reset link",
+    "forgotSubmitting": "Sending...",
+    "forgotSuccessTitle": "Check your email",
+    "backToLogin": "Back to sign in",
+    "resetTitle": "Choose a new password",
+    "resetSubtitle": "Enter and confirm your new password below.",
+    "newPasswordLabel": "New password",
+    "confirmPasswordLabel": "Confirm new password",
+    "passwordMismatch": "Passwords do not match.",
+    "resetSubmit": "Reset password",
+    "resetSubmitting": "Resetting...",
+    "resetSuccessTitle": "Password updated",
+    "resetSuccessMessage": "Your password has been reset. You can now sign in with your new password.",
+    "invalidLinkTitle": "Invalid or expired link",
+    "invalidLinkMessage": "This password reset link is invalid or missing a token. Request a new one.",
+    "requestNewLink": "Request a new link"
   },
   "Errors": {
     "titleUnauthenticated": "Session expired",
@@ -161,5 +178,14 @@
     "saving": "Saving...",
     "save": "Save attendance",
     "saved": "Attendance saved"
+  },
+  "Profile": {
+    "title": "My Profile",
+    "subtitle": "Your account information",
+    "nameLabel": "Name",
+    "rolesLabel": "Roles",
+    "languageLabel": "Language",
+    "switchLanguage": "Switch to {locale}",
+    "logout": "Log out"
   }
 }

@@ -13,6 +13,8 @@ import type {
   DashboardResponseDto,
   OperationalProfile,
   OperationalRole,
+  PasswordForgotResponseDto,
+  PasswordResetResponseDto,
   SurveyAnswerDto,
   SurveyAvailabilityDto,
   SurveyDefinitionDto,
@@ -36,6 +38,18 @@ export const authApi = {
   logout: (locale: string) =>
     apiFetch<{ logged_out: boolean }>("/auth/logout", { method: "POST", locale }),
   me: (locale: string) => apiFetch<OperationalProfile>("/auth/me", { locale }),
+  forgotPassword: (login: string, locale: string) =>
+    apiFetch<PasswordForgotResponseDto>("/auth/password/forgot", {
+      method: "POST",
+      body: { login },
+      locale,
+    }),
+  resetPassword: (token: string, password: string, locale: string) =>
+    apiFetch<PasswordResetResponseDto>("/auth/password/reset", {
+      method: "POST",
+      body: { token, password },
+      locale,
+    }),
 };
 
 export const dashboardApi = {

@@ -41,11 +41,28 @@
     "hidePassword": "إخفاء كلمة المرور",
     "rememberMe": "تذكرني",
     "forgotPassword": "نسيت كلمة المرور؟",
-    "forgotPasswordNotice": "يرجى التواصل مع مسؤولة البرنامج لإعادة تعيين كلمة المرور.",
     "signIn": "تسجيل الدخول",
     "signingIn": "جارٍ تسجيل الدخول...",
     "checkingSession": "جارٍ التحقق من جلستك...",
-    "copyright": "جميع الحقوق محفوظة © {year} {appName}"
+    "copyright": "جميع الحقوق محفوظة © {year} {appName}",
+    "forgotTitle": "إعادة تعيين كلمة المرور",
+    "forgotSubtitle": "أدخلي اسم الدخول الخاص بكِ وسنرسل رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني المسجَّل.",
+    "forgotSubmit": "إرسال رابط إعادة التعيين",
+    "forgotSubmitting": "جارٍ الإرسال...",
+    "forgotSuccessTitle": "تحققي من بريدك الإلكتروني",
+    "backToLogin": "العودة إلى تسجيل الدخول",
+    "resetTitle": "اختاري كلمة مرور جديدة",
+    "resetSubtitle": "أدخلي كلمة المرور الجديدة وأكّديها أدناه.",
+    "newPasswordLabel": "كلمة المرور الجديدة",
+    "confirmPasswordLabel": "تأكيد كلمة المرور الجديدة",
+    "passwordMismatch": "كلمتا المرور غير متطابقتين.",
+    "resetSubmit": "إعادة تعيين كلمة المرور",
+    "resetSubmitting": "جارٍ إعادة التعيين...",
+    "resetSuccessTitle": "تم تحديث كلمة المرور",
+    "resetSuccessMessage": "تم إعادة تعيين كلمة مرورك. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.",
+    "invalidLinkTitle": "رابط غير صالح أو منتهي الصلاحية",
+    "invalidLinkMessage": "رابط إعادة تعيين كلمة المرور هذا غير صالح أو لا يحتوي على رمز. يرجى طلب رابط جديد.",
+    "requestNewLink": "طلب رابط جديد"
   },
   "Errors": {
     "titleUnauthenticated": "انتهت صلاحية الجلسة",
@@ -161,5 +178,14 @@
     "saving": "جارٍ الحفظ...",
     "save": "حفظ الحضور",
     "saved": "تم حفظ الحضور"
+  },
+  "Profile": {
+    "title": "ملفي الشخصي",
+    "subtitle": "معلومات حسابك",
+    "nameLabel": "الاسم",
+    "rolesLabel": "الأدوار",
+    "languageLabel": "اللغة",
+    "switchLanguage": "التبديل إلى {locale}",
+    "logout": "تسجيل الخروج"
   }
 }

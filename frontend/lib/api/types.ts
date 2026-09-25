@@ -169,3 +169,15 @@ export interface DashboardResponseDto {
 export interface AttendanceListResponseDto {
   items: AttendanceItemDto[];
 }
+
+/** `POST /auth/password/forgot` always returns the same generic,
+ * already-localized message regardless of whether the login matches a
+ * real account (see controllers/auth.py's `password_forgot` docstring)
+ * -- the client never infers account existence from this response. */
+export interface PasswordForgotResponseDto {
+  message: string;
+}
+
+export interface PasswordResetResponseDto {
+  reset: boolean;
+}

@@ -1,126 +1,23 @@
 "use client";
 
-import { Suspense, useEffect, useId, useState, type SubmitEvent } from "react";
-import Image from "next/image";
+import { Suspense, useEffect, useState, type SubmitEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { Link, useRouter, usePathname } from "@/i18n/navigation";
-import { routing, type AppLocale } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/navigation";
+import type { AppLocale } from "@/i18n/routing";
 import { DIRECTION_BY_LOCALE } from "@/i18n/direction";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { getRoleHome } from "@/lib/auth/roleHome";
 import { ApiError } from "@/lib/api/client";
 import { ApiErrorView } from "@/components/ApiErrorView";
 import { LoadingState } from "@/components/StateViews";
-import {
-  ArrowIcon,
-  EyeIcon,
-  EyeOffIcon,
-  GlobeIcon,
-  LockIcon,
-  MailIcon,
-} from "@/components/icons";
+import { AuthPageShell } from "@/components/auth/AuthPageShell";
+import { ArrowIcon, EyeIcon, EyeOffIcon, LockIcon, MailIcon } from "@/components/icons";
 
 const REMEMBERED_LOGIN_KEY = "noor.rememberedLogin";
 
 function isSafeReturnPath(path: string | null): path is string {
   return Boolean(path) && path!.startsWith("/") && !path!.startsWith("//");
-}
-
-/**
- * Approved visual design: see noor-login/README.md and
- * approved-login-reference.png. `background-login.png` is a single
- * pre-composed background asset (photo + emerald panel + subtle gold
- * pattern, no baked-in text) applied once via CSS on `.auth-page` --
- * see `.auth-page` in globals.css. It is deliberately NOT built from
- * separate photo/panel/pattern layers the way earlier iterations of
- * this page were; the form and the hadith quote are the only real
- * HTML/CSS on top of it.
- *
- * The image's dark decorative content sits on its physical left and
- * its plain light area on its physical right in BOTH languages (the
- * approved reference shows this same fixed composition for Arabic
- * too), so the quote overlay and the form panel are positioned with
- * physical CSS (`inset-inline-start`/`margin-left`), not logical
- * properties, and each still carries a real `dir={locale direction}`
- * for its own text content -- see the matching comment in
- * globals.css.
- */
-function AuthPageShell({ children }: { children: React.ReactNode }) {
-  const t = useTranslations("Auth");
-  const tc = useTranslations("Common");
-  const locale = useLocale() as AppLocale;
-  const pathname = usePathname();
-  const dir = DIRECTION_BY_LOCALE[locale];
-  const year = new Date().getFullYear();
-
-  return (
-    <div className="auth-page">
-      <nav className="auth-page__lang-switch" aria-label={tc("languageSwitchLabel")}>
-        <GlobeIcon />
-        {routing.locales.map((candidate) => (
-          <Link
-            key={candidate}
-            href={pathname}
-            locale={candidate}
-            aria-current={candidate === locale}
-          >
-            {tc(`locale.${candidate}`)}
-          </Link>
-        ))}
-      </nav>
-
-      <div className="auth-hero-overlay" dir={dir}>
-        <blockquote className="auth-hero__quote">
-          <p>{t("hadithQuote")}</p>
-          <footer>
-            <cite>{t("hadithSource")}</cite>
-          </footer>
-        </blockquote>
-        <p className="auth-hero__footer">
-          <Image
-            src="/noor-login/icon-fleur.png"
-            alt=""
-            width={24}
-            height={16}
-            className="auth-hero__footer-icon"
-          />
-          <span>{t("heroFooterTagline")}</span>
-        </p>
-      </div>
-
-      <div className="auth-page__form-panel" dir={dir}>
-        <div className="auth-card">
-          <div className="auth-card__brand">
-            <Image
-              src="/noor-login/noor-logo-symbol-approx.png"
-              alt=""
-              width={72}
-              height={57}
-              className="auth-card__logo"
-            />
-            <p className="auth-card__brand-name">{tc("appName")}</p>
-            <p className="auth-card__tagline">{t("tagline")}</p>
-          </div>
-          <div className="auth-card__divider" aria-hidden="true">
-            <span />
-            <Image
-              src="/noor-login/icon-fleur.png"
-              alt=""
-              width={30}
-              height={20}
-              className="auth-card__divider-icon"
-            />
-            <span />
-          </div>
-          {children}
-        </div>
-        <p className="auth-page__copyright">
-          {t("copyright", { year, appName: tc("appName") })}
-        </p>
-      </div>
-    </div>
-  );
 }
 
 // useSearchParams() opts a component into client-side rendering during
@@ -147,15 +44,12 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo");
-  const forgotPasswordId = useId();
-
   const [loginValue, setLoginValue] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
-  const [showForgotNotice, setShowForgotNotice] = useState(false);
 
   // "Remember me" only ever remembers the login identifier locally,
   // never the password and never anything server-side (the login API
@@ -286,22 +180,10 @@ function LoginForm() {
             />
             {t("rememberMe")}
           </label>
-          <button
-            type="button"
-            className="auth-form__forgot"
-            aria-expanded={showForgotNotice}
-            aria-controls={forgotPasswordId}
-            onClick={() => setShowForgotNotice((shown) => !shown)}
-          >
+          <Link href="/forgot-password" className="auth-form__forgot">
             {t("forgotPassword")}
-          </button>
+          </Link>
         </div>
-
-        {showForgotNotice ? (
-          <p id={forgotPasswordId} className="field-hint" role="status">
-            {t("forgotPasswordNotice")}
-          </p>
-        ) : null}
 
         <div className="button-row">
           <button type="submit" className="button auth-submit" disabled={submitting}>

@@ -26,7 +26,11 @@ export function ProtectedRoute({
   role,
   children,
 }: {
-  role: OperationalRole;
+  /** Omit for a screen any authenticated operational user may see
+   * regardless of which specific role(s) they hold (e.g. `/profile`,
+   * a PROJECT_SPEC section 9 "Shared" screen) -- only session status
+   * is checked in that case, not a specific role membership. */
+  role?: OperationalRole;
   children: React.ReactNode;
 }) {
   const { status, roles } = useAuth();
@@ -34,7 +38,7 @@ export function ProtectedRoute({
   const pathname = usePathname();
   const t = useTranslations("Common");
 
-  const hasRole = roles.includes(role);
+  const hasRole = role ? roles.includes(role) : true;
 
   useEffect(() => {
     if (status === "unauthenticated") {
