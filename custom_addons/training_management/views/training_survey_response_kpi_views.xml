@@ -58,6 +58,10 @@
                 <filter name="filter_trainer_performance" string="Trainer Performance" domain="[('kpi_category', '=', 'trainer_performance')]"/>
                 <filter name="filter_content" string="Content" domain="[('kpi_category', '=', 'content')]"/>
                 <filter name="filter_environment" string="Environment" domain="[('kpi_category', '=', 'environment')]"/>
+                <separator/>
+                <filter name="filter_role_trainee" string="Trainee Survey" domain="[('respondent_role', '=', 'trainee')]"/>
+                <filter name="filter_role_supervisor" string="Supervisor Survey" domain="[('respondent_role', '=', 'supervisor')]"/>
+                <filter name="filter_role_trainer" string="Trainer Report" domain="[('respondent_role', '=', 'trainer')]"/>
                 <group>
                     <filter name="group_by_program" string="Program" context="{'group_by': 'program_id'}"/>
                     <filter name="group_by_course" string="Course" context="{'group_by': 'course_id'}"/>
