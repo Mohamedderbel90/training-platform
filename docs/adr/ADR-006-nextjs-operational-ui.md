@@ -349,3 +349,21 @@ alone, since M4 had no consuming frontend to expose them):
 Both are scoping gaps in the already-shipped M4 API, not defects in
 M4's own delivered scope (M4's brief never asked for supervisor status
 or trainee answer review) — flagged here for M6+ prioritization.
+
+## Update (2026-09-26): gap-analysis frontend changes
+
+- `lib/api/useSurveyDefinition.ts` is the shared definition loader for the
+  trainee and supervisor survey pages (a failed load now really retries,
+  and a 401 re-checks the session).
+- `components/SubmittedState.tsx` is the single "submitted" view (status
+  only; OPD-01 unchanged); timestamps are formatted in the profile
+  timezone.
+- An authenticated account with no operational role sees `NoRoleState`
+  (message + log out) instead of a redirect loop. No administrative
+  dashboard is added in Next.js.
+- Unknown routes inside `[locale]` render a localized `not-found` page.
+- `SurveyQuestionDto` gained optional `scale_min`/`scale_max` (additive,
+  set only for `scale` questions) so the form sets `min`/`max`; the server
+  remains the authority and still returns 422 for out-of-range values.
+- `/[locale]/reset-password` is served with `Referrer-Policy: no-referrer`
+  because the reset token is in the URL.

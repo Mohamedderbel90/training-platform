@@ -360,6 +360,11 @@ credentials (section 7).
   historical-data caveat (part of OPD-04).
 - **Group `implied_ids` propagation** that grants a project group is not
   audited (project groups imply only base/survey groups today).
+- **Attendance default in the UI.** Trainees with no recorded status are
+  preselected "present" and a bulk save records them as present. The BRD
+  requires an explicit status per trainee (FR-031) but does not say whether
+  an unrecorded trainee defaults to present; kept as is pending a decision
+  (part of OPD-12).
 - **PostgreSQL 13+** suite run still pending (section 7).
 
 ## 7. Infrastructure and deployment prerequisites
