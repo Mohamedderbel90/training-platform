@@ -11,6 +11,7 @@ import { DayCard, SurveyAvailabilityBadge } from "@/components/DayCard";
 import { DaySection } from "@/components/DaySection";
 import { PageHeader } from "@/components/PageHeader";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ROLE_HOME } from "@/lib/auth/roleHome";
 import type { DashboardEntryDto } from "@/lib/api/types";
 
 function TrainerReportsContent() {
@@ -46,7 +47,7 @@ function TrainerReportsContent() {
   const days = data?.days ?? [];
   return (
     <div>
-      <Breadcrumbs items={[{ label: nav("myReports") }]} />
+      <Breadcrumbs homeHref={ROLE_HOME.trainer} items={[{ label: nav("myReports") }]} />
       <PageHeader title={<h1>{p("reportsTitle")}</h1>} subtitle={p("reportsSubtitle")} />
       {days.length === 0 ? (
         <EmptyState title={t("emptyTitle")} message={t("emptyTrainerMessage")} />

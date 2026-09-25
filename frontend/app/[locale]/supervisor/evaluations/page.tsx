@@ -11,6 +11,7 @@ import { DayCard, SurveyAvailabilityBadge } from "@/components/DayCard";
 import { DaySection } from "@/components/DaySection";
 import { PageHeader } from "@/components/PageHeader";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ROLE_HOME } from "@/lib/auth/roleHome";
 import type { DashboardEntryDto } from "@/lib/api/types";
 
 /** Presentation grouping only: a day is "complete" when the backend's
@@ -67,7 +68,7 @@ function SupervisorEvaluationsContent() {
   const days = data?.days ?? [];
   return (
     <div>
-      <Breadcrumbs items={[{ label: nav("attendanceEvaluation") }]} />
+      <Breadcrumbs homeHref={ROLE_HOME.supervisor} items={[{ label: nav("attendanceEvaluation") }]} />
       <PageHeader title={<h1>{p("evaluationsTitle")}</h1>} subtitle={p("evaluationsSubtitle")} />
       {days.length === 0 ? (
         <EmptyState title={t("emptyTitle")} message={t("emptySupervisorMessage")} />

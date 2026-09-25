@@ -11,6 +11,7 @@ import { DayCard, SurveyAvailabilityBadge } from "@/components/DayCard";
 import { DaySection } from "@/components/DaySection";
 import { PageHeader } from "@/components/PageHeader";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ROLE_HOME } from "@/lib/auth/roleHome";
 
 function TraineeSurveysContent() {
   const t = useTranslations("Dashboard");
@@ -46,7 +47,7 @@ function TraineeSurveysContent() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: nav("mySurveys") }]} />
+      <Breadcrumbs homeHref={ROLE_HOME.trainee} items={[{ label: nav("mySurveys") }]} />
       <PageHeader title={<h1>{p("surveysTitle")}</h1>} subtitle={p("surveysSubtitle")} />
       {days.length === 0 ? (
         <EmptyState title={t("emptyTitle")} message={t("emptyTraineeMessage")} />

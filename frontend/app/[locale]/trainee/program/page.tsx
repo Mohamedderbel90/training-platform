@@ -9,6 +9,7 @@ import { ApiErrorView } from "@/components/ApiErrorView";
 import { StatCards } from "@/components/dashboard/StatCards";
 import { PageHeader } from "@/components/PageHeader";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ROLE_HOME } from "@/lib/auth/roleHome";
 
 function TraineeProgramContent() {
   const t = useTranslations("Dashboard");
@@ -25,7 +26,7 @@ function TraineeProgramContent() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: nav("program") }]} />
+      <Breadcrumbs homeHref={ROLE_HOME.trainee} items={[{ label: nav("program") }]} />
       <PageHeader title={<h1>{p("programTitle")}</h1>} subtitle={p("programSubtitle")} />
       {!program ? (
         <EmptyState title={p("programEmptyTitle")} message={p("programEmptyMessage")} />
