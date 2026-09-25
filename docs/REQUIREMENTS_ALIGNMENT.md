@@ -365,6 +365,16 @@ credentials (section 7).
   requires an explicit status per trainee (FR-031) but does not say whether
   an unrecorded trainee defaults to present; kept as is pending a decision
   (part of OPD-12).
+- **Odoo `admin` account and `group_training_admin`.** The model-level
+  guards and report approval treat only `group_training_admin` (and `su`)
+  as privileged; `base.group_system` alone is not. The go-live administrator
+  account must be a member of `group_training_admin`, otherwise Back-office
+  approval and response management will be refused.
+- **Duplicating a generated/approved report** from the Odoo UI is rejected
+  ("A report can only be created as a draft."); the sanctioned path is the
+  "New Version" action. Behaviour is correct; the message is terse.
+- **`list_db` / listen interface.** `env/odoo.conf` shows `list_db = True`
+  and the default interface; harden both for production (infrastructure).
 - **PostgreSQL 13+** suite run still pending (section 7).
 
 ## 7. Infrastructure and deployment prerequisites
@@ -429,13 +439,12 @@ conditionally.
 | AC-ALN-17 | Filter scope (OPD-05) | **Pending.** If additional report filters (trainer, attendance status, survey completion) are approved, the report shows the applied filters and dashboard and report agree | none |
 | AC-ALN-18 | Approval is internal, not legal | Only an admin can approve, only from the generated state; approval stores approver and timestamp, locks the record, writes an audit entry; the PDF carries the approver, date/time and stamp; no PKI signature is produced | `test_approve_requires_admin_group`, `test_approve_requires_generated_state`, `test_approve_sets_metadata_and_locks`, `test_approved_report_is_immutable`, `test_report_approval_is_logged` |
 | AC-ALN-19 | Export | PDF (Arabic RTL) and Excel export succeed for an approved report; a trainee cannot reach the report or its attachment | `test_export_excel_allowed_after_approval`, `test_trainee_cannot_access_report_attachment`; ADR-010 section 3 real PDF render |
-| AC-ALN-20 | Multi-program separation | Program KPIs and reports never mix programs; each program has its own courses, enrollments and reports; the initial data set is the single Quran-school principals program | SRS AC-SRS-009; ORM scoping by `program_id`; a second program (`other_program`) is used in `test_security.py` and the supervisor API tests for record-rule isolation; no test was found that asserts KPI or report separation across two programs |
+| AC-ALN-20 | Multi-program separation | Program KPIs, attendance, response rate, program and course reports and the Back-office KPI view never mix programs; each program has its own courses, enrollments and reports; the initial data set is the single Quran-school principals program | SRS AC-SRS-009; `TestMultiProgramIsolation` in `tests/test_requirements_alignment.py` |
 | AC-ALN-21 | Document authority | `CLAUDE.md`, `README` and `PROJECT_SPEC` all point to this file; the version table in section 2 decodes every `.docx` citation; sections 5 and 8 mark each superseded example | Manual review of this file and its pointers |
 | AC-ALN-22 | Report content gap (OPD-08) | **Pending.** If the BRD 11.1/11.2 sections are confirmed as required, the generated course report shows the narrative and comparison sections and the program report shows the five-course comparison and 16-week trend | none |
 
-Missing tests worth adding once the decisions above are made are exactly
-the rows whose Evidence is "none" plus a KPI/report two-program separation check
-(AC-ALN-20).
+Missing tests worth adding once the decisions above are made are the rows
+whose Evidence is "none".
 
 ## 10. Documentation clarifications applied alongside this file
 
