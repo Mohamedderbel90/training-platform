@@ -13,6 +13,8 @@
 
 > This file is the implementation source of truth for AI coding and engineering. If an older BRD/SRS/ERD/API/UI document conflicts with this file on architecture, model naming, interface ownership, or implementation boundaries, this file takes precedence. Business requirements remain governed by the latest approved BRD.
 
+> **Document authority and open decisions:** `docs/REQUIREMENTS_ALIGNMENT.md` is the index of which document governs what, the resolved inconsistencies between the older `.docx` sources and this file, the requirements traceability matrix, and the **open product decisions (OPD-xx)**. Where this file says a behaviour is undecided, the decision is tracked there. The `.docx` version labels do not match their file names; use that file's version table.
+
 ---
 
 # 1. Product Goal
@@ -414,17 +416,22 @@ Odoo 19 XML list views must use `<list>`, not legacy `<tree>`.
 - `/trainee` (dashboard)
 - `/trainee/days` (assigned training days list)
 - `/trainee/[dayId]` (day detail — survey open/submit, or read-only confirmation once submitted)
+- `/trainee/surveys` (My Surveys — the trainee's days grouped by survey status)
+- `/trainee/program` (Training Program — program range and per-course breakdown from the dashboard summary)
 
 Flow:
 
 `Login -> Dashboard -> Open Day -> Survey -> Validate -> Confirm -> Submit -> Odoo state=done -> Success/read-only`
 
-Note: a dedicated `.../survey/result` screen that reads back the trainee's own submitted answers was originally listed here but was never built — the trainee survey status API (`GET .../my-survey/status`) intentionally returns only `{response_id, state, submitted_at, editable}`, never answer content, unlike the trainer report API. The current UI shows a read-only "Thank you, submitted at …" confirmation instead. See ADR-006 §12: closing this gap requires a product decision on whether trainees should be able to read back their own final answers, and is not to be auto-implemented as a defect.
+Note: a dedicated `.../survey/result` screen that reads back the trainee's own submitted answers was originally listed here but was never built — the trainee survey status API (`GET .../my-survey/status`) intentionally returns only `{response_id, state, submitted_at, editable}`, never answer content, unlike the trainer report API. The current UI shows a read-only "Thank you, submitted at …" confirmation instead. See ADR-006 §12: closing this gap requires a product decision on whether trainees should be able to read back their own final answers, and is not to be auto-implemented as a defect. Tracked as **OPD-01** in `docs/REQUIREMENTS_ALIGNMENT.md` (no approved source requires or forbids it; "read-only" in the older documents means status/confirmation, not answer read-back).
+
+Sidebar items per role and the four list routes above are defined in ADR-011 (`frontend/lib/auth/roleNav.ts`); ADR-011 supersedes UI Flow section 12 for Next.js navigation. There is no General Supervisor / administrative dashboard in Next.js: administrative dashboards and analytics are Odoo Back-office (section 2.1).
 
 ## Supervisor
 
 - `/supervisor` (dashboard)
 - `/supervisor/days` (assigned training days list)
+- `/supervisor/evaluations` (Attendance & Evaluation — assigned days grouped by what still needs action)
 - `/supervisor/[dayId]/attendance`
 - `/supervisor/[dayId]/survey` (daily evaluation)
 
@@ -436,6 +443,7 @@ Flow:
 
 - `/trainer` (dashboard)
 - `/trainer/days` (assigned training days list)
+- `/trainer/reports` (My Reports — the trainer's days grouped by daily-report status)
 - `/trainer/[dayId]` (daily report — draft/submit, or read-only once submitted)
 
 Flow:
@@ -517,6 +525,7 @@ Final submit must support idempotency. No trainee `PATCH` endpoint exists after 
 - `GET /api/v1/dashboard/trainee`
 - `GET /api/v1/dashboard/supervisor`
 - `GET /api/v1/dashboard/trainer`
+- `GET /api/v1/dashboard/{trainee|supervisor|trainer}/days/{day_id}` (single day in the dashboard-entry shape; role fixed by the route; added by ADR-011)
 
 ## 10.6 Authorized downloads
 
@@ -671,6 +680,7 @@ Important rules:
 - Missing data is not treated as zero.
 - Weighted averages must document their denominator/weighting.
 - Same filters must produce the same numbers in dashboard and report.
+- The KPI formulas, their sources and the points still needing owner approval (1..5 mapping, response-rate denominator, trend period, program-level weighting) are tabulated in `docs/REQUIREMENTS_ALIGNMENT.md` section 6.D; do not change a formula without that approval.
 
 ---
 
@@ -976,7 +986,9 @@ These decisions do not change business scope but must be finalized during implem
 - Cloud/hosting provider.
 - Backup infrastructure/tooling.
 - Whether Odoo Sign is available/licensed and required.
-- Whether trainer assignment needs a separate `training.trainer.assignment` model or a Many2many on `training.day` is sufficient.
+- ~~Whether trainer assignment needs a separate `training.trainer.assignment` model or a Many2many on `training.day` is sufficient.~~ Resolved: implemented as `Many2many trainer_ids` on `training.day`.
+
+Open **product** decisions (read-back, reminder policy, KPI approvals, report filter scope, initial survey question sets, formal BRD sign-off) are not technical decisions and are tracked in `docs/REQUIREMENTS_ALIGNMENT.md` section 6.K. Provider credentials, TLS, mail server and PostgreSQL 13+ validation are infrastructure prerequisites (same file, section 7), not missing features.
 
 No coding agent should guess provider-specific details without configuration or an explicit decision.
 

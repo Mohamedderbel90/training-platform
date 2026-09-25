@@ -342,7 +342,10 @@ Three real, previously-documented gaps were closed:
 answers") remains open — it is explicitly conditional on a future
 product requirement ("If read-only self-review... becomes a real
 product requirement"), which is new-feature work outside a hardening
-milestone's scope, not a defect.
+milestone's scope, not a defect. (Now tracked as OPD-01 in
+`docs/REQUIREMENTS_ALIGNMENT.md`; the blockers listed under "Remaining
+Blockers" below are classified there as infrastructure prerequisites, not
+product gaps.)
 
 ## 9. i18n / RTL Quality
 

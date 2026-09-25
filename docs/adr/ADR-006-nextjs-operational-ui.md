@@ -341,6 +341,11 @@ alone, since M4 had no consuming frontend to expose them):
    can work around on its own, since the data simply never leaves
    Odoo.
 
+> **Update (2026-09-25):** the trainee read-back question is tracked as
+> OPD-01 in `docs/REQUIREMENTS_ALIGNMENT.md`. No approved requirement
+> decides it; "read-only" in the BRD/SRS/UI Flow means status/confirmation.
+> The decision recorded here is unchanged.
+
 Both are scoping gaps in the already-shipped M4 API, not defects in
 M4's own delivered scope (M4's brief never asked for supervisor status
 or trainee answer review) — flagged here for M6+ prioritization.

@@ -62,6 +62,20 @@ and the supervisor survey is submitted are display groupings of
 existing Odoo-supplied fields, not business rules. Change them freely
 if product wants different wording.
 
+## Clarifications (2026-09-25)
+
+- **Dashboard ownership.** The role dashboards in this ADR are the
+  trainee, supervisor and trainer operational dashboards. The General
+  Supervisor / administrative dashboard and analytics are Odoo Back-office
+  (UI Flow sections 1-3 and OD-10, PROJECT_SPEC 2.1); no equivalent is built
+  in Next.js, and building one would be a Change Request.
+- **Navigation authority.** This ADR supersedes UI Flow section 12 for
+  the Next.js sidebar and adds the routes listed above. The trainee
+  "Training Program" page displays already-supplied data and is not a BRD
+  functional requirement.
+- The two open items below are tracked as OPD-01 and OPD-02 in
+  `docs/REQUIREMENTS_ALIGNMENT.md`.
+
 ## Explicitly not done
 
 - **Trainee read-back of own submitted answers** remains open exactly
