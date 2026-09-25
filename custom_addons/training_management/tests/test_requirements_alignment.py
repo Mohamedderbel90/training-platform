@@ -548,6 +548,29 @@ class TestRespondentServerSideEnforcement(AlignmentCase):
         self.assertEqual(response.state, "done")
         self.assertEqual(self.analytics.get_response_scores(response)["content"], 4)
 
+    def test_definition_dto_exposes_scale_bounds_only_for_scale_questions(self):
+        scale_survey = self.env["survey.survey"].create(
+            {"title": "ALN Bounds", "survey_role": "trainee"}
+        )
+        scale_q = self.env["survey.question"].create(
+            {
+                "survey_id": scale_survey.id,
+                "title": "Scale",
+                "question_type": "scale",
+                "scale_min": 1,
+                "scale_max": 5,
+                "kpi_category": "content",
+            }
+        )
+        dto = scale_q._get_definition_dto()
+        self.assertEqual((dto["scale_min"], dto["scale_max"]), (1, 5))
+        text_q = self.env["survey.question"].create(
+            {"survey_id": scale_survey.id, "title": "Note", "question_type": "char_box"}
+        )
+        dto = text_q._get_definition_dto()
+        self.assertIsNone(dto["scale_min"])
+        self.assertIsNone(dto["scale_max"])
+
 
 @tagged("post_install", "-at_install", "training_management_survey", "training_management_security")
 class TestSecurityReviewRegressions(AlignmentCase):

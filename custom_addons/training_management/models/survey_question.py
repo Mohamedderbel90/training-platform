@@ -89,4 +89,8 @@ class SurveyQuestion(models.Model):
             "required": bool(self.constr_mandatory),
             "kpi_category": self.kpi_category or None,
             "options": options,
+            # Additive: the bounds the server enforces on submit, so the
+            # UI can set min/max instead of learning them from a 422.
+            "scale_min": self.scale_min if self.question_type == "scale" else None,
+            "scale_max": self.scale_max if self.question_type == "scale" else None,
         }
