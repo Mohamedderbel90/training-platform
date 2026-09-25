@@ -14,6 +14,7 @@ import { useAuth } from "./AuthContext";
 import { getRoleHome } from "./roleHome";
 import type { OperationalRole } from "@/lib/api/types";
 import { LoadingState, ErrorState } from "@/components/StateViews";
+import { NoRoleState } from "@/components/NoRoleState";
 
 function isSafeReturnPath(path: string): boolean {
   // Only ever redirect back to a path inside this same app, never an
@@ -56,6 +57,10 @@ export function ProtectedRoute({
   if (status === "unauthenticated") {
     // Redirect effect above is in flight; render nothing meaningful.
     return <LoadingState label={t("loadingSession")} />;
+  }
+
+  if (!hasRole && roles.length === 0) {
+    return <NoRoleState />;
   }
 
   if (!hasRole) {

@@ -1,5 +1,7 @@
 {
   "Common": {
+    "noRoleTitle": "No training role on this account",
+    "noRoleMessage": "This account is not a trainee, supervisor or trainer, so there is nothing to show here. Sign out and use an account with a training role.",
     "appName": "Noor Al-Qiyadah",
     "skipToContent": "Skip to main content",
     "menu": "Menu",
@@ -104,6 +106,8 @@
     "requestNewLink": "Request a new link"
   },
   "Errors": {
+    "notFoundMessage": "The page you are looking for does not exist or has moved.",
+    "backHome": "Back to home",
     "titleUnauthenticated": "Session expired",
     "titleForbidden": "Access denied",
     "titleNotFound": "Not found",

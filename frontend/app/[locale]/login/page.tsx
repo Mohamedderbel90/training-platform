@@ -11,6 +11,7 @@ import { getRoleHome } from "@/lib/auth/roleHome";
 import { ApiError } from "@/lib/api/client";
 import { ApiErrorView } from "@/components/ApiErrorView";
 import { LoadingState } from "@/components/StateViews";
+import { NoRoleState } from "@/components/NoRoleState";
 import { AuthPageShell } from "@/components/auth/AuthPageShell";
 import { ArrowIcon, EyeIcon, EyeOffIcon, LockIcon, MailIcon } from "@/components/icons";
 
@@ -71,10 +72,14 @@ function LoginForm() {
   // Already-authenticated visitors (e.g. back-button to /login) go
   // straight to their dashboard instead of seeing the form again.
   useEffect(() => {
-    if (status === "authenticated") {
+    if (status === "authenticated" && roles.length > 0) {
       router.replace(isSafeReturnPath(returnTo) ? returnTo : getRoleHome(roles));
     }
   }, [status, roles, returnTo, router]);
+
+  if (status === "authenticated" && roles.length === 0) {
+    return <NoRoleState />;
+  }
 
   if (status === "loading" || status === "authenticated") {
     return <LoadingState label={t("checkingSession")} />;
@@ -91,7 +96,11 @@ function LoginForm() {
       } else {
         window.localStorage.removeItem(REMEMBERED_LOGIN_KEY);
       }
-      router.replace(isSafeReturnPath(returnTo) ? returnTo : getRoleHome(profile.roles));
+      // A role-less account has no home; the authenticated-state
+      // branch above renders NoRoleState instead of navigating.
+      if (profile.roles.length > 0) {
+        router.replace(isSafeReturnPath(returnTo) ? returnTo : getRoleHome(profile.roles));
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err);
