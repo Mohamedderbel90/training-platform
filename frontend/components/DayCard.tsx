@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { formatDate } from "@/lib/dashboard/format";
 import type { DashboardEntryDto, SurveyAvailabilityDto } from "@/lib/api/types";
 
 function dayStateBadgeClass(state: DashboardEntryDto["state"]): string {
@@ -23,13 +24,14 @@ function dayStateBadgeClass(state: DashboardEntryDto["state"]): string {
  * links) differs, passed in as `children`. */
 export function DayCard({ entry, children }: { entry: DashboardEntryDto; children: ReactNode }) {
   const t = useTranslations("Dashboard");
+  const locale = useLocale();
   return (
     <article className="card card--interactive">
       <div className="card__title-row">
         <div>
           <p className="card__title">{entry.course_name}</p>
           <p className="card__meta">{entry.program_name}</p>
-          <p className="card__meta">{entry.date ?? t("dateUnknown")}</p>
+          <p className="card__meta">{entry.date ? formatDate(entry.date, locale) : t("dateUnknown")}</p>
         </div>
         <span className={dayStateBadgeClass(entry.state)}>{t(`dayState.${entry.state}`)}</span>
       </div>

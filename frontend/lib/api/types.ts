@@ -59,6 +59,9 @@ export interface SurveyQuestionDto {
   required: boolean;
   kpi_category: string | null;
   options: SurveyOptionDto[] | null;
+  /** Only set for `scale` questions; the server rejects values outside it. */
+  scale_min?: number | null;
+  scale_max?: number | null;
 }
 
 export interface SurveySectionDto {

@@ -84,3 +84,39 @@ export function formatProgramRange(
   const toDate = (value: string) => new Date(`${value}T00:00:00Z`);
   return `${fmt.format(toDate(startDate))} – ${fmt.format(toDate(endDate))}`;
 }
+
+/** A single Odoo calendar date ("YYYY-MM-DD") in the UI locale (UTC, so
+ * it never shifts a day). Falls back to the raw value if unparseable. */
+export function formatDate(dateStr: string, locale: string): string {
+  const date = new Date(`${dateStr}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return dateStr;
+  return new Intl.DateTimeFormat(intlLocale(locale), {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+/** An Odoo UTC datetime ("YYYY-MM-DD HH:MM:SS", or an ISO string) shown
+ * in the user's own IANA zone (profile.tz, browser zone when unset). */
+export function formatDateTime(
+  value: string,
+  locale: string,
+  timeZone?: string | null,
+): string {
+  const normalized = /[zZ]|[+-]\d\d:?\d\d$/.test(value)
+    ? value
+    : `${value.replace(" ", "T")}Z`;
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat(intlLocale(locale), {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: validTimeZone(timeZone),
+  }).format(date);
+}

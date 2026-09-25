@@ -11,7 +11,7 @@ import { LoadingState, EmptyState } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
 import { SurveyForm } from "@/components/SurveyForm";
 import { PageHeader } from "@/components/PageHeader";
-import { CheckIcon } from "@/components/icons";
+import { SubmittedState } from "@/components/SubmittedState";
 import type { SurveyAnswerDto } from "@/lib/api/types";
 
 export function TrainerReportContent({ dayId }: { dayId: number }) {
@@ -74,15 +74,7 @@ export function TrainerReportContent({ dayId }: { dayId: number }) {
   return (
     <div>
       <PageHeader title={<h1>{data.definition.title}</h1>} />
-      {submitted ? (
-        <div className="state-view state-view--success">
-          <span className="state-view__icon">
-            <CheckIcon />
-          </span>
-          <p className="state-view__title">{t("submittedTitle")}</p>
-          <p className="state-view__message">{t("submittedMessage")}</p>
-        </div>
-      ) : null}
+      {submitted ? <SubmittedState submittedAt={data.status.response?.submitted_at} /> : null}
       {draftSavedAt && !submitted ? (
         <p className="badge badge--success" role="status">
           {t("draftSaved")}

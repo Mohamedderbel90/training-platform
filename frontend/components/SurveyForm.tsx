@@ -16,7 +16,7 @@
  * server's own mandatory-answer check (ADR-003) remains authoritative,
  * and any server VALIDATION_ERROR is always surfaced via `apiError`.
  */
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type {
   SurveyAnswerDto,
@@ -80,6 +80,14 @@ export function SurveyForm({
   const [missingIds, setMissingIds] = useState<number[]>([]);
   const [confirming, setConfirming] = useState(false);
   const errorSummaryId = useId();
+  const summaryRef = useRef<HTMLDivElement>(null);
+
+  // Move focus to the error summary when a submit attempt is blocked,
+  // so keyboard/screen-reader users land on the list of problems.
+  const hasMissing = missingIds.length > 0;
+  useEffect(() => {
+    if (hasMissing) summaryRef.current?.focus();
+  }, [hasMissing]);
 
   const allQuestions = useMemo(
     () => definition.sections.flatMap((section) => section.questions),
@@ -126,7 +134,7 @@ export function SurveyForm({
       {apiError ? <ApiErrorView error={apiError} onRetry={onRetry} /> : null}
 
       {missingIds.length > 0 ? (
-        <div className="error-summary" role="alert" id={errorSummaryId} tabIndex={-1}>
+        <div className="error-summary" role="alert" id={errorSummaryId} tabIndex={-1} ref={summaryRef}>
           <h2>{t("missingRequiredTitle")}</h2>
           <ul>
             {missingIds.map((id) => {
@@ -220,10 +228,16 @@ function QuestionField({
   const t = useTranslations("Survey");
   const fieldId = `question-${question.question_id}`;
   const errorId = `${fieldId}-error`;
+  // Choice questions are a group of inputs, not one labelable control.
+  const isGroup =
+    question.question_type === "simple_choice" || question.question_type === "multiple_choice";
 
   return (
     <div className="field" data-invalid={invalid} id={fieldId}>
-      <label htmlFor={`${fieldId}-input`}>
+      <label
+        id={`${fieldId}-label`}
+        htmlFor={isGroup ? undefined : `${fieldId}-input`}
+      >
         {question.title}
         {question.required ? (
           <span className="required-marker" aria-hidden="true">
@@ -238,6 +252,7 @@ function QuestionField({
         answer={answer}
         disabled={disabled}
         inputId={`${fieldId}-input`}
+        labelId={`${fieldId}-label`}
         describedBy={invalid ? errorId : undefined}
         onChange={onChange}
       />
@@ -256,6 +271,7 @@ function QuestionInput({
   answer,
   disabled,
   inputId,
+  labelId,
   describedBy,
   onChange,
 }: {
@@ -263,13 +279,14 @@ function QuestionInput({
   answer: SurveyAnswerDto | undefined;
   disabled: boolean;
   inputId: string;
+  labelId: string;
   describedBy?: string;
   onChange: (patch: Partial<SurveyAnswerDto>) => void;
 }) {
   switch (question.question_type) {
     case "simple_choice":
       return (
-        <div className="option-list" role="radiogroup" aria-labelledby={inputId} aria-describedby={describedBy}>
+        <div className="option-list" role="radiogroup" aria-labelledby={labelId} aria-describedby={describedBy}>
           {(question.options ?? []).map((option) => (
             <label className="option-item" key={option.id} htmlFor={`${inputId}-${option.id}`}>
               <input
@@ -288,7 +305,7 @@ function QuestionInput({
     case "multiple_choice": {
       const selected = new Set(answer?.answer_option_ids ?? []);
       return (
-        <div className="option-list" aria-describedby={describedBy}>
+        <div className="option-list" role="group" aria-labelledby={labelId} aria-describedby={describedBy}>
           {(question.options ?? []).map((option) => (
             <label className="option-item" key={option.id} htmlFor={`${inputId}-${option.id}`}>
               <input
@@ -318,6 +335,7 @@ function QuestionInput({
           id={inputId}
           disabled={disabled}
           aria-describedby={describedBy}
+          aria-invalid={describedBy ? true : undefined}
           value={answer?.text ?? ""}
           onChange={(event) => onChange({ text: event.target.value })}
         />
@@ -328,8 +346,13 @@ function QuestionInput({
         <input
           id={inputId}
           type="number"
+          step={question.question_type === "scale" ? 1 : "any"}
+          min={question.question_type === "scale" ? (question.scale_min ?? undefined) : undefined}
+          max={question.question_type === "scale" ? (question.scale_max ?? undefined) : undefined}
+          inputMode={question.question_type === "scale" ? "numeric" : "decimal"}
           disabled={disabled}
           aria-describedby={describedBy}
+          aria-invalid={describedBy ? true : undefined}
           value={answer?.value ?? ""}
           onChange={(event) =>
             onChange({ value: event.target.value === "" ? undefined : Number(event.target.value) })
@@ -344,6 +367,7 @@ function QuestionInput({
           type="text"
           disabled={disabled}
           aria-describedby={describedBy}
+          aria-invalid={describedBy ? true : undefined}
           value={answer?.text ?? ""}
           onChange={(event) => onChange({ text: event.target.value })}
         />

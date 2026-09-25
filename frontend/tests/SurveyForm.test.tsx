@@ -102,4 +102,37 @@ describe("SurveyForm", () => {
     );
     expect(screen.getByDisplayValue("Existing note")).toBeInTheDocument();
   });
+
+  it("applies the server-supplied scale bounds to the scale input", () => {
+    const scaleDefinition: SurveyDefinitionDto = {
+      survey_id: 2,
+      title: "Scale Survey",
+      version_no: 1,
+      sections: [
+        {
+          id: 0,
+          title: null,
+          questions: [
+            {
+              question_id: 9,
+              title: "Overall score",
+              question_type: "scale",
+              required: false,
+              kpi_category: null,
+              options: null,
+              scale_min: 1,
+              scale_max: 5,
+            },
+          ],
+        },
+      ],
+    };
+    renderWithIntl(
+      <SurveyForm definition={scaleDefinition} readOnly={false} onSubmit={vi.fn()} />,
+    );
+    const input = screen.getByRole("spinbutton");
+    expect(input).toHaveAttribute("min", "1");
+    expect(input).toHaveAttribute("max", "5");
+    expect(input).toHaveAttribute("step", "1");
+  });
 });

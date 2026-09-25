@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -11,8 +11,9 @@ import { LoadingState, EmptyState } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
 import { SurveyForm } from "@/components/SurveyForm";
 import { PageHeader } from "@/components/PageHeader";
-import { CheckIcon } from "@/components/icons";
-import type { SurveyAnswerDto, SurveyDefinitionDto } from "@/lib/api/types";
+import { SubmittedState } from "@/components/SubmittedState";
+import { useSurveyDefinition } from "@/lib/api/useSurveyDefinition";
+import type { SurveyAnswerDto } from "@/lib/api/types";
 
 /**
  * Mirrors TraineeSurveyContent's shape (M6): GET .../supervisor-survey/status
@@ -35,8 +36,6 @@ export function SupervisorSurveyContent({ dayId }: { dayId: number }) {
   );
   const { data: availability, status, error, reload } = useApiResource(statusFetcher);
 
-  const [definition, setDefinition] = useState<SurveyDefinitionDto | null>(null);
-  const [definitionError, setDefinitionError] = useState<ApiError | null>(null);
   const [submitBusy, setSubmitBusy] = useState(false);
   const [submitError, setSubmitError] = useState<ApiError | null>(null);
   const [justSubmitted, setJustSubmitted] = useState<string | null>(null);
@@ -44,21 +43,14 @@ export function SupervisorSurveyContent({ dayId }: { dayId: number }) {
   const alreadySubmitted = availability?.response?.state === "submitted";
   const needsDefinition = status === "success" && availability?.configured && !alreadySubmitted;
 
-  useEffect(() => {
-    if (!needsDefinition) return;
-    let cancelled = false;
-    supervisorApi
-      .getSurvey(dayId, locale)
-      .then((def) => {
-        if (!cancelled) setDefinition(def);
-      })
-      .catch((err) => {
-        if (!cancelled && err instanceof ApiError) setDefinitionError(err);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [needsDefinition, dayId, locale]);
+  const definitionFetcher = useCallback(
+    (loc: string) => supervisorApi.getSurvey(dayId, loc),
+    [dayId],
+  );
+  const { definition, error: definitionError, retry: retryDefinition } = useSurveyDefinition(
+    definitionFetcher,
+    Boolean(needsDefinition),
+  );
 
   if (status === "loading") {
     return <LoadingState label={t("loadingSurvey")} />;
@@ -70,22 +62,7 @@ export function SupervisorSurveyContent({ dayId }: { dayId: number }) {
     return <EmptyState title={t("notConfiguredTitle")} message={t("notConfiguredMessage")} />;
   }
   if (alreadySubmitted || justSubmitted) {
-    return (
-      <div className="state-view state-view--success">
-        <span className="state-view__icon">
-          <CheckIcon />
-        </span>
-        <p className="state-view__title">{t("submittedTitle")}</p>
-        <p className="state-view__message">{t("submittedMessage")}</p>
-        {(justSubmitted ?? availability?.response?.submitted_at) ? (
-          <p className="state-view__request-id">
-            {t("submittedAt", {
-              date: justSubmitted ?? availability!.response!.submitted_at!,
-            })}
-          </p>
-        ) : null}
-      </div>
-    );
+    return <SubmittedState submittedAt={justSubmitted ?? availability?.response?.submitted_at} />;
   }
   if (!availability.can_submit) {
     return (
@@ -100,7 +77,7 @@ export function SupervisorSurveyContent({ dayId }: { dayId: number }) {
     );
   }
   if (definitionError) {
-    return <ApiErrorView error={definitionError} onRetry={() => setDefinitionError(null)} />;
+    return <ApiErrorView error={definitionError} onRetry={retryDefinition} />;
   }
   if (!definition) {
     return <LoadingState label={t("loadingSurvey")} />;
