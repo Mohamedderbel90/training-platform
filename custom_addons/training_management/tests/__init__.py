@@ -18,3 +18,4 @@ from . import test_training_report  # noqa: F401
 from . import test_training_notification  # noqa: F401
 from . import test_training_audit_log  # noqa: F401
 from . import test_e2e_full_scenario  # noqa: F401
+from . import test_requirements_alignment  # noqa: F401
