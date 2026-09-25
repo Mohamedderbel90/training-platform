@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+from odoo import fields
 from odoo.tests.common import tagged
 
 from .common import OperationalApiCase
@@ -115,3 +118,186 @@ class TestOperationalApiDashboards(OperationalApiCase):
         self.assertIsNone(data["program"])
         self.assertIsNone(data["stats"])
         self.assertIsNone(data["next_session"])
+
+    # ------------------------------------------------------------------
+    # S1-B / ADR-011 additive fields and the single-day endpoint.
+    # ------------------------------------------------------------------
+
+    def _expected_trainers(self):
+        return [{"id": self.trainer_user.id, "name": self.trainer_user.name}]
+
+    def test_trainers_present_on_every_dashboard_entry(self):
+        for login, role in (
+            ("opapi_trainee", "trainee"),
+            ("opapi_supervisor", "supervisor"),
+            ("opapi_trainer", "trainer"),
+        ):
+            self.authenticate(login, "Test1234!")
+            data = self.api_get("/dashboard/%s" % role).json()["data"]
+            self.assertTrue(data["days"], role)
+            for entry in data["days"]:
+                self.assertEqual(entry["trainers"], self._expected_trainers(), role)
+            # next_session keeps exactly the same trainers payload.
+            self.assertEqual(
+                data["next_session"]["trainers"], self._expected_trainers(), role
+            )
+
+    def test_dashboard_summary_program_state_and_courses(self):
+        second_course = self.env["training.course"].create(
+            {
+                "program_id": self.program.id,
+                "name": "OpAPI Course 2",
+                "sequence": 20,
+                "start_date": "2026-01-01",
+                "end_date": "2026-12-31",
+            }
+        )
+        now = fields.Datetime.now()
+        self.env["training.day"].create(
+            {
+                "course_id": second_course.id,
+                "date": fields.Date.today() - timedelta(days=1),
+                "start_datetime": now - timedelta(days=1, hours=2),
+                "end_datetime": now - timedelta(days=1),
+                "state": "closed",
+                "supervisor_id": self.supervisor_user.id,
+                "trainer_ids": [(6, 0, [self.trainer_user.id])],
+                "survey_open_at": now - timedelta(days=1, hours=1),
+                "survey_close_at": now - timedelta(days=1),
+            }
+        )
+        self.program.write({"state": "active"})
+        self.authenticate("opapi_trainee", "Test1234!")
+        data = self.api_get("/dashboard/trainee").json()["data"]
+
+        self.assertEqual(data["program"]["state"], "active")
+        self.assertEqual(
+            data["program"]["courses"],
+            [
+                {
+                    "id": self.course.id,
+                    "name": "OpAPI Course",
+                    "sequence": 10,
+                    "training_days_count": 1,
+                    "closed_days_count": 0,
+                    "training_hours": 4.0,
+                },
+                {
+                    "id": second_course.id,
+                    "name": "OpAPI Course 2",
+                    "sequence": 20,
+                    "training_days_count": 1,
+                    "closed_days_count": 1,
+                    "training_hours": 2.0,
+                },
+            ],
+        )
+        # Same formula as stats.training_hours: per-course hours add up.
+        self.assertEqual(data["stats"]["training_hours"], 6.0)
+        # No invented course status.
+        for course in data["program"]["courses"]:
+            self.assertNotIn("state", course)
+
+    def test_dashboard_courses_are_role_scoped(self):
+        # A day of the same program the supervisor is NOT assigned to
+        # must not be counted in their course breakdown.
+        now = fields.Datetime.now()
+        self.env["training.day"].create(
+            {
+                "course_id": self.course.id,
+                "date": fields.Date.today() + timedelta(days=2),
+                "start_datetime": now + timedelta(days=2),
+                "end_datetime": now + timedelta(days=2, hours=1),
+                "state": "planned",
+                "supervisor_id": self.other_supervisor_user.id,
+                "trainer_ids": [(6, 0, [self.trainer_user.id])],
+                "survey_open_at": now + timedelta(days=2),
+                "survey_close_at": now + timedelta(days=2, hours=1),
+            }
+        )
+        self.authenticate("opapi_supervisor", "Test1234!")
+        data = self.api_get("/dashboard/supervisor").json()["data"]
+        self.assertEqual(len(data["program"]["courses"]), 1)
+        self.assertEqual(data["program"]["courses"][0]["training_days_count"], 1)
+
+    def test_single_day_trainee(self):
+        self.authenticate("opapi_trainee", "Test1234!")
+        resp = self.api_get("/dashboard/trainee/days/%d" % self.day.id)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.json()
+        self.assertIsNone(body["error"])
+        entry = body["data"]
+        self.assertEqual(entry["training_day_id"], self.day.id)
+        self.assertEqual(entry["trainers"], self._expected_trainers())
+        self.assertIn("survey", entry)
+        self.assertNotIn("attendance", entry)
+        self.assertNotIn("trainer_report", entry)
+        # Identical to the corresponding list entry.
+        listed = self.api_get("/dashboard/trainee").json()["data"]["days"][0]
+        self.assertEqual(entry, listed)
+
+    def test_single_day_supervisor(self):
+        self.authenticate("opapi_supervisor", "Test1234!")
+        resp = self.api_get("/dashboard/supervisor/days/%d" % self.day.id)
+        self.assertEqual(resp.status_code, 200)
+        entry = resp.json()["data"]
+        self.assertEqual(entry["training_day_id"], self.day.id)
+        self.assertIn("attendance", entry)
+        self.assertIn("survey", entry)
+        self.assertEqual(entry["trainers"], self._expected_trainers())
+
+    def test_single_day_trainer(self):
+        self.authenticate("opapi_trainer", "Test1234!")
+        resp = self.api_get("/dashboard/trainer/days/%d" % self.day.id)
+        self.assertEqual(resp.status_code, 200)
+        entry = resp.json()["data"]
+        self.assertEqual(entry["training_day_id"], self.day.id)
+        self.assertIn("trainer_report", entry)
+        self.assertNotIn("survey", entry)
+        self.assertNotIn("attendance", entry)
+
+    def test_single_day_not_visible_is_403(self):
+        for login, role in (
+            ("opapi_trainee", "trainee"),
+            ("opapi_supervisor", "supervisor"),
+            ("opapi_trainer", "trainer"),
+        ):
+            self.authenticate(login, "Test1234!")
+            resp = self.api_get(
+                "/dashboard/%s/days/%d" % (role, self.unrelated_day.id)
+            )
+            self.assertEqual(resp.status_code, 403, role)
+            self.assertEqual(resp.json()["error"]["code"], "FORBIDDEN", role)
+            self.assertIsNone(resp.json()["data"], role)
+
+    def test_single_day_missing_is_404(self):
+        missing_id = self.env["training.day"].search([], order="id desc", limit=1).id + 1000
+        self.authenticate("opapi_trainee", "Test1234!")
+        resp = self.api_get("/dashboard/trainee/days/%d" % missing_id)
+        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.json()["error"]["code"], "NOT_FOUND")
+
+    def test_single_day_archived_is_404(self):
+        self.day.active = False
+        self.authenticate("opapi_supervisor", "Test1234!")
+        resp = self.api_get("/dashboard/supervisor/days/%d" % self.day.id)
+        self.assertEqual(resp.status_code, 404)
+
+    def test_single_day_unauthenticated_is_401(self):
+        for role in ("trainee", "supervisor", "trainer"):
+            resp = self.api_get("/dashboard/%s/days/%d" % (role, self.day.id))
+            self.assertEqual(resp.status_code, 401, role)
+            self.assertEqual(resp.json()["error"]["code"], "UNAUTHENTICATED", role)
+
+    def test_me_includes_tz(self):
+        self.trainee_user.tz = "Asia/Riyadh"
+        self.authenticate("opapi_trainee", "Test1234!")
+        data = self.api_get("/auth/me").json()["data"]
+        self.assertEqual(data["tz"], "Asia/Riyadh")
+
+    def test_me_tz_null_when_unset(self):
+        self.trainee_user.tz = False
+        self.authenticate("opapi_trainee", "Test1234!")
+        data = self.api_get("/auth/me").json()["data"]
+        self.assertIn("tz", data)
+        self.assertIsNone(data["tz"])

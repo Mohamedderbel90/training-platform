@@ -1819,6 +1819,12 @@ msgstr ""
 #. module: training_management
 #. odoo-python
 #: code:addons/training_management/models/training_day.py:0
+msgid "Training day not found."
+msgstr ""
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
 msgid "You are not an assigned trainer for this training day."
 msgstr ""
 

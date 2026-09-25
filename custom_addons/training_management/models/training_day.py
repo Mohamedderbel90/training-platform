@@ -1,5 +1,5 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.exceptions import AccessError, MissingError, UserError, ValidationError
 from odoo.tools import format_date
 
 SURVEY_ROLE_FIELDS = {
@@ -577,11 +577,7 @@ class TrainingDay(models.Model):
                 closed_count = len(
                     program_days.filtered(lambda d: d.state == "closed")
                 )
-                training_hours = sum(
-                    (d.end_datetime - d.start_datetime).total_seconds() / 3600.0
-                    for d in program_days
-                    if d.start_datetime and d.end_datetime
-                )
+                training_hours = program_days._get_training_hours()
                 stats = {
                     "courses_count": len(program_days.mapped("course_id")),
                     "training_days_count": training_days_count,
@@ -597,17 +593,13 @@ class TrainingDay(models.Model):
                     "name": current_program.name,
                     "start_date": fields.Date.to_string(current_program.start_date),
                     "end_date": fields.Date.to_string(current_program.end_date),
+                    "state": current_program.state,
+                    "courses": program_days._get_dashboard_courses(),
                 }
 
             if upcoming:
+                # _build_dashboard_entry() already carries `trainers`.
                 next_session = current_day._build_dashboard_entry(role, user)
-                # Trainer identity is ordinary scheduling info (who is
-                # teaching a given day), not a sensitive survey answer,
-                # so it is safe to expose to every role viewing the day.
-                next_session["trainers"] = [
-                    {"id": trainer.id, "name": trainer.name}
-                    for trainer in current_day.trainer_ids
-                ]
 
         return {
             "days": entries,
@@ -615,6 +607,67 @@ class TrainingDay(models.Model):
             "stats": stats,
             "next_session": next_session,
         }
+
+    def _get_training_hours(self):
+        """Scheduled session hours of the days in ``self`` (the single
+        formula behind both ``stats.training_hours`` and each
+        ``program.courses[].training_hours`` -- not rounded here)."""
+        return sum(
+            (d.end_datetime - d.start_datetime).total_seconds() / 3600.0
+            for d in self
+            if d.start_datetime and d.end_datetime
+        )
+
+    def _get_dashboard_courses(self):
+        """Per-course breakdown of the (already role-scoped) days in
+        ``self``, for the dashboard summary's ``program.courses``. Only
+        counts derived from the days the caller can see -- no course
+        status is exposed, since training.course has no state field
+        (PROJECT_SPEC section 5)."""
+        courses = self.mapped("course_id").sorted(
+            key=lambda c: (c.sequence, c.start_date, c.id)
+        )
+        result = []
+        for course in courses:
+            course_days = self.filtered(lambda d, c=course: d.course_id == c)
+            result.append(
+                {
+                    "id": course.id,
+                    "name": course.name,
+                    "sequence": course.sequence,
+                    "training_days_count": len(course_days),
+                    "closed_days_count": len(
+                        course_days.filtered(lambda d: d.state == "closed")
+                    ),
+                    "training_hours": round(course_days._get_training_hours(), 1),
+                }
+            )
+        return result
+
+    @api.model
+    def get_dashboard_day(self, role, day_id, user=None):
+        """Single training day in the dashboard-entry shape (the same
+        dict get_dashboard() returns per day, ``trainers`` included).
+
+        - MissingError (404) when the id does not exist or is archived
+          (archived days are never listed on the dashboards either).
+        - AccessError (403) when the M1 record rules hide the day from
+          ``user`` -- checked explicitly, not left to a lazy field read.
+        - AccessError (403) when ``user`` can see the day, but not in
+          ``role`` (e.g. a supervisor+trainer user asking for the
+          trainer view of a day they only supervise), via the same
+          _check_role_ownership() the survey endpoints use.
+        No sudo(): everything is read as ``user``.
+        """
+        user = user or self.env.user
+        day = self.with_user(user).browse(day_id).exists()
+        if not day:
+            raise MissingError(_("Training day not found."))
+        day.check_access("read")
+        if not day.active:
+            raise MissingError(_("Training day not found."))
+        day._check_role_ownership(role, user)
+        return day._build_dashboard_entry(role, user)
 
     def _build_dashboard_entry(self, role, user):
         self.ensure_one()
@@ -646,6 +699,13 @@ class TrainingDay(models.Model):
                 if self.survey_close_at
                 else None
             ),
+            # Trainer identity is ordinary scheduling info (who is
+            # teaching a given day), not a sensitive survey answer, so
+            # it is safe to expose to every role viewing the day.
+            "trainers": [
+                {"id": trainer.id, "name": trainer.name}
+                for trainer in self.trainer_ids
+            ],
         }
         if role == "trainee":
             entry["survey"] = self.get_survey_status("trainee", user=user)
@@ -658,15 +718,29 @@ class TrainingDay(models.Model):
 
     def _get_attendance_summary(self, user):
         self.ensure_one()
+        # Same population as get_attendance_dto()/upsert_attendance():
+        # only ACTIVE enrollments are expected to have attendance, so an
+        # inactive/completed enrollment must not keep `complete` false
+        # forever, and a leftover record for one must not be counted.
         total_enrolled = (
             self.env["training.enrollment"]
             .with_user(user)
-            .search_count([("program_id", "=", self.course_id.program_id.id)])
+            .search_count(
+                [
+                    ("program_id", "=", self.course_id.program_id.id),
+                    ("state", "=", "active"),
+                ]
+            )
         )
         recorded = (
             self.env["training.attendance"]
             .with_user(user)
-            .search_count([("training_day_id", "=", self.id)])
+            .search_count(
+                [
+                    ("training_day_id", "=", self.id),
+                    ("enrollment_id.state", "=", "active"),
+                ]
+            )
         )
         return {
             "recorded_count": recorded,

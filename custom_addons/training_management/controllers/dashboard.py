@@ -36,3 +36,39 @@ class OperationalDashboardController(http.Controller):
         self._require_role("trainer")
         summary = request.env["training.day"].get_dashboard_summary("trainer")
         return api_response(data=summary, request_id=request_id)
+
+    # Single training day in the dashboard-entry shape (ADR-011). Three
+    # explicit routes, mirroring the three dashboards above, so the
+    # role always comes from the URL + _require_role(), never from a
+    # client-supplied parameter. Visibility/ownership/404 live in
+    # training.day.get_dashboard_day().
+
+    @http.route(
+        "/api/v1/dashboard/trainee/days/<int:day_id>",
+        type="json2", auth="user", methods=["GET"],
+    )
+    @handle_api_errors
+    def trainee_dashboard_day(self, day_id, request_id, **kwargs):
+        self._require_role("trainee")
+        entry = request.env["training.day"].get_dashboard_day("trainee", day_id)
+        return api_response(data=entry, request_id=request_id)
+
+    @http.route(
+        "/api/v1/dashboard/supervisor/days/<int:day_id>",
+        type="json2", auth="user", methods=["GET"],
+    )
+    @handle_api_errors
+    def supervisor_dashboard_day(self, day_id, request_id, **kwargs):
+        self._require_role("supervisor")
+        entry = request.env["training.day"].get_dashboard_day("supervisor", day_id)
+        return api_response(data=entry, request_id=request_id)
+
+    @http.route(
+        "/api/v1/dashboard/trainer/days/<int:day_id>",
+        type="json2", auth="user", methods=["GET"],
+    )
+    @handle_api_errors
+    def trainer_dashboard_day(self, day_id, request_id, **kwargs):
+        self._require_role("trainer")
+        entry = request.env["training.day"].get_dashboard_day("trainer", day_id)
+        return api_response(data=entry, request_id=request_id)

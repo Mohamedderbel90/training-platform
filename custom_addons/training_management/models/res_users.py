@@ -94,6 +94,11 @@ class ResUsers(models.Model):
             "partner_id": self.partner_id.id,
             "name": self.name,
             "locale": self.lang or self.partner_id.lang,
+            # IANA zone for display (PROJECT_SPEC section 10: datetimes
+            # are stored/sent in UTC, shown in the user's timezone).
+            # None when unset; the client then falls back to the
+            # browser's own zone, as Odoo's web client does.
+            "tz": self.tz or None,
             "roles": roles,
             "capabilities": self._get_operational_capabilities(roles),
         }

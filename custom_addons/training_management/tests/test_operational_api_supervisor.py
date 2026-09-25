@@ -142,3 +142,65 @@ class TestOperationalApiSupervisor(OperationalApiCase):
         self.authenticate("opapi_supervisor", "Test1234!")
         resp = self.api_get("/training-days/%d/trainer-report" % self.day.id)
         self.assertEqual(resp.status_code, 403)
+
+    # ------------------------------------------------------------------
+    # Dashboard attendance summary counts the same population as the
+    # attendance list/save endpoints: ACTIVE enrollments only.
+    # ------------------------------------------------------------------
+
+    def _dashboard_attendance(self):
+        resp = self.api_get("/dashboard/supervisor/days/%d" % self.day.id)
+        self.assertEqual(resp.status_code, 200)
+        return resp.json()["data"]["attendance"]
+
+    def test_attendance_summary_ignores_inactive_enrollments(self):
+        self.other_enrollment.state = "inactive"
+        self.authenticate("opapi_supervisor", "Test1234!")
+        self.assertEqual(
+            self._dashboard_attendance(),
+            {"recorded_count": 0, "total_enrolled": 1, "complete": False},
+        )
+        resp = self.api_put(
+            "/training-days/%d/attendance" % self.day.id,
+            {"items": [{"trainee_id": self.enrollment.id, "status": "present"}]},
+        )
+        self.assertEqual(resp.status_code, 200)
+        # Matches the attendance list: one active trainee, recorded.
+        self.assertEqual(len(resp.json()["data"]["items"]), 1)
+        self.assertEqual(
+            self._dashboard_attendance(),
+            {"recorded_count": 1, "total_enrolled": 1, "complete": True},
+        )
+
+    def test_attendance_summary_ignores_records_of_deactivated_enrollment(self):
+        self.authenticate("opapi_supervisor", "Test1234!")
+        resp = self.api_put(
+            "/training-days/%d/attendance" % self.day.id,
+            {
+                "items": [
+                    {"trainee_id": self.enrollment.id, "status": "present"},
+                    {"trainee_id": self.other_enrollment.id, "status": "absent"},
+                ]
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(self._dashboard_attendance()["complete"])
+
+        # The other trainee's enrollment is deactivated afterwards: the
+        # leftover attendance record must not be counted either.
+        self.other_enrollment.state = "inactive"
+        self.assertEqual(
+            self._dashboard_attendance(),
+            {"recorded_count": 1, "total_enrolled": 1, "complete": True},
+        )
+
+    def test_attendance_summary_incomplete_until_all_active_recorded(self):
+        self.authenticate("opapi_supervisor", "Test1234!")
+        self.api_put(
+            "/training-days/%d/attendance" % self.day.id,
+            {"items": [{"trainee_id": self.enrollment.id, "status": "present"}]},
+        )
+        self.assertEqual(
+            self._dashboard_attendance(),
+            {"recorded_count": 1, "total_enrolled": 2, "complete": False},
+        )

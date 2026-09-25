@@ -862,6 +862,12 @@ msgstr "رقم الإصدار"
 #. module: training_management
 #. odoo-python
 #: code:addons/training_management/models/training_day.py:0
+msgid "Training day not found."
+msgstr "لم يتم العثور على اليوم التدريبي."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
 msgid "You are not an assigned trainer for this training day."
 msgstr "أنتِ لستِ مدربة مسندة لهذا اليوم التدريبي."
 

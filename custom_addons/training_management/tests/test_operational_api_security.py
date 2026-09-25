@@ -64,6 +64,9 @@ class TestOperationalApiSecurity(OperationalApiCase):
             "/dashboard/trainee",
             "/dashboard/supervisor",
             "/dashboard/trainer",
+            "/dashboard/trainee/days/%d" % self.day.id,
+            "/dashboard/supervisor/days/%d" % self.day.id,
+            "/dashboard/trainer/days/%d" % self.day.id,
         ):
             resp = self.api_get(path)
             self.assertEqual(resp.status_code, 401, path)
@@ -77,3 +80,91 @@ class TestOperationalApiSecurity(OperationalApiCase):
             {"items": [{"trainee_id": self.enrollment.id, "status": "present"}]},
         )
         self.assertEqual(resp.status_code, 403)
+
+    # ------------------------------------------------------------------
+    # Single-day dashboard endpoint (S1-B / ADR-011): role comes from
+    # the URL + group membership, visibility from the M1 record rules,
+    # and role ownership from training.day._check_role_ownership().
+    # ------------------------------------------------------------------
+
+    def test_single_day_cross_role_denied(self):
+        for login, role in (
+            ("opapi_trainee", "supervisor"),
+            ("opapi_trainee", "trainer"),
+            ("opapi_supervisor", "trainee"),
+            ("opapi_supervisor", "trainer"),
+            ("opapi_trainer", "trainee"),
+            ("opapi_trainer", "supervisor"),
+        ):
+            self.authenticate(login, "Test1234!")
+            resp = self.api_get("/dashboard/%s/days/%d" % (role, self.day.id))
+            self.assertEqual(resp.status_code, 403, "%s as %s" % (login, role))
+            self.assertIsNone(resp.json()["data"])
+
+    def test_single_day_cross_user_denied(self):
+        # Same role, but not assigned to / enrolled in self.day.
+        for login, role in (
+            ("opapi_supervisor_other", "supervisor"),
+            ("opapi_trainer_other", "trainer"),
+        ):
+            self.authenticate(login, "Test1234!")
+            resp = self.api_get("/dashboard/%s/days/%d" % (role, self.day.id))
+            self.assertEqual(resp.status_code, 403, login)
+        # A trainee of another program cannot read this program's day.
+        self.other_enrollment.unlink()
+        self.authenticate("opapi_trainee_other", "Test1234!")
+        resp = self.api_get("/dashboard/trainee/days/%d" % self.day.id)
+        self.assertEqual(resp.status_code, 403)
+
+    def test_single_day_multi_role_user_limited_to_owned_role(self):
+        # A user who is both supervisor and trainer, supervising
+        # self.day but not teaching it, can see the day (union of the
+        # record rules) but must not get the trainer view of it.
+        self.supervisor_user.write(
+            {
+                "group_ids": [
+                    (4, self.env.ref("training_management.group_training_trainer").id)
+                ]
+            }
+        )
+        self.authenticate("opapi_supervisor", "Test1234!")
+        self.assertEqual(
+            self.api_get("/dashboard/supervisor/days/%d" % self.day.id).status_code,
+            200,
+        )
+        resp = self.api_get("/dashboard/trainer/days/%d" % self.day.id)
+        self.assertEqual(resp.status_code, 403)
+
+    def test_single_day_staff_payloads_have_no_trainee_survey_data(self):
+        self.authenticate("opapi_trainee", "Test1234!")
+        submit = self.api_post(
+            "/training-days/%d/my-survey/submit" % self.day.id,
+            {
+                "answers": [
+                    {
+                        "question_id": self.trainee_question.id,
+                        "answer_option_id": self.trainee_options[5].id,
+                    }
+                ]
+            },
+        )
+        self.assertEqual(submit.status_code, 200)
+        trainee_response_id = submit.json()["data"]["response_id"]
+
+        for login, role in (
+            ("opapi_supervisor", "supervisor"),
+            ("opapi_trainer", "trainer"),
+        ):
+            self.authenticate(login, "Test1234!")
+            resp = self.api_get("/dashboard/%s/days/%d" % (role, self.day.id))
+            self.assertEqual(resp.status_code, 200, role)
+            entry = resp.json()["data"]
+            self.assertNotIn("answers", entry, role)
+            if role == "supervisor":
+                # Only the supervisor's OWN (not started) response.
+                self.assertIsNone(entry["survey"]["response"])
+            else:
+                self.assertNotIn("survey", entry)
+                self.assertIsNone(entry["trainer_report"]["response"])
+            self.assertNotIn(str(trainee_response_id), str(entry.get("survey")))
+            self.assertNotIn("Excellent", str(entry))
