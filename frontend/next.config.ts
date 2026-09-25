@@ -25,6 +25,16 @@ const ODOO_INTERNAL_BASE_URL =
   process.env.ODOO_INTERNAL_BASE_URL ?? "http://localhost:8069";
 
 const nextConfig: NextConfig = {
+  // The password-reset token travels in the URL; never leak it through
+  // the Referer header of any outbound request from that page.
+  async headers() {
+    return [
+      {
+        source: "/:locale/reset-password",
+        headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
+      },
+    ];
+  },
   async rewrites() {
     return [
       {
