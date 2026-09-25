@@ -266,3 +266,23 @@ export function LeafIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   );
 }
+
+export function SearchIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <circle cx="8.7" cy="8.7" r="5.2" />
+      <path d="m16 16-3.2-3.2" />
+    </Icon>
+  );
+}
+
+/** Survey / questionnaire glyph (sheet with answer lines), matching the
+ * approved reference's "My Surveys" nav and survey page title icon. */
+export function SurveyIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <rect x="4.5" y="4" width="11" height="13.5" rx="1.6" />
+      <path d="M7 9.5h6M7 12.5h4M7 15h5" />
+    </Icon>
+  );
+}

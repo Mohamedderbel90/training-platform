@@ -32,7 +32,39 @@
       "trainee": "Trainee",
       "supervisor": "Supervisor",
       "trainer": "Trainer"
-    }
+    },
+    "mySurveys": "My Surveys",
+    "program": "Training Program",
+    "attendanceEvaluation": "Attendance & Evaluation",
+    "myReports": "My Reports",
+    "profile": "Profile"
+  },
+  "Breadcrumbs": {
+    "ariaLabel": "Breadcrumb",
+    "home": "Home",
+    "dayFallback": "Training day"
+  },
+  "List": {
+    "searchLabel": "Search by course name",
+    "searchPlaceholder": "Search by course name...",
+    "filterLabel": "Filter",
+    "filterAll": "All",
+    "filterUpcoming": "Upcoming",
+    "filterCompleted": "Completed",
+    "filterRequired": "Required",
+    "emptyFilteredTitle": "No matching results",
+    "emptyFilteredMessage": "Try a different search term or filter.",
+    "clearFilters": "Clear search and filters"
+  },
+  "DayDetails": {
+    "title": "Training day details",
+    "date": "Date",
+    "time": "Time",
+    "course": "Course",
+    "trainers": "Trainer",
+    "status": "Status",
+    "notSet": "Not set",
+    "backToDays": "Back to training days"
   },
   "Auth": {
     "title": "Welcome back",
@@ -170,7 +202,11 @@
     "savingDraft": "Saving draft...",
     "submit": "Submit",
     "submitting": "Submitting...",
-    "draftSaved": "Draft saved"
+    "draftSaved": "Draft saved",
+    "questionOf": "Question {current} of {total}",
+    "next": "Next",
+    "previous": "Previous",
+    "progressLabel": "Survey progress"
   },
   "Attendance": {
     "title": "Attendance",
@@ -198,5 +234,39 @@
     "languageLabel": "Language",
     "switchLanguage": "Switch to {locale}",
     "logout": "Log out"
+  },
+  "Pages": {
+    "surveysTitle": "My Surveys",
+    "surveysSubtitle": "Complete the surveys for your training days.",
+    "surveysAvailable": "Available to complete",
+    "surveysSubmitted": "Submitted",
+    "surveysUnavailable": "Not available",
+    "surveysEmptyAvailable": "No surveys are waiting for you.",
+    "programTitle": "Training Program",
+    "programSubtitle": "Your current program and its courses.",
+    "programEmptyTitle": "No program yet",
+    "programEmptyMessage": "You are not linked to a training program right now.",
+    "programState": {
+      "draft": "Draft",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "programCoursesTitle": "Courses",
+    "programCoursesEmpty": "No courses to show for this program yet.",
+    "courseDays": "Training days: {count}",
+    "courseClosedDays": "Completed days: {count}",
+    "courseHours": "Hours: {count}",
+    "evaluationsTitle": "Attendance & Evaluation",
+    "evaluationsSubtitle": "Record attendance and complete the supervisor survey for each training day.",
+    "evaluationsPending": "Needs action",
+    "evaluationsDone": "Complete",
+    "reportsTitle": "My Reports",
+    "reportsSubtitle": "Complete the report for each of your training days.",
+    "reportsPending": "To complete",
+    "reportsSubmitted": "Submitted",
+    "reportsUnavailable": "Not available",
+    "sectionEmpty": "Nothing to show here.",
+    "supervisorSurveyLabel": "Supervisor survey"
   }
 }

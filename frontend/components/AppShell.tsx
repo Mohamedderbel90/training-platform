@@ -6,19 +6,24 @@ import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { getPrimaryRole, ROLE_HOME } from "@/lib/auth/roleHome";
+import { getPrimaryRole } from "@/lib/auth/roleHome";
+import { ACCOUNT_NAV, isNavItemActive, ROLE_NAV, type RoleNavKey } from "@/lib/auth/roleNav";
 import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
 import type { OperationalRole } from "@/lib/api/types";
 import { BrandMark } from "@/components/BrandMark";
 import { ProgramInfoBox } from "@/components/dashboard/ProgramInfoBox";
 import {
   BellIcon,
+  BookIcon,
   CalendarIcon,
+  CheckIcon,
   ClipboardIcon,
   GlobeIcon,
   HomeIcon,
   LogoutIcon,
   MenuIcon,
+  PersonIcon,
+  SurveyIcon,
   UsersIcon,
 } from "@/components/icons";
 
@@ -26,6 +31,18 @@ const ROLE_ICON: Record<OperationalRole, typeof HomeIcon> = {
   trainee: HomeIcon,
   supervisor: UsersIcon,
   trainer: ClipboardIcon,
+};
+
+/** Icon per nav item; a role's own dashboard item uses ROLE_ICON above
+ * instead so existing per-role dashboard icons stay unchanged. */
+const NAV_ICON: Record<RoleNavKey, typeof HomeIcon> = {
+  dashboard: HomeIcon,
+  trainingDays: CalendarIcon,
+  mySurveys: SurveyIcon,
+  program: BookIcon,
+  attendanceEvaluation: CheckIcon,
+  myReports: ClipboardIcon,
+  profile: PersonIcon,
 };
 
 /** Public, unauthenticated screens that render their own full-bleed
@@ -43,8 +60,9 @@ export function initialsOf(name: string) {
   return (first + last).toUpperCase();
 }
 
-/** Global app shell (M5 point 3): brand, role-based nav ("Dashboard" +
- * "Training Days" per operational role the user holds, plus Logout),
+/** Global app shell (M5 point 3): brand, role-based nav (the per-role
+ * item list from lib/auth/roleNav.ts for each operational role the user
+ * holds, then Profile and Logout),
  * the shared header (current-program box, locale switch, user
  * identity), and the sidebar's decorative bottom illustration. Mounted
  * once in the locale layout so every authenticated page gets
@@ -135,32 +153,46 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               aria-label={tNav("primaryNavigation")}
             >
               {roles.map((role) => {
-                const RoleIcon = ROLE_ICON[role];
-                const home = ROLE_HOME[role];
                 const roleLabel = roles.length > 1 ? tNav(`roleLabel.${role}`) : null;
                 return (
                   <div className="app-sidebar__nav-group" key={role}>
-                    <Link
-                      href={home}
-                      className="nav-link"
-                      aria-current={pathname === home ? "page" : undefined}
-                      onClick={() => setNavOpen(false)}
-                    >
-                      <RoleIcon className="nav-link__icon" />
-                      {roleLabel ? `${tNav("dashboard")} · ${roleLabel}` : tNav("dashboard")}
-                    </Link>
-                    <Link
-                      href={`${home}/days`}
-                      className="nav-link"
-                      aria-current={pathname === `${home}/days` ? "page" : undefined}
-                      onClick={() => setNavOpen(false)}
-                    >
-                      <CalendarIcon className="nav-link__icon" />
-                      {roleLabel ? `${tNav("trainingDays")} · ${roleLabel}` : tNav("trainingDays")}
-                    </Link>
+                    {ROLE_NAV[role].map((item) => {
+                      const ItemIcon =
+                        item.key === "dashboard" ? ROLE_ICON[role] : NAV_ICON[item.key];
+                      const label = tNav(item.key);
+                      return (
+                        <Link
+                          key={item.key}
+                          href={item.href}
+                          className="nav-link"
+                          aria-current={isNavItemActive(item, pathname) ? "page" : undefined}
+                          onClick={() => setNavOpen(false)}
+                        >
+                          <ItemIcon className="nav-link__icon" />
+                          {roleLabel ? `${label} · ${roleLabel}` : label}
+                        </Link>
+                      );
+                    })}
                   </div>
                 );
               })}
+              <div className="app-sidebar__nav-group">
+                {ACCOUNT_NAV.map((item) => {
+                  const ItemIcon = NAV_ICON[item.key];
+                  return (
+                    <Link
+                      key={item.key}
+                      href={item.href}
+                      className="nav-link"
+                      aria-current={isNavItemActive(item, pathname) ? "page" : undefined}
+                      onClick={() => setNavOpen(false)}
+                    >
+                      <ItemIcon className="nav-link__icon" />
+                      {tNav(item.key)}
+                    </Link>
+                  );
+                })}
+              </div>
             </nav>
             <button type="button" className="nav-link nav-link--action" onClick={handleLogout}>
               <LogoutIcon className="nav-link__icon" />

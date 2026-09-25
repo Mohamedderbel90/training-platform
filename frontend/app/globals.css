@@ -2499,3 +2499,102 @@ html[dir="ltr"] .task-list__view-all svg {
     align-items: flex-start;
   }
 }
+
+/* ---- role destination pages (surveys / program / evaluations / reports) ---- */
+
+.page-section {
+  margin-top: var(--space-6);
+}
+
+.page-section__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 1.1rem;
+  margin: 0 0 var(--space-3);
+}
+
+.page-section__count {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.course-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.course-list__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
+/* ---- breadcrumbs (components/Breadcrumbs.tsx) ---- */
+
+.breadcrumbs {
+  margin-bottom: var(--space-3);
+  font-size: 0.88rem;
+}
+
+.breadcrumbs__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.breadcrumbs__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.breadcrumbs__link {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.breadcrumbs__link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.breadcrumbs__text {
+  color: var(--color-text-muted);
+}
+
+.breadcrumbs__current {
+  color: var(--color-text);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* The chevron glyph points right; it points from the parent crumb toward
+ * the next one in reading order, so it is flipped for RTL. DOM order is
+ * never reversed. */
+.breadcrumbs__sep {
+  display: inline-flex;
+  color: var(--color-text-subtle);
+}
+
+.breadcrumbs__sep svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.breadcrumbs__sep[data-direction="rtl"] svg {
+  transform: scaleX(-1);
+}

@@ -10,6 +10,7 @@ import { apiFetch } from "./client";
 import type {
   AttendanceListResponseDto,
   AttendanceStatus,
+  DashboardEntryDto,
   DashboardResponseDto,
   OperationalProfile,
   OperationalRole,
@@ -55,6 +56,8 @@ export const authApi = {
 export const dashboardApi = {
   get: (role: OperationalRole, locale: string) =>
     apiFetch<DashboardResponseDto>(`/dashboard/${role}`, { locale }),
+  getDay: (role: OperationalRole, dayId: number, locale: string) =>
+    apiFetch<DashboardEntryDto>(`/dashboard/${role}/days/${dayId}`, { locale }),
 };
 
 export const traineeApi = {

@@ -16,6 +16,9 @@ export interface OperationalProfile {
   locale: string;
   roles: OperationalRole[];
   capabilities: string[];
+  /** IANA timezone of the Odoo user, or null when unset (fall back to
+   * the browser's zone). */
+  tz?: string | null;
 }
 
 export type ResponseState = "not_started" | "in_progress" | "submitted";
@@ -146,6 +149,20 @@ export interface DashboardProgramDto {
   name: string;
   start_date: string;
   end_date: string;
+  state?: ProgramState;
+  /** Per-course breakdown over the days visible to the caller. */
+  courses?: DashboardCourseDto[];
+}
+
+export type ProgramState = "draft" | "active" | "completed" | "cancelled";
+
+export interface DashboardCourseDto {
+  id: number;
+  name: string;
+  sequence: number;
+  training_days_count: number;
+  closed_days_count: number;
+  training_hours: number;
 }
 
 /** Plain counts/derived ratios over that program's training.day

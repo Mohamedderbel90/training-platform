@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ClockIcon, PersonIcon } from "@/components/icons";
 import { formatSessionDateParts, formatTimeRange } from "@/lib/dashboard/format";
+import { useAuth } from "@/lib/auth/AuthContext";
 import type { DashboardEntryDto } from "@/lib/api/types";
 
 /** Purely decorative arch/book thumbnail above the date block, matching
@@ -75,6 +76,7 @@ export function UpcomingSessionCard({
 }) {
   const t = useTranslations("Dashboard");
   const locale = useLocale();
+  const { profile } = useAuth();
 
   if (!entry) {
     return (
@@ -86,7 +88,12 @@ export function UpcomingSessionCard({
   }
 
   const dateParts = formatSessionDateParts(entry.date, locale);
-  const timeRange = formatTimeRange(entry.start_datetime, entry.end_datetime, locale);
+  const timeRange = formatTimeRange(
+    entry.start_datetime,
+    entry.end_datetime,
+    locale,
+    profile?.tz,
+  );
   const trainerNames = entry.trainers?.map((trainer) => trainer.name).join(t("listSeparator"));
 
   return (

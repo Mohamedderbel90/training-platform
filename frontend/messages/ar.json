@@ -32,7 +32,39 @@
       "trainee": "متدربة",
       "supervisor": "مشرفة",
       "trainer": "مدربة"
-    }
+    },
+    "mySurveys": "استبياناتي",
+    "program": "البرنامج التدريبي",
+    "attendanceEvaluation": "الحضور والتقييم",
+    "myReports": "تقاريري",
+    "profile": "الملف الشخصي"
+  },
+  "Breadcrumbs": {
+    "ariaLabel": "مسار التنقل",
+    "home": "الرئيسية",
+    "dayFallback": "اليوم التدريبي"
+  },
+  "List": {
+    "searchLabel": "البحث باسم الدورة",
+    "searchPlaceholder": "ابحثي باسم الدورة...",
+    "filterLabel": "تصفية",
+    "filterAll": "الكل",
+    "filterUpcoming": "القادمة",
+    "filterCompleted": "المكتملة",
+    "filterRequired": "المطلوبة",
+    "emptyFilteredTitle": "لا توجد نتائج مطابقة",
+    "emptyFilteredMessage": "جرّبي كلمة بحث أو تصفية مختلفة.",
+    "clearFilters": "مسح البحث والتصفية"
+  },
+  "DayDetails": {
+    "title": "تفاصيل اليوم التدريبي",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "course": "الدورة",
+    "trainers": "المدرّبة",
+    "status": "الحالة",
+    "notSet": "غير محدد",
+    "backToDays": "العودة إلى الأيام التدريبية"
   },
   "Auth": {
     "title": "مرحباً بعودتكِ",
@@ -170,7 +202,11 @@
     "savingDraft": "جارٍ حفظ المسودة...",
     "submit": "إرسال",
     "submitting": "جارٍ الإرسال...",
-    "draftSaved": "تم حفظ المسودة"
+    "draftSaved": "تم حفظ المسودة",
+    "questionOf": "السؤال {current} من {total}",
+    "next": "التالي",
+    "previous": "السابق",
+    "progressLabel": "تقدّم الاستبانة"
   },
   "Attendance": {
     "title": "الحضور",
@@ -198,5 +234,39 @@
     "languageLabel": "اللغة",
     "switchLanguage": "التبديل إلى {locale}",
     "logout": "تسجيل الخروج"
+  },
+  "Pages": {
+    "surveysTitle": "استبياناتي",
+    "surveysSubtitle": "أكمل استبيانات أيامك التدريبية.",
+    "surveysAvailable": "متاحة للتعبئة",
+    "surveysSubmitted": "تم إرسالها",
+    "surveysUnavailable": "غير متاحة",
+    "surveysEmptyAvailable": "لا توجد استبيانات بانتظارك.",
+    "programTitle": "البرنامج التدريبي",
+    "programSubtitle": "برنامجك الحالي والدورات التابعة له.",
+    "programEmptyTitle": "لا يوجد برنامج بعد",
+    "programEmptyMessage": "أنت غير مرتبط ببرنامج تدريبي حالياً.",
+    "programState": {
+      "draft": "مسودة",
+      "active": "نشط",
+      "completed": "مكتمل",
+      "cancelled": "ملغى"
+    },
+    "programCoursesTitle": "الدورات",
+    "programCoursesEmpty": "لا توجد دورات لعرضها في هذا البرنامج بعد.",
+    "courseDays": "الأيام التدريبية: {count}",
+    "courseClosedDays": "الأيام المكتملة: {count}",
+    "courseHours": "الساعات: {count}",
+    "evaluationsTitle": "الحضور والتقييم",
+    "evaluationsSubtitle": "سجّل الحضور وأكمل استبانة المشرف لكل يوم تدريبي.",
+    "evaluationsPending": "بحاجة إلى إجراء",
+    "evaluationsDone": "مكتملة",
+    "reportsTitle": "تقاريري",
+    "reportsSubtitle": "أكمل التقرير الخاص بكل يوم من أيامك التدريبية.",
+    "reportsPending": "بانتظار الإكمال",
+    "reportsSubmitted": "تم إرسالها",
+    "reportsUnavailable": "غير متاحة",
+    "sectionEmpty": "لا يوجد ما يُعرض هنا.",
+    "supervisorSurveyLabel": "استبانة المشرف"
   }
 }
