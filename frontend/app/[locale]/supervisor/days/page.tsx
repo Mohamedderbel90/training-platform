@@ -2,13 +2,12 @@
 
 import { Suspense, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { dashboardApi } from "@/lib/api/endpoints";
 import { useApiResource } from "@/lib/api/useApiResource";
 import { LoadingState, EmptyState } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
-import { DayCard, SurveyStatusGroup } from "@/components/DayCard";
+import { DayCard, AttendanceStatusGroup, SurveyStatusGroup } from "@/components/DayCard";
 import { DayListNoResults, DayListPagination, DayListToolbar } from "@/components/DayListToolbar";
 import { PageHeader } from "@/components/PageHeader";
 import { useListControls } from "@/lib/dashboard/useListControls";
@@ -45,23 +44,10 @@ function SupervisorDaysContent() {
             <div className="card-list">
               {controls.visible.map((entry) => (
                 <DayCard key={entry.training_day_id} entry={entry}>
-                  <p className="card__meta card__meta--inline">
-                    {t("attendanceProgress", {
-                      recorded: entry.attendance?.recorded_count ?? 0,
-                      total: entry.attendance?.total_enrolled ?? 0,
-                    })}
-                    {entry.attendance?.complete ? (
-                      <span className="badge badge--success">{t("attendanceComplete")}</span>
-                    ) : null}
-                  </p>
-                  <div className="button-row button-row--tight">
-                    <Link
-                      className="button button--secondary"
-                      href={`/supervisor/${entry.training_day_id}/attendance`}
-                    >
-                      {t("manageAttendance")}
-                    </Link>
-                  </div>
+                  <AttendanceStatusGroup
+                    attendance={entry.attendance}
+                    href={`/supervisor/${entry.training_day_id}/attendance`}
+                  />
                   <SurveyStatusGroup
                     availability={entry.survey}
                     dayStatus={entry.state}

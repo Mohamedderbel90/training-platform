@@ -2,21 +2,23 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
 import {
   buildAttendanceTasks,
+  prioritizeTasks,
   buildTasks,
   closedDaysRatio,
   completedCoursesRatio,
   daysForProgram,
   submittedSurveyRatio,
 } from "@/lib/dashboard/derive";
-import { LoadingState } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
-import { SurveyStatusGroup } from "@/components/DayCard";
+import { AttendanceStatusGroup, SurveyStatusGroup } from "@/components/DayCard";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
+import { ProgramMessageCard } from "@/components/dashboard/ProgramMessageCard";
+import { NoProgramState } from "@/components/dashboard/NoProgramState";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { StatCards } from "@/components/dashboard/StatCards";
 import { UpcomingSessionCard } from "@/components/dashboard/UpcomingSessionCard";
@@ -33,85 +35,87 @@ function SupervisorDashboardContent() {
     [data],
   );
   const tasks = useMemo(
-    () => [
-      ...buildAttendanceTasks(
-        programDays,
-        (day) => `/supervisor/${day.training_day_id}/attendance`,
-        "taskAttendanceRequired",
-      ),
-      ...buildTasks(
-        programDays,
-        (day) => day.survey,
-        (day) => `/supervisor/${day.training_day_id}/survey`,
-        "taskSupervisorSurveyRequired",
-      ),
-    ],
+    () =>
+      prioritizeTasks([
+        ...buildAttendanceTasks(
+          programDays,
+          (day) => `/supervisor/${day.training_day_id}/attendance`,
+          "taskAttendanceRequired",
+          Infinity,
+        ),
+        ...buildTasks(
+          programDays,
+          (day) => day.survey,
+          (day) => `/supervisor/${day.training_day_id}/survey`,
+          "taskSupervisorSurveyRequired",
+          Infinity,
+        ),
+      ]),
     [programDays],
   );
 
   if (status === "loading") {
-    return <LoadingState label={t("loading")} />;
+    return <DashboardSkeleton label={t("loading")} />;
   }
   if (status === "error" && error) {
     return <ApiErrorView error={error} onRetry={reload} />;
   }
 
   const nextEntry = data?.next_session ?? null;
+  const hasDays = programDays.length > 0;
+  const notAssigned = !data?.program && !hasDays && !nextEntry;
 
   return (
     <div className="dashboard">
       <WelcomeBanner name={profile?.name ?? ""} subtitleKey="welcomeSubtitleSupervisor" />
-      <StatCards stats={data?.stats ?? null} />
-      <div className="dashboard-grid">
-        <UpcomingSessionCard
-          entry={nextEntry}
-          surveyGroup={
-            nextEntry ? (
-              <SurveyStatusGroup
-                availability={nextEntry.survey}
-                dayStatus={nextEntry.state}
-                href={`/supervisor/${nextEntry.training_day_id}/survey`}
-              />
-            ) : null
-          }
-          action={
-            nextEntry ? (
-              <>
-                <Link
-                  className="button button--secondary"
-                  href={`/supervisor/${nextEntry.training_day_id}/attendance`}
-                >
-                  {t("manageAttendance")}
-                </Link>
-              </>
-            ) : null
-          }
-        />
-        <TaskList tasks={tasks} viewAllHref="/supervisor/days" />
-      </div>
-      <div className="dashboard-grid dashboard-grid--wide-first">
-        <ProgramMessageNotice />
-        <QuickStatsBars
-          items={[
-            {
-              labelKey: "quickStatSurveys",
-              ratio: submittedSurveyRatio(programDays, (day) => day.survey),
-            },
-            { labelKey: "quickStatDays", ratio: closedDaysRatio(programDays) },
-            { labelKey: "quickStatCourses", ratio: completedCoursesRatio(programDays) },
-          ]}
-        />
-      </div>
+      {notAssigned ? (
+        <NoProgramState />
+      ) : (
+        <>
+          <div className="dashboard-grid">
+            <UpcomingSessionCard
+              entry={nextEntry}
+              hasDays={hasDays}
+              surveyGroup={
+                nextEntry ? (
+                  <>
+                    <AttendanceStatusGroup
+                      attendance={nextEntry.attendance}
+                      href={`/supervisor/${nextEntry.training_day_id}/attendance`}
+                      primary={nextEntry.state === "open" && !nextEntry.attendance?.complete}
+                    />
+                    <SurveyStatusGroup
+                      availability={nextEntry.survey}
+                      dayStatus={nextEntry.state}
+                      href={`/supervisor/${nextEntry.training_day_id}/survey`}
+                    />
+                  </>
+                ) : null
+              }
+            />
+            <TaskList tasks={tasks} viewAllHref="/supervisor/days" hasDays={hasDays} />
+          </div>
+          <StatCards
+            stats={data?.stats ?? null}
+            daysRatio={closedDaysRatio(programDays)}
+            coursesRatio={completedCoursesRatio(programDays)}
+          />
+          <div className="dashboard-grid dashboard-grid--wide-first">
+            <QuickStatsBars
+              items={[
+                {
+                  labelKey: "quickStatSurveys",
+                  ratio: submittedSurveyRatio(programDays, (day) => day.survey),
+                },
+                { labelKey: "quickStatDays", ratio: closedDaysRatio(programDays) },
+                { labelKey: "quickStatCourses", ratio: completedCoursesRatio(programDays) },
+              ]}
+            />
+            <ProgramMessageCard />
+          </div>
+        </>
+      )}
     </div>
-  );
-}
-
-function ProgramMessageNotice() {
-  const t = useTranslations("Dashboard");
-  return (
-    <section className="card dashboard-note-card">
-      <p className="card__meta">{t("programMessageUnavailable")}</p>
-    </section>
   );
 }
 

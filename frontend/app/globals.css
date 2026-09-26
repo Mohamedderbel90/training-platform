@@ -1595,28 +1595,66 @@ html[dir="rtl"] .welcome-banner__image::before {
   }
 }
 
-/* ---- stat cards ---- */
+/* ---- stat cards ----
+ * Anatomy (every card): icon + value/label row, a supporting line, and
+ * an optional progress bar where a real done/total exists. The
+ * completion rate is the primary card (stronger border/ring, first in
+ * DOM); the rest are secondary. Numerals are tabular so values align. */
+
+.stats-section {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.stats-section .dashboard-note {
+  margin: 0;
+}
 
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
 }
 
-@media (min-width: 640px) {
+/* Mobile: the primary card spans the full row; an odd secondary card
+ * left alone at the end does too, so no half-empty rows. */
+.stat-grid > .stat-card--primary,
+.stat-grid > .stat-card:last-child:nth-child(even) {
+  grid-column: 1 / -1;
+}
+
+/* Column count follows the width of the stats container (the dashboard
+ * is wide, the program page is a narrow prose column), not the viewport. */
+@container (min-width: 480px) {
   .stat-grid {
-    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+  }
+
+  .stat-grid > .stat-card--primary,
+  .stat-grid > .stat-card:last-child:nth-child(even) {
+    grid-column: auto;
   }
 }
 
-/* Four equal columns leave the progress card's icon + text + ring row
- * too narrow at tablet width (worst in English); two columns through
- * the tablet range gives every card enough room, resuming four once
- * there's space for it. */
-@media (min-width: 640px) and (max-width: 900px) {
+@container (min-width: 820px) {
   .stat-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+}
+
+.stat-card {
+  position: relative;
+  min-inline-size: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 /* Icon-start / number+label-end row (the widest possible gap between
@@ -1624,20 +1662,14 @@ html[dir="rtl"] .welcome-banner__image::before {
  * flex row already gives that in English; Arabic needs `row-reverse`
  * so the icon (first in DOM) lands at the physical left instead of a
  * plain row's rtl start (physical right). */
-.stat-card {
-  position: relative;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: var(--space-5) 0.7rem;
-  box-shadow: var(--shadow-sm);
+.stat-card__row {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 0.6rem;
 }
 
-html[dir="rtl"] .stat-card {
+html[dir="rtl"] .stat-card__row {
   flex-direction: row-reverse;
 }
 
@@ -1649,20 +1681,41 @@ html[dir="rtl"] .stat-card {
   background: var(--color-accent-soft);
 }
 
+.stat-card--primary {
+  background: #f7f5f3;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
 .stat-card__icon {
   flex-shrink: 0;
-  inline-size: 4.25rem;
-  block-size: 4.25rem;
-  padding: 0.8rem;
+  inline-size: 3rem;
+  block-size: 3rem;
+  padding: 0.65rem;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
+@media (min-width: 640px) {
+  .stat-card__icon {
+    inline-size: 3.5rem;
+    block-size: 3.5rem;
+    padding: 0.75rem;
+  }
+}
+
 .stat-card__icon svg {
-  width: 1.7rem;
-  height: 1.7rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .stat-card__icon svg {
+    width: 1.7rem;
+    height: 1.7rem;
+  }
 }
 
 .stat-card__icon--primary {
@@ -1678,37 +1731,53 @@ html[dir="rtl"] .stat-card {
 .stat-card__text {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.15rem;
   flex: 1;
   min-width: 0;
 }
 
 .stat-card__value {
-  font-size: 2.1rem;
+  font-size: 1.75rem;
+  line-height: 1.15;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card--primary .stat-card__value {
+  font-size: 2.1rem;
+}
+
+@media (min-width: 640px) {
+  .stat-card__value {
+    font-size: 2.1rem;
+  }
+
+  .stat-card--primary .stat-card__value {
+    font-size: 2.2rem;
+  }
+}
+
+.stat-card--unavailable .stat-card__value {
+  color: var(--color-text-subtle);
 }
 
 .stat-card__label {
   color: var(--color-text);
   font-size: 0.92rem;
+  font-weight: 600;
 }
 
-/* Progress card: flat near-white surface (measured off the reference,
- * not a gradient), with its ring sized to match the icon circle and
- * pushed to the row's far physical edge instead of overlaid. */
-.stat-card--progress {
-  position: relative;
-  background: #f7f5f3;
-}
-
-.stat-card--progress .stat-card__text {
-  flex: 0 1 auto;
+.stat-card__support {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-card__ring {
-  position: static;
-  inline-size: 4.25rem;
-  block-size: 4.25rem;
+  inline-size: 3.25rem;
+  block-size: 3.25rem;
   /* Physical, deliberately not logical: the row above is already
    * normalized to a fixed physical order (row/row-reverse per
    * direction), so pushing to the far edge needs the same physical
@@ -1720,8 +1789,44 @@ html[dir="rtl"] .stat-card {
     var(--color-primary) var(--stat-ring-value, 0%),
     var(--color-border) 0
   );
-  mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 8px));
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 8px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 7px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 7px));
+}
+
+/* ---- progress bar (shared) ----
+ * The fill is a transform (no layout animation) anchored at the
+ * inline-start edge, so it grows from the right in Arabic and from the
+ * left in English. */
+.progress {
+  inline-size: 100%;
+  block-size: 0.5rem;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.progress__fill {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+  transform-origin: left center;
+  animation: progress-fill var(--motion-base) var(--ease-standard) backwards;
+}
+
+html[dir="rtl"] .progress__fill {
+  transform-origin: right center;
+}
+
+.progress--inline {
+  flex: 1 1 100%;
+}
+
+@keyframes progress-fill {
+  from {
+    transform: scaleX(0);
+  }
 }
 
 /* ---- upcoming session card ---- */
@@ -1878,6 +1983,7 @@ html[dir="ltr"] .task-list__view-all svg {
   align-items: center;
   gap: var(--space-3);
   padding: 0.8rem 0.9rem;
+  min-block-size: 3.5rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   text-decoration: none;
@@ -1905,6 +2011,8 @@ html[dir="ltr"] .task-list__view-all svg {
 .task-list__text {
   display: flex;
   flex-direction: column;
+  gap: 0.1rem;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -1914,71 +2022,125 @@ html[dir="ltr"] .task-list__view-all svg {
 }
 
 .task-list__course {
+  color: var(--color-text);
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}
+
+.task-list__when {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.task-list__aside {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.task-list__action {
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--color-primary);
   font-size: 0.82rem;
+  font-weight: 600;
 }
 
-.badge--plain::before {
-  display: none;
-}
-
-@media (min-width: 1280px) {
-  .task-list__link .task-list__text {
-    flex: 1 1 auto;
-    min-width: 0;
+/* Phones: the row wraps -- status + action drop under the text instead
+ * of squeezing it -- and the whole row stays a comfortable tap target. */
+@media (max-width: 479px) {
+  .task-list__link {
+    flex-wrap: wrap;
   }
-  .task-list__link .badge {
-    flex-shrink: 0;
-    width: 5.5rem;
-    justify-content: center;
-    text-align: center;
+
+  .task-list__text {
+    flex-basis: calc(100% - 3.2rem);
+  }
+
+  .task-list__aside {
+    box-sizing: border-box;
+    flex-basis: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline-start: 3.2rem;
   }
 }
 
-/* ---- quick stats mini bar chart ---- */
+.task-list .state-view {
+  padding-block: var(--space-6);
+}
 
-.quick-stats__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.state-view--empty-positive {
+  border-style: solid;
+  border-color: var(--color-success-bg);
+  background: var(--color-success-bg);
+}
+
+.state-view--empty-positive .state-view__icon {
+  background: var(--color-surface);
+  color: var(--color-success);
+}
+
+.state-view--empty-positive .state-view__message {
+  margin-bottom: 0;
+}
+
+/* ---- quick stats progress rows ---- */
+
+.card__title--with-icon {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.quick-stats__list {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-4);
-  margin-top: var(--space-4);
 }
 
 .quick-stats__item {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
+  gap: 0.4rem;
 }
 
-.quick-stats__bar-track {
-  width: 2.25rem;
-  height: 6rem;
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-muted);
+.quick-stats__head {
   display: flex;
-  align-items: flex-end;
-  overflow: hidden;
-}
-
-.quick-stats__bar-fill {
-  width: 100%;
-  background: var(--color-primary);
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  transition: height var(--transition-base);
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 
 .quick-stats__label {
-  margin: 0;
-  font-size: 0.82rem;
-  color: var(--color-text-muted);
-  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 .quick-stats__value {
-  margin: 0;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.quick-stats__empty {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
 }
 
 /* ---- program message / recent activity cards ---- */
@@ -2696,14 +2858,29 @@ html[dir="ltr"] .task-list__view-all svg {
   font-weight: 600;
 }
 
+/* A labelled panel per status concern (Survey / Attendance / Report):
+ * title, "<Kind> Status: <badge>", optional count + progress, then its
+ * one action. Panels sit side by side when there is room and stack on
+ * narrow screens; nothing relies on colour alone. */
 .status-group {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.9rem;
-  padding-block-start: var(--space-3, 0.75rem);
-  margin-block-start: var(--space-3, 0.75rem);
-  border-block-start: 1px solid var(--color-border);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-inline-size: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+}
+
+.status-group .button {
+  margin-block-start: auto;
+}
+
+.card__body > .status-group {
+  flex: 1 1 15rem;
+  align-self: stretch;
 }
 
 .status-group__title {
@@ -2713,10 +2890,204 @@ html[dir="ltr"] .task-list__view-all svg {
   color: var(--color-text);
 }
 
+.status-group__count {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
 .status-group__hint {
   margin: 0;
   font-size: 0.82rem;
   color: var(--color-text-muted);
+}
+
+/* ---- dashboard polish: hero card, sections, motion, skeletons ---- */
+
+.upcoming-session {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 0;
+}
+
+.upcoming-session__course {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.2rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.upcoming-session__actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  gap: var(--space-3);
+  margin-block-start: var(--space-4);
+}
+
+.upcoming-session__actions > .button-row {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.upcoming-session .button {
+  min-block-size: 2.75rem;
+}
+
+.upcoming-session .state-view,
+.task-list .state-view {
+  margin-block-start: var(--space-2);
+}
+
+.dashboard-grid > .card,
+.dashboard-grid--three > .card {
+  margin-bottom: 0;
+}
+
+.dashboard-grid > .card {
+  min-inline-size: 0;
+}
+
+.course-list__name {
+  overflow-wrap: anywhere;
+}
+
+.course-list .progress {
+  margin-block-start: var(--space-3);
+}
+
+@media (max-width: 639px) {
+  .upcoming-session__title-row {
+    flex-wrap: wrap;
+  }
+
+  .upcoming-session__left {
+    inline-size: 100%;
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .upcoming-session__thumb {
+    inline-size: auto;
+    flex: 1 1 0;
+    min-inline-size: 0;
+    block-size: auto;
+  }
+
+  .upcoming-session__date {
+    min-inline-size: 5.5rem;
+    padding: var(--space-3);
+  }
+
+  .upcoming-session__day {
+    font-size: 2rem;
+  }
+
+  .upcoming-session__info {
+    min-inline-size: 100%;
+  }
+
+  .upcoming-session .button,
+  .status-group .button {
+    inline-size: 100%;
+    min-block-size: 2.75rem;
+  }
+
+  .welcome-banner__title {
+    font-size: 1.45rem;
+  }
+
+  .welcome-banner__quote {
+    align-self: stretch;
+  }
+}
+
+/* Section entrance: opacity/translate only, <=180ms, 40ms stagger over
+ * the first four sections. `backwards` fill releases the transform once
+ * done so card hover lift keeps working. */
+.dashboard:not(.dashboard--static) > * {
+  animation: dashboard-enter var(--motion-base) var(--ease-standard) backwards;
+}
+
+.dashboard:not(.dashboard--static) > :nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.dashboard:not(.dashboard--static) > :nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.dashboard:not(.dashboard--static) > :nth-child(n + 4) {
+  animation-delay: 120ms;
+}
+
+@keyframes dashboard-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard > *,
+  .progress__fill {
+    animation: none !important;
+  }
+}
+
+/* Dashboard skeletons: same grid classes as the loaded page. */
+.welcome-banner--skeleton {
+  display: block;
+}
+
+.welcome-banner--skeleton .welcome-banner__body {
+  min-block-size: 11.5rem;
+}
+
+.welcome-banner--skeleton .skeleton {
+  background: rgba(255, 255, 255, 0.18);
+  animation: none;
+}
+
+.skeleton-card--tall {
+  min-block-size: 16rem;
+}
+
+.skeleton-card--program {
+  margin-block-end: var(--space-4);
+  min-block-size: 5rem;
+}
+
+.skeleton-hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.skeleton-hero__info {
+  flex: 1 1 10rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skeleton-stat {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 6.5rem;
+}
+
+.skeleton-stat__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skeleton-course-list {
+  margin-block-start: var(--space-4);
 }
 
 /* ====================== shared UI foundation ======================= */
@@ -3267,4 +3638,31 @@ html[dir="ltr"] .task-list__view-all svg {
     max-inline-size: 9rem;
     min-block-size: 2.75rem;
   }
+}
+
+/* Equal-height dashboard columns; the hero card pins its status/action
+ * panels to the bottom instead of leaving a void beside a tall list. */
+@media (min-width: 860px) {
+  .dashboard-grid {
+    align-items: stretch;
+  }
+}
+
+.upcoming-session {
+  display: flex;
+  flex-direction: column;
+}
+
+.upcoming-session__actions {
+  margin-block-start: auto;
+  padding-block-start: var(--space-4);
+}
+
+a.button {
+  text-decoration: none;
+}
+
+.task-list__action svg,
+.task-list__when svg {
+  flex-shrink: 0;
 }

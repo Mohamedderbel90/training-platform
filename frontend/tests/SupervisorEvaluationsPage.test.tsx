@@ -63,7 +63,7 @@ describe("Supervisor evaluations page", () => {
     await waitFor(() => expect(screen.getByText("Todo Course")).toBeInTheDocument());
     expect(screen.getByRole("heading", { level: 2, name: /Needs action/ })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: /Complete/ })).toBeInTheDocument();
-    expect(screen.getByText("Attendance recorded: 1/4")).toBeInTheDocument();
+    expect(screen.getByText("1 of 4 recorded")).toBeInTheDocument();
     const hrefs = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
     expect(hrefs).toContain("/supervisor/1/attendance");
     expect(hrefs).toContain("/supervisor/2/survey");

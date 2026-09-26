@@ -87,7 +87,7 @@ describe("flat list page (supervisor days)", () => {
     const user = userEvent.setup();
     renderWithIntl(<SupervisorDaysPage />);
     await screen.findAllByRole("article");
-    await user.selectOptions(screen.getByLabelText("Attendance"), "complete");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Attendance" }), "complete");
     expect(await screen.findByText("15 of 30 training days")).toBeInTheDocument();
     await user.selectOptions(screen.getByLabelText("Survey Status"), "submitted");
     expect(await screen.findByText("No items match the selected filters")).toBeInTheDocument();
@@ -181,7 +181,7 @@ describe("trainer days uses the Report Status label", () => {
     await screen.findAllByRole("article");
     expect(screen.getByLabelText("Report Status")).toBeInTheDocument();
     expect(screen.queryByLabelText("Survey Status")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Attendance")).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox", { name: "Attendance" })).not.toBeInTheDocument();
   });
 });
 

@@ -171,8 +171,6 @@
     "viewSurvey": "View survey",
     "openReport": "Open report",
     "viewReport": "View report",
-    "attendanceProgress": "Attendance recorded: {recorded}/{total}",
-    "attendanceComplete": "Complete",
     "manageAttendance": "Manage attendance",
     "welcomeBack": "Welcome back, {name}",
     "welcomeSubtitleTrainee": "On your journey toward excellence in leading Qur'an memorization schools",
@@ -184,7 +182,6 @@
     "statDays": "Training days",
     "statCourses": "Specialized courses",
     "statProgress": "Completion rate",
-    "statProgressUnavailable": "—",
     "statsUnavailable": "Not enough data about the current program yet.",
     "upcomingSessionTitle": "Upcoming training day",
     "noUpcomingSessionMessage": "You have no upcoming training days right now.",
@@ -207,7 +204,44 @@
     "programMessageUnavailable": "No messages or announcements from the program administration are available through this system yet.",
     "viewDetails": "View details",
     "recentActivityTitle": "Recent activity",
-    "recentActivityUnavailable": "No recent activity to show yet."
+    "recentActivityUnavailable": "No recent activity to show yet.",
+    "welcomeRegionLabel": "Welcome",
+    "statsRegionLabel": "Program statistics",
+    "statUnavailableValue": "—",
+    "statNotAvailableYet": "Not available yet",
+    "statProgressUnavailableReason": "No training days yet, so there is nothing to measure.",
+    "statProgressSupport": "Share of training days completed",
+    "statProgressRatio": "{done} of {total} training days completed",
+    "statRatioSupport": "{done} of {total} completed",
+    "statRatioValue": "{done} of {total}",
+    "statDaysSupport": "Scheduled in this program",
+    "statCoursesSupport": "In this program",
+    "statHoursSupport": "Across the current program",
+    "statDaysBarLabel": "Completed training days",
+    "statCoursesBarLabel": "Completed courses",
+    "quickStatEmpty": "Nothing to measure yet.",
+    "noUpcomingSessionTitle": "No upcoming training day",
+    "noDaysSessionMessage": "Your next training day will appear here once days are scheduled.",
+    "tasksEmptyTitle": "You're all caught up",
+    "tasksNoDaysTitle": "No training days yet",
+    "tasksNoDaysMessage": "Tasks will appear here once training days are scheduled.",
+    "taskAction": {
+      "survey": "Open survey",
+      "report": "Open report",
+      "attendance": "Record attendance",
+      "view": "View day"
+    },
+    "noProgramTitle": "No program assigned",
+    "noProgramMessage": "You are not assigned to a training program yet. It will appear here once one is assigned.",
+    "sectionAttendance": "Attendance",
+    "attendanceStatusLabel": "Attendance Status",
+    "attendanceRecorded": "{recorded} of {total} recorded",
+    "attendanceState": {
+      "none": "No trainees enrolled",
+      "not_started": "Not recorded",
+      "partial": "Partially recorded",
+      "complete": "Complete"
+    }
   },
   "Survey": {
     "loadingSurvey": "Loading survey...",
@@ -304,7 +338,9 @@
     "reportsSubmitted": "Submitted",
     "reportsUnavailable": "Not available",
     "sectionEmpty": "Nothing to show here.",
-    "supervisorSurveyLabel": "Supervisor survey"
+    "supervisorSurveyLabel": "Supervisor survey",
+    "programStatusLabel": "Program Status",
+    "programCoursesEmptyTitle": "No courses yet"
   },
   "Ui": {
     "searchLabel": "Search",

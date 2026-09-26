@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   buildAttendanceTasks,
   buildTasks,
+  prioritizeTasks,
   closedDaysRatio,
   completedCoursesRatio,
   daysForProgram,
@@ -104,9 +105,9 @@ describe("buildTasks", () => {
       survey: { configured: true, response: null, can_submit: true, reason: null },
     });
     const tasks = buildTasks([later, earlier], pick, hrefFor, "taskSurveyRequired");
-    expect(tasks).toEqual([
-      { id: "required-1", labelKey: "taskSurveyRequired", courseName: "Earlier Course", badge: "required", href: "/x/1" },
-      { id: "required-2", labelKey: "taskSurveyRequired", courseName: "Later Course", badge: "required", href: "/x/2" },
+    expect(tasks).toMatchObject([
+      { id: "required-1", labelKey: "taskSurveyRequired", courseName: "Earlier Course", badge: "required", href: "/x/1", kind: "survey", date: "2026-09-05" },
+      { id: "required-2", labelKey: "taskSurveyRequired", courseName: "Later Course", badge: "required", href: "/x/2", kind: "survey", date: "2026-09-20" },
     ]);
   });
 
@@ -145,7 +146,7 @@ describe("buildTasks", () => {
       }),
     ];
     const tasks = buildTasks(days, pick, hrefFor, "taskSurveyRequired");
-    expect(tasks).toEqual([
+    expect(tasks).toMatchObject([
       { id: "upcoming-1", labelKey: "taskSurveyRequired", courseName: "First Upcoming", badge: "upcoming", href: "/x/1" },
     ]);
   });
@@ -198,7 +199,7 @@ describe("buildAttendanceTasks", () => {
       attendance: { recorded_count: 0, total_enrolled: 3, complete: false },
     });
     const tasks = buildAttendanceTasks([later, earlier], hrefFor, "taskAttendanceRequired");
-    expect(tasks).toEqual([
+    expect(tasks).toMatchObject([
       { id: "attendance-1", labelKey: "taskAttendanceRequired", courseName: "Earlier Course", badge: "required", href: "/x/1/attendance" },
       { id: "attendance-2", labelKey: "taskAttendanceRequired", courseName: "Later Course", badge: "required", href: "/x/2/attendance" },
     ]);
@@ -230,5 +231,45 @@ describe("buildAttendanceTasks", () => {
     );
     expect(buildAttendanceTasks(days, hrefFor, "taskAttendanceRequired")).toHaveLength(5);
     expect(buildAttendanceTasks(days, hrefFor, "taskAttendanceRequired", 2)).toHaveLength(2);
+  });
+});
+
+describe("prioritizeTasks / urgency ordering", () => {
+  const pick = (d: DashboardEntryDto) => d.survey;
+  const hrefFor = (d: DashboardEntryDto) => `/x/${d.training_day_id}`;
+  const submittable = { configured: true, response: null, can_submit: true, reason: null };
+
+  it("puts required tasks on an open day first, then other required, then upcoming", () => {
+    const days = [
+      day({ training_day_id: 1, date: "2026-09-01", state: "planned", survey: { ...submittable, can_submit: false } }),
+      day({ training_day_id: 2, date: "2026-09-02", state: "closed", survey: submittable }),
+      day({ training_day_id: 3, date: "2026-09-09", state: "open", survey: submittable }),
+    ];
+    const ids = buildTasks(days, pick, hrefFor, "k").map((t) => t.id);
+    expect(ids).toEqual(["required-3", "required-2", "upcoming-1"]);
+  });
+
+  it("keeps an urgent later task even when many earlier ones would fill the limit", () => {
+    const days = [
+      ...Array.from({ length: 6 }, (_, i) =>
+        day({ training_day_id: i + 1, date: `2026-09-0${i + 1}`, state: "closed", survey: submittable }),
+      ),
+      day({ training_day_id: 99, date: "2026-09-30", state: "open", survey: submittable }),
+    ];
+    const tasks = buildTasks(days, pick, hrefFor, "k", 5);
+    expect(tasks).toHaveLength(5);
+    expect(tasks[0].id).toBe("required-99");
+  });
+
+  it("merges attendance and survey tasks by urgency, orders by date within a rank, and does not mutate input", () => {
+    const a = day({ training_day_id: 1, date: "2026-09-08", state: "open", attendance: { recorded_count: 0, total_enrolled: 2, complete: false } });
+    const s = day({ training_day_id: 2, date: "2026-09-03", state: "open", survey: submittable });
+    const merged = [
+      ...buildAttendanceTasks([a], hrefFor, "att", Infinity),
+      ...buildTasks([s], pick, hrefFor, "sv", Infinity),
+    ];
+    const before = merged.map((t) => t.id);
+    expect(prioritizeTasks(merged).map((t) => t.id)).toEqual(["required-2", "attendance-1"]);
+    expect(merged.map((t) => t.id)).toEqual(before);
   });
 });

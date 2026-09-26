@@ -4,7 +4,11 @@ import { useLocale, useTranslations } from "next-intl";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
 import { formatProgramRange } from "@/lib/dashboard/format";
-import { LoadingState, EmptyState } from "@/components/StateViews";
+import { closedDaysRatio, completedCoursesRatio, daysForProgram } from "@/lib/dashboard/derive";
+import { EmptyState } from "@/components/StateViews";
+import { ProgramSkeleton } from "@/components/dashboard/DashboardSkeleton";
+import { ProgressBar } from "@/components/ProgressBar";
+import { StatusBadge } from "@/components/StatusBadge";
 import { ApiErrorView } from "@/components/ApiErrorView";
 import { StatCards } from "@/components/dashboard/StatCards";
 import { PageHeader } from "@/components/PageHeader";
@@ -18,11 +22,12 @@ function TraineeProgramContent() {
   const locale = useLocale();
   const { data, status, error, reload } = useDashboardSummary("trainee");
 
-  if (status === "loading") return <LoadingState label={t("loading")} />;
+  if (status === "loading") return <ProgramSkeleton label={t("loading")} />;
   if (status === "error" && error) return <ApiErrorView error={error} onRetry={reload} />;
 
   const program = data?.program ?? null;
   const courses = [...(program?.courses ?? [])].sort((a, b) => a.sequence - b.sequence);
+  const programDays = daysForProgram(data?.days ?? [], program?.id);
 
   return (
     <div>
@@ -41,28 +46,52 @@ function TraineeProgramContent() {
                 </p>
               </div>
               {program.state ? (
-                <span className="badge">{p(`programState.${program.state}`)}</span>
+                <dl className="status-line">
+                  <dt>{p("programStatusLabel")}</dt>
+                  <dd>
+                    <StatusBadge tone={program.state === "active" ? "success" : "neutral"}>
+                      {p(`programState.${program.state}`)}
+                    </StatusBadge>
+                  </dd>
+                </dl>
               ) : null}
             </div>
           </article>
-          <StatCards stats={data?.stats ?? null} />
+          <StatCards
+            stats={data?.stats ?? null}
+            daysRatio={closedDaysRatio(programDays)}
+            coursesRatio={completedCoursesRatio(programDays)}
+          />
           <section className="page-section" aria-labelledby="program-courses">
             <h2 className="page-section__title" id="program-courses">
               {p("programCoursesTitle")}{" "}
               <span className="page-section__count">({courses.length})</span>
             </h2>
             {courses.length === 0 ? (
-              <p className="card__meta">{p("programCoursesEmpty")}</p>
+              <EmptyState title={p("programCoursesEmptyTitle")} message={p("programCoursesEmpty")} />
             ) : (
               <ul className="course-list">
                 {courses.map((course) => (
                   <li className="card" key={course.id}>
-                    <p className="card__title">{course.name}</p>
+                    <p className="card__title course-list__name" title={course.name}>
+                      {course.name}
+                    </p>
                     <div className="course-list__meta">
                       <span>{p("courseDays", { count: course.training_days_count })}</span>
                       <span>{p("courseClosedDays", { count: course.closed_days_count })}</span>
                       <span>{p("courseHours", { count: course.training_hours })}</span>
                     </div>
+                    {course.training_days_count > 0 ? (
+                      <ProgressBar
+                        done={course.closed_days_count}
+                        total={course.training_days_count}
+                        label={course.name}
+                        valueText={t("statRatioValue", {
+                          done: course.closed_days_count,
+                          total: course.training_days_count,
+                        })}
+                      />
+                    ) : null}
                   </li>
                 ))}
               </ul>

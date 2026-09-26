@@ -103,13 +103,10 @@ describe("Trainee dashboard homepage", () => {
     renderWithIntl(<TraineeDashboardPage />);
 
     await waitFor(() => expect(screen.getByText("Welcome back, Dev Trainee")).toBeInTheDocument());
-    expect(
-      screen.getByText("Not enough data about the current program yet."),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("You have no upcoming training days right now."),
-    ).toBeInTheDocument();
-    expect(screen.getByText("No pending tasks right now.")).toBeInTheDocument();
+    // No program and no days at all: a dedicated "not assigned" state,
+    // not a page of empty widgets.
+    expect(screen.getByText("No program assigned")).toBeInTheDocument();
+    expect(screen.queryByText("Current tasks")).not.toBeInTheDocument();
   });
 
   it("shows an error state with a retry action instead of silently swallowing the failure", async () => {

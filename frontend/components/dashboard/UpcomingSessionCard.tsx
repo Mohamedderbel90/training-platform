@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { DayStatus } from "@/components/DayCard";
+import { EmptyState } from "@/components/StateViews";
 import { ClockIcon, PersonIcon } from "@/components/icons";
 import { formatSessionDateParts, formatTimeRange } from "@/lib/dashboard/format";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -11,14 +12,14 @@ import type { DashboardEntryDto } from "@/lib/api/types";
  * exists among the approved uploads (only the Hero Banner photo,
  * sidebar decor and logo are present) -- this is an inline-SVG
  * recreation, not a crop of an unrelated asset. */
-function UpcomingSessionThumb({ label }: { label: string }) {
+function UpcomingSessionThumb() {
   return (
     <svg
       className="upcoming-session__thumb"
       viewBox="0 0 236 92"
       preserveAspectRatio="xMidYMid slice"
-      role="img"
-      aria-label={label}
+      aria-hidden="true"
+      focusable="false"
     >
       <defs>
         <pattern id="upcomingSessionLattice" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -70,20 +71,32 @@ export function UpcomingSessionCard({
   entry,
   surveyGroup,
   action,
+  hasDays = true,
 }: {
   entry: DashboardEntryDto | null;
+  /** Status/action groups (Survey, Attendance, Report), each rendered
+   * as its own labelled panel under the session facts. */
   surveyGroup?: ReactNode;
   action?: ReactNode;
+  /** false = the user has no training days at all yet (distinct from
+   * "none upcoming"). */
+  hasDays?: boolean;
 }) {
   const t = useTranslations("Dashboard");
   const locale = useLocale();
   const { profile } = useAuth();
+  const headingId = useId();
 
   if (!entry) {
     return (
-      <section className="card upcoming-session">
-        <h2 className="card__title">{t("upcomingSessionTitle")}</h2>
-        <p className="card__meta">{t("noUpcomingSessionMessage")}</p>
+      <section className="card upcoming-session" aria-labelledby={headingId}>
+        <h2 className="card__title" id={headingId}>
+          {t("upcomingSessionTitle")}
+        </h2>
+        <EmptyState
+          title={hasDays ? t("noUpcomingSessionTitle") : t("tasksNoDaysTitle")}
+          message={hasDays ? t("noUpcomingSessionMessage") : t("noDaysSessionMessage")}
+        />
       </section>
     );
   }
@@ -98,15 +111,17 @@ export function UpcomingSessionCard({
   const trainerNames = entry.trainers?.map((trainer) => trainer.name).join(t("listSeparator"));
 
   return (
-    <section className="card upcoming-session">
+    <section className="card upcoming-session" aria-labelledby={headingId}>
       <div className="upcoming-session__title-row">
-        <h2 className="card__title">{t("upcomingSessionTitle")}</h2>
+        <h2 className="card__title" id={headingId}>
+          {t("upcomingSessionTitle")}
+        </h2>
         <DayStatus status={entry.state} />
       </div>
       <div className="upcoming-session__body">
         {dateParts ? (
           <div className="upcoming-session__left">
-            <UpcomingSessionThumb label={t("upcomingSessionTitle")} />
+            <UpcomingSessionThumb />
             <div className="upcoming-session__date">
               <span className="upcoming-session__weekday">{dateParts.weekday}</span>
               <span className="upcoming-session__day">{dateParts.day}</span>
@@ -115,7 +130,9 @@ export function UpcomingSessionCard({
           </div>
         ) : null}
         <div className="upcoming-session__info">
-          <p className="card__title">{entry.course_name}</p>
+          <p className="upcoming-session__course" title={entry.course_name}>
+            {entry.course_name}
+          </p>
           <p className="card__meta">{entry.program_name}</p>
           <p className="card__meta card__meta--inline">
             {timeRange ? (
@@ -129,10 +146,14 @@ export function UpcomingSessionCard({
               </span>
             ) : null}
           </p>
+        </div>
+      </div>
+      {surveyGroup || action ? (
+        <div className="upcoming-session__actions">
           {surveyGroup}
           {action ? <div className="button-row button-row--tight">{action}</div> : null}
         </div>
-      </div>
+      ) : null}
     </section>
   );
 }

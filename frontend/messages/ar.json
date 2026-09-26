@@ -171,8 +171,6 @@
     "viewSurvey": "عرض الاستبيان",
     "openReport": "فتح التقرير",
     "viewReport": "عرض التقرير",
-    "attendanceProgress": "الحضور المسجَّل: {recorded}/{total}",
-    "attendanceComplete": "مكتمل",
     "manageAttendance": "إدارة الحضور",
     "welcomeBack": "مرحباً بك مجدداً يا {name}",
     "welcomeSubtitleTrainee": "في رحلتك نحو التميز في قيادة مدارس تحفيظ القرآن الكريم",
@@ -184,7 +182,6 @@
     "statDays": "يوماً تدريبياً",
     "statCourses": "دورات متخصصة",
     "statProgress": "نسبة الإنجاز",
-    "statProgressUnavailable": "—",
     "statsUnavailable": "لا تتوفر بيانات كافية عن البرنامج الحالي بعد.",
     "upcomingSessionTitle": "اليوم التدريبي القادم",
     "noUpcomingSessionMessage": "لا توجد لديكِ أيام تدريبية قادمة حالياً.",
@@ -207,7 +204,44 @@
     "programMessageUnavailable": "لا تتوفر حالياً رسائل أو إعلانات من إدارة البرنامج عبر هذا النظام.",
     "viewDetails": "عرض التفاصيل",
     "recentActivityTitle": "أحدث الأنشطة",
-    "recentActivityUnavailable": "لا يوجد نشاط حديث لعرضه حالياً."
+    "recentActivityUnavailable": "لا يوجد نشاط حديث لعرضه حالياً.",
+    "welcomeRegionLabel": "الترحيب",
+    "statsRegionLabel": "إحصاءات البرنامج",
+    "statUnavailableValue": "—",
+    "statNotAvailableYet": "غير متاح بعد",
+    "statProgressUnavailableReason": "لا توجد أيام تدريبية بعد، لذا لا يوجد ما يمكن قياسه.",
+    "statProgressSupport": "نسبة الأيام التدريبية المكتملة",
+    "statProgressRatio": "اكتمل {done} من {total} أيام تدريبية",
+    "statRatioSupport": "اكتمل {done} من {total}",
+    "statRatioValue": "{done} من {total}",
+    "statDaysSupport": "مجدولة في هذا البرنامج",
+    "statCoursesSupport": "ضمن هذا البرنامج",
+    "statHoursSupport": "على مستوى البرنامج الحالي",
+    "statDaysBarLabel": "الأيام التدريبية المكتملة",
+    "statCoursesBarLabel": "الدورات المكتملة",
+    "quickStatEmpty": "لا يوجد ما يمكن قياسه بعد.",
+    "noUpcomingSessionTitle": "لا يوجد يوم تدريبي قادم",
+    "noDaysSessionMessage": "سيظهر يومك التدريبي القادم هنا بعد جدولة الأيام.",
+    "tasksEmptyTitle": "لقد أنجزت كل مهامك",
+    "tasksNoDaysTitle": "لا توجد أيام تدريبية بعد",
+    "tasksNoDaysMessage": "ستظهر المهام هنا بعد جدولة الأيام التدريبية.",
+    "taskAction": {
+      "survey": "فتح الاستبيان",
+      "report": "فتح التقرير",
+      "attendance": "تسجيل الحضور",
+      "view": "عرض اليوم"
+    },
+    "noProgramTitle": "لا يوجد برنامج مُسنَد",
+    "noProgramMessage": "لم يُسنَد إليك برنامج تدريبي بعد. سيظهر هنا عند إسناده.",
+    "sectionAttendance": "الحضور",
+    "attendanceStatusLabel": "حالة الحضور",
+    "attendanceRecorded": "تم تسجيل {recorded} من {total}",
+    "attendanceState": {
+      "none": "لا يوجد متدربون مسجَّلون",
+      "not_started": "لم يُسجَّل بعد",
+      "partial": "مسجَّل جزئياً",
+      "complete": "مكتمل"
+    }
   },
   "Survey": {
     "loadingSurvey": "جارٍ تحميل الاستبانة...",
@@ -304,7 +338,9 @@
     "reportsSubmitted": "تم إرسالها",
     "reportsUnavailable": "غير متاحة",
     "sectionEmpty": "لا يوجد ما يُعرض هنا.",
-    "supervisorSurveyLabel": "استبانة المشرف"
+    "supervisorSurveyLabel": "استبانة المشرف",
+    "programStatusLabel": "حالة البرنامج",
+    "programCoursesEmptyTitle": "لا توجد دورات بعد"
   },
   "Ui": {
     "searchLabel": "بحث",

@@ -9,7 +9,7 @@
 
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { AlertIcon, InboxIcon, SearchIcon } from "@/components/icons";
+import { AlertIcon, CheckIcon, InboxIcon, SearchIcon } from "@/components/icons";
 import { SkeletonCard } from "@/components/Skeleton";
 
 export function LoadingState({
@@ -42,7 +42,9 @@ export function LoadingState({
   );
 }
 
-/** Calm, neutral "nothing here" state. `search` and `filtered` variants
+/** Calm, neutral "nothing here" state. `positive` is the "all done"
+ * variant (check icon, success tint, no dashed border) for an empty list
+ * that is good news, not a gap. `search` and `filtered` variants
  * supply their own wording; `action` (e.g. a Clear button) is rendered
  * only when the caller passes one. */
 export function EmptyState({
@@ -54,7 +56,7 @@ export function EmptyState({
 }: {
   title?: string;
   message?: string;
-  variant?: "default" | "search" | "filtered";
+  variant?: "default" | "search" | "filtered" | "positive";
   /** The search text, shown in the `search` variant title. */
   query?: string;
   action?: ReactNode;
@@ -72,7 +74,13 @@ export function EmptyState({
   return (
     <div className={`state-view state-view--empty state-view--empty-${variant}`}>
       <span className="state-view__icon">
-        {variant === "default" ? <InboxIcon /> : <SearchIcon />}
+        {variant === "default" ? (
+          <InboxIcon />
+        ) : variant === "positive" ? (
+          <CheckIcon />
+        ) : (
+          <SearchIcon />
+        )}
       </span>
       {heading ? <p className="state-view__title">{heading}</p> : null}
       {body ? <p className="state-view__message">{body}</p> : null}

@@ -4,8 +4,10 @@ import { useId, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { StatusBadge, type StatusTone } from "@/components/StatusBadge";
+import { ProgressBar } from "@/components/ProgressBar";
 import { formatDate } from "@/lib/dashboard/format";
 import type {
+  AttendanceSummaryDto,
   DashboardEntryDto,
   SurveyAvailabilityDto,
   SurveyResponseStatus,
@@ -142,6 +144,84 @@ export function SurveyStatusGroup({
       </dl>
       {action}
       {hint ? <p className="status-group__hint">{hint}</p> : null}
+    </div>
+  );
+}
+
+type AttendanceState = "none" | "not_started" | "partial" | "complete";
+
+/** Derived purely from the server-supplied counts + `complete` flag. */
+function attendanceState(summary: AttendanceSummaryDto): AttendanceState {
+  if (summary.complete) return "complete";
+  if (summary.total_enrolled === 0) return "none";
+  return summary.recorded_count > 0 ? "partial" : "not_started";
+}
+
+const ATTENDANCE_TONE: Record<AttendanceState, StatusTone> = {
+  none: "neutral",
+  not_started: "neutral",
+  partial: "warning",
+  complete: "success",
+};
+
+/** The supervisor's Attendance group of a day card: "Attendance /
+ * Attendance Status: <status> / 12 of 30 recorded / [Manage attendance]".
+ * Sits beside (never merged with) the Survey Status group. The counts
+ * and `complete` come from the API; the action is always the attendance
+ * page, which enforces its own permissions server-side. */
+export function AttendanceStatusGroup({
+  attendance,
+  href,
+  primary = false,
+}: {
+  attendance?: AttendanceSummaryDto;
+  href: string;
+  /** Style the action as the primary button (the day's main next step). */
+  primary?: boolean;
+}) {
+  const t = useTranslations("Dashboard");
+  const titleId = useId();
+  if (!attendance) return null;
+
+  const state = attendanceState(attendance);
+  const measurable = attendance.total_enrolled > 0;
+
+  return (
+    <div className="status-group status-group--attendance" role="group" aria-labelledby={titleId}>
+      <p className="status-group__title" id={titleId}>
+        {t("sectionAttendance")}
+      </p>
+      <dl className="status-line">
+        <dt>{t("attendanceStatusLabel")}</dt>
+        <dd>
+          <StatusBadge tone={ATTENDANCE_TONE[state]} icon={state === "complete" ? " ✓" : undefined}>
+            {t(`attendanceState.${state}`)}
+          </StatusBadge>
+        </dd>
+      </dl>
+      {measurable ? (
+        <>
+          <p className="status-group__count">
+            {t("attendanceRecorded", {
+              recorded: attendance.recorded_count,
+              total: attendance.total_enrolled,
+            })}
+          </p>
+          <ProgressBar
+            className="progress--inline"
+            done={attendance.recorded_count}
+            total={attendance.total_enrolled}
+            label={t("attendanceStatusLabel")}
+            valueText={t("attendanceRecorded", {
+              recorded: attendance.recorded_count,
+              total: attendance.total_enrolled,
+            })}
+          />
+        </>
+      ) : null}
+      <Link className={`button${primary ? "" : " button--secondary"}`} href={href}>
+        {t("manageAttendance")}
+      </Link>
     </div>
   );
 }

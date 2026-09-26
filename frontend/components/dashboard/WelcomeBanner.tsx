@@ -15,13 +15,13 @@ export function WelcomeBanner({
 }) {
   const t = useTranslations("Dashboard");
   return (
-    <section className="welcome-banner">
+    <section className="welcome-banner" aria-label={t("welcomeRegionLabel")}>
       <div className="welcome-banner__image" role="presentation" />
       <div className="welcome-banner__body">
-        <p className="welcome-banner__title">
+        <h1 className="welcome-banner__title">
           <LeafIcon className="welcome-banner__title-icon" />
           {t("welcomeBack", { name })}
-        </p>
+        </h1>
         <p className="welcome-banner__subtitle">{t(subtitleKey)}</p>
         <p className="welcome-banner__quote">
           <BookIcon aria-hidden="true" />

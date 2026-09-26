@@ -13,15 +13,17 @@ import {
   daysForProgram,
   submittedSurveyRatio,
 } from "@/lib/dashboard/derive";
-import { LoadingState } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
 import { SurveyStatusGroup } from "@/components/DayCard";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
+import { ProgramMessageCard } from "@/components/dashboard/ProgramMessageCard";
+import { NoProgramState } from "@/components/dashboard/NoProgramState";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { StatCards } from "@/components/dashboard/StatCards";
 import { UpcomingSessionCard } from "@/components/dashboard/UpcomingSessionCard";
 import { TaskList } from "@/components/dashboard/TaskList";
 import { QuickStatsBars } from "@/components/dashboard/QuickStatsBars";
-import { ClockIcon, MegaphoneIcon } from "@/components/icons";
+import { ClockIcon } from "@/components/icons";
 
 function TraineeDashboardContent() {
   const t = useTranslations("Dashboard");
@@ -44,73 +46,68 @@ function TraineeDashboardContent() {
   );
 
   if (status === "loading") {
-    return <LoadingState label={t("loading")} />;
+    return <DashboardSkeleton label={t("loading")} />;
   }
   if (status === "error" && error) {
     return <ApiErrorView error={error} onRetry={reload} />;
   }
 
   const nextEntry = data?.next_session ?? null;
+  const hasDays = programDays.length > 0;
+  const notAssigned = !data?.program && !hasDays && !nextEntry;
 
   return (
     <div className="dashboard">
       <WelcomeBanner name={profile?.name ?? ""} subtitleKey="welcomeSubtitleTrainee" />
-      <StatCards stats={data?.stats ?? null} />
-      <div className="dashboard-grid">
-        <UpcomingSessionCard
-          entry={nextEntry}
-          surveyGroup={
-            nextEntry ? (
-              <SurveyStatusGroup
-                availability={nextEntry.survey}
-                dayStatus={nextEntry.state}
-                href={`/trainee/${nextEntry.training_day_id}`}
-              />
-            ) : null
-          }
-          action={
-            nextEntry ? (
-              <>
-                <Link className="button button--secondary" href="/trainee/days">
-                  {t("viewDetails")}
-                </Link>
-              </>
-            ) : null
-          }
-        />
-        <TaskList tasks={tasks} viewAllHref="/trainee/days" />
-      </div>
-      <div className="dashboard-grid dashboard-grid--three">
-        <ProgramMessageNotice />
-        <QuickStatsBars
-          items={[
-            {
-              labelKey: "quickStatSurveys",
-              ratio: submittedSurveyRatio(programDays, (day) => day.survey),
-            },
-            { labelKey: "quickStatDays", ratio: closedDaysRatio(programDays) },
-            { labelKey: "quickStatCourses", ratio: completedCoursesRatio(programDays) },
-          ]}
-        />
-        <RecentActivityCard />
-      </div>
+      {notAssigned ? (
+        <NoProgramState />
+      ) : (
+        <>
+          <div className="dashboard-grid">
+            <UpcomingSessionCard
+              entry={nextEntry}
+              hasDays={hasDays}
+              surveyGroup={
+                nextEntry ? (
+                  <SurveyStatusGroup
+                    availability={nextEntry.survey}
+                    dayStatus={nextEntry.state}
+                    href={`/trainee/${nextEntry.training_day_id}`}
+                  />
+                ) : null
+              }
+              action={
+                nextEntry ? (
+                  <Link className="button button--secondary" href="/trainee/days">
+                    {t("viewDetails")}
+                  </Link>
+                ) : null
+              }
+            />
+            <TaskList tasks={tasks} viewAllHref="/trainee/days" hasDays={hasDays} />
+          </div>
+          <StatCards
+            stats={data?.stats ?? null}
+            daysRatio={closedDaysRatio(programDays)}
+            coursesRatio={completedCoursesRatio(programDays)}
+          />
+          <div className="dashboard-grid dashboard-grid--three">
+            <QuickStatsBars
+              items={[
+                {
+                  labelKey: "quickStatSurveys",
+                  ratio: submittedSurveyRatio(programDays, (day) => day.survey),
+                },
+                { labelKey: "quickStatDays", ratio: closedDaysRatio(programDays) },
+                { labelKey: "quickStatCourses", ratio: completedCoursesRatio(programDays) },
+              ]}
+            />
+            <ProgramMessageCard />
+            <RecentActivityCard />
+          </div>
+        </>
+      )}
     </div>
-  );
-}
-
-/** No announcement/messaging model exists in the backend yet (see M5
- * point 5F): rather than invent a "message from program admin" card,
- * this documents the limitation directly in the UI instead of showing
- * fabricated content. */
-function ProgramMessageNotice() {
-  const t = useTranslations("Dashboard");
-  return (
-    <section className="card dashboard-note-card">
-      <h2 className="card__title">
-        <MegaphoneIcon aria-hidden="true" /> {t("programMessageTitle")}
-      </h2>
-      <div className="message-card__body">{t("programMessageUnavailable")}</div>
-    </section>
   );
 }
 
@@ -120,8 +117,8 @@ function ProgramMessageNotice() {
 function RecentActivityCard() {
   const t = useTranslations("Dashboard");
   return (
-    <section className="card dashboard-note-card">
-      <h2 className="card__title">
+    <section className="card dashboard-note-card" aria-labelledby="dash-activity-title">
+      <h2 className="card__title card__title--with-icon" id="dash-activity-title">
         <ClockIcon aria-hidden="true" /> {t("recentActivityTitle")}
       </h2>
       <p className="card__meta">{t("recentActivityUnavailable")}</p>

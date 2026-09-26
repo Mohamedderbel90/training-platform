@@ -56,7 +56,7 @@ describe("Supervisor dashboard", () => {
     await waitFor(() => expect(screen.getByText("Demo Course")).toBeInTheDocument());
     expect(screen.getByText("Demo Program")).toBeInTheDocument();
     expect(dashboardApi.get).toHaveBeenCalledWith("supervisor", "en");
-    expect(screen.getByText("Attendance recorded: 0/3")).toBeInTheDocument();
+    expect(screen.getByText("0 of 3 recorded")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Manage attendance" }),
     ).toHaveAttribute("href", "/supervisor/1/attendance");
@@ -78,7 +78,7 @@ describe("Supervisor dashboard", () => {
 
     renderWithIntl(<SupervisorDashboardPage />);
 
-    await waitFor(() => expect(screen.getByText("Attendance recorded: 3/3")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("3 of 3 recorded")).toBeInTheDocument());
     expect(screen.getByText("Complete")).toBeInTheDocument();
   });
 
