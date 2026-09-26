@@ -55,4 +55,25 @@ describe("ForgotPasswordPage", () => {
 
     expect(await screen.findByText("Something went wrong on our side. Please try again in a moment.")).toBeInTheDocument();
   });
+
+  it("validates the username on submit without calling the server", async () => {
+    vi.mocked(authApi.forgotPassword).mockClear();
+    renderWithIntl(<ForgotPasswordPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Send reset link" }));
+    expect(authApi.forgotPassword).not.toHaveBeenCalled();
+    expect(screen.getByText("This field is required.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Username")).toHaveFocus();
+  });
+
+  it("shows a busy state and then a status-role confirmation with the server wording", async () => {
+    let resolve!: (v: { message: string }) => void;
+    vi.mocked(authApi.forgotPassword).mockReturnValue(new Promise((r) => (resolve = r)));
+    renderWithIntl(<ForgotPasswordPage />);
+    await userEvent.type(screen.getByLabelText("Username"), "dev_trainee");
+    fireEvent.click(screen.getByRole("button", { name: "Send reset link" }));
+    expect(await screen.findByRole("button", { name: "Sending..." })).toBeDisabled();
+    resolve({ message: "If that account exists, a link was sent." });
+    const status = await screen.findByRole("status");
+    expect(status).toHaveTextContent("If that account exists, a link was sent.");
+  });
 });

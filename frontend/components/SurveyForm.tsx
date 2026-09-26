@@ -16,7 +16,7 @@
  * server's own mandatory-answer check (ADR-003) remains authoritative,
  * and any server VALIDATION_ERROR is always surfaced via `apiError`.
  */
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type MouseEvent } from "react";
 import { useTranslations } from "next-intl";
 import type {
   SurveyAnswerDto,
@@ -24,7 +24,12 @@ import type {
   SurveyQuestionDto,
 } from "@/lib/api/types";
 import type { ApiError } from "@/lib/api/client";
-import { ApiErrorView } from "./ApiErrorView";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { FormError } from "./FormError";
+import { FormField } from "./FormField";
+import { LockIcon } from "./icons";
+import { ProgressBar } from "./ProgressBar";
+import { SubmitButton } from "./SubmitButton";
 
 type AnswerMap = Record<number, SurveyAnswerDto>;
 
@@ -78,21 +83,32 @@ export function SurveyForm({
   const t = useTranslations("Survey");
   const [answers, setAnswers] = useState<AnswerMap>(() => toAnswerMap(initialAnswers));
   const [missingIds, setMissingIds] = useState<number[]>([]);
+  // Counts blocked submit attempts so focus returns to the summary
+  // every time, not just the first.
+  const [blockedAttempts, setBlockedAttempts] = useState(0);
   const [confirming, setConfirming] = useState(false);
+  const [pending, setPending] = useState<"draft" | "submit" | null>(null);
   const errorSummaryId = useId();
   const summaryRef = useRef<HTMLDivElement>(null);
 
   // Move focus to the error summary when a submit attempt is blocked,
   // so keyboard/screen-reader users land on the list of problems.
-  const hasMissing = missingIds.length > 0;
   useEffect(() => {
-    if (hasMissing) summaryRef.current?.focus();
-  }, [hasMissing]);
+    if (blockedAttempts > 0) summaryRef.current?.focus();
+  }, [blockedAttempts]);
 
   const allQuestions = useMemo(
     () => definition.sections.flatMap((section) => section.questions),
     [definition],
   );
+  const requiredQuestions = useMemo(
+    () => allQuestions.filter((question) => question.required),
+    [allQuestions],
+  );
+  // Progress is derived from local answers only (UX aid, never sent).
+  const answeredRequired = requiredQuestions.filter((question) =>
+    isAnswered(question, answers[question.question_id]),
+  ).length;
 
   const setAnswer = (questionId: number, patch: Partial<SurveyAnswerDto>) => {
     setAnswers((prev) => ({
@@ -103,16 +119,15 @@ export function SurveyForm({
   };
 
   const computeMissing = () =>
-    allQuestions
-      .filter(
-        (question) => question.required && !isAnswered(question, answers[question.question_id]),
-      )
+    requiredQuestions
+      .filter((question) => !isAnswered(question, answers[question.question_id]))
       .map((question) => question.question_id);
 
   const handleSubmitClick = () => {
     const missing = computeMissing();
     if (missing.length > 0) {
       setMissingIds(missing);
+      setBlockedAttempts((n) => n + 1);
       return;
     }
     setConfirming(true);
@@ -120,18 +135,54 @@ export function SurveyForm({
 
   const confirmSubmit = async () => {
     setConfirming(false);
-    await onSubmit(Object.values(answers));
-  };
-
-  const handleSaveDraft = async () => {
-    if (onSaveDraft) {
-      await onSaveDraft(Object.values(answers));
+    setPending("submit");
+    try {
+      await onSubmit(Object.values(answers));
+    } finally {
+      setPending(null);
     }
   };
 
+  const handleSaveDraft = async () => {
+    if (!onSaveDraft) return;
+    setPending("draft");
+    try {
+      await onSaveDraft(Object.values(answers));
+    } finally {
+      setPending(null);
+    }
+  };
+
+  // Summary links jump to the question's first control (the bare
+  // #hash target is a non-focusable wrapper).
+  const focusQuestion = (event: MouseEvent<HTMLAnchorElement>, id: number) => {
+    event.preventDefault();
+    const wrapper = document.getElementById(`question-${id}`);
+    wrapper?.scrollIntoView?.({ block: "center" });
+    wrapper?.querySelector<HTMLElement>("input, textarea, select")?.focus({ preventScroll: true });
+  };
+
   return (
-    <div>
-      {apiError ? <ApiErrorView error={apiError} onRetry={onRetry} /> : null}
+    <div className={readOnly ? "survey-form survey-form--readonly" : "survey-form"}>
+      <FormError error={apiError ?? null} onRetry={onRetry} />
+
+      {!readOnly && requiredQuestions.length > 0 ? (
+        <div className="survey-progress">
+          <p className="survey-progress__text">
+            {t("answeredProgress", { done: answeredRequired, total: requiredQuestions.length })}
+          </p>
+          <ProgressBar
+            done={answeredRequired}
+            total={requiredQuestions.length}
+            label={t("progressLabel")}
+            valueText={t("answeredProgress", {
+              done: answeredRequired,
+              total: requiredQuestions.length,
+            })}
+          />
+          <p className="field-hint">{t("requiredLegend")}</p>
+        </div>
+      ) : null}
 
       {missingIds.length > 0 ? (
         <div className="error-summary" role="alert" id={errorSummaryId} tabIndex={-1} ref={summaryRef}>
@@ -141,7 +192,9 @@ export function SurveyForm({
               const question = allQuestions.find((q) => q.question_id === id);
               return (
                 <li key={id}>
-                  <a href={`#question-${id}`}>{question?.title ?? id}</a>
+                  <a href={`#question-${id}`} onClick={(event) => focusQuestion(event, id)}>
+                    {question?.title ?? id}
+                  </a>
                 </li>
               );
             })}
@@ -149,10 +202,19 @@ export function SurveyForm({
         </div>
       ) : null}
 
-      {readOnly ? <p className="readonly-notice">{t("readOnlyNotice")}</p> : null}
+      {readOnly ? (
+        <p className="readonly-notice">
+          <LockIcon aria-hidden="true" />
+          {t("readOnlyNotice")}
+        </p>
+      ) : null}
 
       {definition.sections.map((section) => (
-        <section key={section.id} aria-labelledby={`section-${section.id}`}>
+        <section
+          key={section.id}
+          className="survey-section"
+          aria-labelledby={section.title ? `section-${section.id}` : undefined}
+        >
           {section.title ? (
             <h2 id={`section-${section.id}`} className="section-title">
               {section.title}
@@ -172,42 +234,41 @@ export function SurveyForm({
       ))}
 
       {!readOnly ? (
-        confirming ? (
-          <div className="card" role="alertdialog" aria-label={t("confirmTitle")}>
-            <p className="card__title">{t("confirmTitle")}</p>
-            <p>{t("confirmMessage")}</p>
-            <div className="button-row">
-              <button type="button" className="button" onClick={confirmSubmit} disabled={busy}>
-                {t("confirmYes")}
-              </button>
-              <button
-                type="button"
-                className="button button--secondary"
-                onClick={() => setConfirming(false)}
-                disabled={busy}
-              >
-                {t("confirmCancel")}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="button-row">
-            {onSaveDraft ? (
-              <button
-                type="button"
-                className="button button--secondary"
-                onClick={handleSaveDraft}
-                disabled={busy}
-              >
-                {busy ? t("savingDraft") : t("saveDraft")}
-              </button>
-            ) : null}
-            <button type="button" className="button" onClick={handleSubmitClick} disabled={busy}>
-              {busy ? t("submitting") : t("submit")}
-            </button>
-          </div>
-        )
+        <div className="button-row survey-actions">
+          {onSaveDraft ? (
+            <SubmitButton
+              type="button"
+              className="button button--secondary"
+              loading={Boolean(busy) && pending === "draft"}
+              loadingLabel={t("savingDraft")}
+              disabled={busy}
+              onClick={handleSaveDraft}
+            >
+              {t("saveDraft")}
+            </SubmitButton>
+          ) : null}
+          <SubmitButton
+            type="button"
+            loading={Boolean(busy) && pending === "submit"}
+            loadingLabel={t("submitting")}
+            disabled={busy}
+            onClick={handleSubmitClick}
+          >
+            {t("submit")}
+          </SubmitButton>
+        </div>
       ) : null}
+
+      <ConfirmDialog
+        open={confirming}
+        title={t("confirmTitle")}
+        message={t("confirmMessage")}
+        confirmLabel={t("confirmYes")}
+        cancelLabel={t("confirmCancel")}
+        busy={busy}
+        onConfirm={confirmSubmit}
+        onCancel={() => setConfirming(false)}
+      />
     </div>
   );
 }
@@ -226,43 +287,32 @@ function QuestionField({
   onChange: (patch: Partial<SurveyAnswerDto>) => void;
 }) {
   const t = useTranslations("Survey");
-  const fieldId = `question-${question.question_id}`;
-  const errorId = `${fieldId}-error`;
   // Choice questions are a group of inputs, not one labelable control.
   const isGroup =
     question.question_type === "simple_choice" || question.question_type === "multiple_choice";
 
   return (
-    <div className="field" data-invalid={invalid} id={fieldId}>
-      <label
-        id={`${fieldId}-label`}
-        htmlFor={isGroup ? undefined : `${fieldId}-input`}
-      >
-        {question.title}
-        {question.required ? (
-          <span className="required-marker" aria-hidden="true">
-            *
-          </span>
-        ) : null}
-        {question.required ? <span className="visually-hidden">{t("requiredLabel")}</span> : null}
-      </label>
-
-      <QuestionInput
-        question={question}
-        answer={answer}
-        disabled={disabled}
-        inputId={`${fieldId}-input`}
-        labelId={`${fieldId}-label`}
-        describedBy={invalid ? errorId : undefined}
-        onChange={onChange}
-      />
-
-      {invalid ? (
-        <p className="field-error" id={errorId}>
-          {t("questionRequiredError")}
-        </p>
-      ) : null}
-    </div>
+    <FormField
+      id={`question-${question.question_id}-input`}
+      wrapperId={`question-${question.question_id}`}
+      label={question.title}
+      required={question.required}
+      group={isGroup}
+      error={invalid ? t("questionRequiredError") : null}
+    >
+      {(control) => (
+        <QuestionInput
+          question={question}
+          answer={answer}
+          disabled={disabled}
+          inputId={control.id}
+          labelId={control.labelId}
+          describedBy={control["aria-describedby"]}
+          invalid={invalid}
+          onChange={onChange}
+        />
+      )}
+    </FormField>
   );
 }
 
@@ -273,6 +323,7 @@ function QuestionInput({
   inputId,
   labelId,
   describedBy,
+  invalid,
   onChange,
 }: {
   question: SurveyQuestionDto;
@@ -281,6 +332,7 @@ function QuestionInput({
   inputId: string;
   labelId: string;
   describedBy?: string;
+  invalid: boolean;
   onChange: (patch: Partial<SurveyAnswerDto>) => void;
 }) {
   switch (question.question_type) {
@@ -335,7 +387,7 @@ function QuestionInput({
           id={inputId}
           disabled={disabled}
           aria-describedby={describedBy}
-          aria-invalid={describedBy ? true : undefined}
+          aria-invalid={invalid ? true : undefined}
           value={answer?.text ?? ""}
           onChange={(event) => onChange({ text: event.target.value })}
         />
@@ -352,7 +404,7 @@ function QuestionInput({
           inputMode={question.question_type === "scale" ? "numeric" : "decimal"}
           disabled={disabled}
           aria-describedby={describedBy}
-          aria-invalid={describedBy ? true : undefined}
+          aria-invalid={invalid ? true : undefined}
           value={answer?.value ?? ""}
           onChange={(event) =>
             onChange({ value: event.target.value === "" ? undefined : Number(event.target.value) })
@@ -367,7 +419,7 @@ function QuestionInput({
           type="text"
           disabled={disabled}
           aria-describedby={describedBy}
-          aria-invalid={describedBy ? true : undefined}
+          aria-invalid={invalid ? true : undefined}
           value={answer?.text ?? ""}
           onChange={(event) => onChange({ text: event.target.value })}
         />

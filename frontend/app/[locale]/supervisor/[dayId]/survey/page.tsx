@@ -53,7 +53,7 @@ export function SupervisorSurveyContent({ dayId }: { dayId: number }) {
   );
 
   if (status === "loading") {
-    return <LoadingState label={t("loadingSurvey")} />;
+    return <LoadingState label={t("loadingSurvey")} variant="skeleton" count={2} />;
   }
   if (status === "error" && error) {
     return <ApiErrorView error={error} onRetry={reload} />;
@@ -80,7 +80,7 @@ export function SupervisorSurveyContent({ dayId }: { dayId: number }) {
     return <ApiErrorView error={definitionError} onRetry={retryDefinition} />;
   }
   if (!definition) {
-    return <LoadingState label={t("loadingSurvey")} />;
+    return <LoadingState label={t("loadingSurvey")} variant="skeleton" count={2} />;
   }
 
   const handleSubmit = async (answers: SurveyAnswerDto[]) => {

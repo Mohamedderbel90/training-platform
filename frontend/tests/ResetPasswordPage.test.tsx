@@ -85,4 +85,32 @@ describe("ResetPasswordPage", () => {
       await screen.findByText("This password reset link is invalid or has expired."),
     ).toBeInTheDocument();
   });
+
+  it("validates required fields on submit and focuses the first invalid one", async () => {
+    __setMockSearchParams({ token: "tok_123" });
+    vi.mocked(authApi.resetPassword).mockClear();
+    renderWithIntl(<ResetPasswordPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Reset password" }));
+    expect(authApi.resetPassword).not.toHaveBeenCalled();
+    expect(screen.getAllByText("This field is required.")).toHaveLength(2);
+    expect(screen.getByLabelText("New password")).toHaveFocus();
+    expect(screen.getByLabelText("New password")).toHaveAttribute("autocomplete", "new-password");
+  });
+
+  it("shows the mismatch error on blur of the confirm field", async () => {
+    __setMockSearchParams({ token: "tok_123" });
+    renderWithIntl(<ResetPasswordPage />);
+    await userEvent.type(screen.getByLabelText("New password"), "abc");
+    await userEvent.type(screen.getByLabelText("Confirm new password"), "abd");
+    await userEvent.tab();
+    expect(screen.getByText("Passwords do not match.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Confirm new password")).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("shows the missing-token state as an alert with a way forward", () => {
+    __setMockSearchParams({});
+    renderWithIntl(<ResetPasswordPage />);
+    expect(screen.getByRole("alert")).toHaveTextContent("Invalid or expired link");
+    expect(screen.getByRole("link", { name: "Request a new link" })).toBeInTheDocument();
+  });
 });

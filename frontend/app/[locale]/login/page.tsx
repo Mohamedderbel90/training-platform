@@ -9,11 +9,14 @@ import { DIRECTION_BY_LOCALE } from "@/i18n/direction";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { getRoleHome } from "@/lib/auth/roleHome";
 import { ApiError } from "@/lib/api/client";
-import { ApiErrorView } from "@/components/ApiErrorView";
+import { FormError } from "@/components/FormError";
+import { FormField } from "@/components/FormField";
+import { PasswordField } from "@/components/PasswordField";
+import { SubmitButton } from "@/components/SubmitButton";
 import { LoadingState } from "@/components/StateViews";
 import { NoRoleState } from "@/components/NoRoleState";
 import { AuthPageShell } from "@/components/auth/AuthPageShell";
-import { ArrowIcon, EyeIcon, EyeOffIcon, LockIcon, MailIcon } from "@/components/icons";
+import { ArrowIcon, MailIcon } from "@/components/icons";
 
 const REMEMBERED_LOGIN_KEY = "noor.rememberedLogin";
 
@@ -39,6 +42,7 @@ export default function LoginPage() {
 
 function LoginForm() {
   const t = useTranslations("Auth");
+  const tf = useTranslations("Forms");
   const locale = useLocale() as AppLocale;
   const dir = DIRECTION_BY_LOCALE[locale];
   const { status, roles, login } = useAuth();
@@ -48,7 +52,10 @@ function LoginForm() {
   const [loginValue, setLoginValue] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  // UX-only validation: which fields the user has left, and whether a
+  // submit was attempted. The server stays authoritative.
+  const [touched, setTouched] = useState({ login: false, password: false });
+  const [attempted, setAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
 
@@ -85,8 +92,22 @@ function LoginForm() {
     return <LoadingState label={t("checkingSession")} />;
   }
 
+  const fieldErrors = error?.fields ?? {};
+  const clientErrors = {
+    login: loginValue.trim() ? null : tf("required"),
+    password: password ? null : tf("required"),
+  };
+  const shown = (name: "login" | "password") =>
+    (touched[name] || attempted ? clientErrors[name] : null) ?? fieldErrors[name]?.join(" ") ?? null;
+
   const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setAttempted(true);
+    const firstInvalid = clientErrors.login ? "login-field" : clientErrors.password ? "password-field" : null;
+    if (firstInvalid) {
+      document.getElementById(firstInvalid)?.focus();
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
@@ -110,75 +131,50 @@ function LoginForm() {
     }
   };
 
-  const fieldErrors = error?.fields ?? {};
-
   return (
     <>
       <h1>{t("title")}</h1>
       <p className="auth-card__subtitle">{t("subtitle")}</p>
 
-      {error ? <ApiErrorView error={error} variant="form" /> : null}
+      <FormError error={error} />
 
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="field field--icon" data-invalid={Boolean(fieldErrors.login)}>
-          <div className="field__control">
-            <MailIcon className="field__icon" />
-            <div className="field__control-body" dir={dir}>
-              <label htmlFor="login-field">{t("loginLabel")}</label>
-              <input
-                id="login-field"
-                className="field__input"
-                type="text"
-                autoComplete="username"
-                placeholder={t("loginPlaceholder")}
-                value={loginValue}
-                onChange={(event) => setLoginValue(event.target.value)}
-                aria-describedby={fieldErrors.login ? "login-field-error" : undefined}
-                required
-              />
-            </div>
-          </div>
-          {fieldErrors.login ? (
-            <p className="field-error" id="login-field-error">
-              {fieldErrors.login.join(" ")}
-            </p>
-          ) : null}
-        </div>
+      <form onSubmit={handleSubmit} noValidate aria-busy={submitting || undefined}>
+        <FormField
+          id="login-field"
+          label={t("loginLabel")}
+          required
+          error={shown("login")}
+          dir={dir}
+          icon={<MailIcon className="field__icon" />}
+        >
+          {(control) => (
+            <input
+              {...control}
+              className="field__input"
+              type="text"
+              autoComplete="username"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="next"
+              placeholder={t("loginPlaceholder")}
+              value={loginValue}
+              onChange={(event) => setLoginValue(event.target.value)}
+              onBlur={() => setTouched((prev) => ({ ...prev, login: true }))}
+            />
+          )}
+        </FormField>
 
-        <div className="field field--icon" data-invalid={Boolean(fieldErrors.password)}>
-          <div className="field__control">
-            <LockIcon className="field__icon" />
-            <div className="field__control-body" dir={dir}>
-              <label htmlFor="password-field">{t("passwordLabel")}</label>
-              <input
-                id="password-field"
-                className="field__input"
-                type={showPassword ? "text" : "password"}
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                aria-describedby={fieldErrors.password ? "password-field-error" : undefined}
-                required
-              />
-            </div>
-            <button
-              type="button"
-              className="field__toggle"
-              onClick={() => setShowPassword((show) => !show)}
-              aria-pressed={showPassword}
-            >
-              {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-              <span className="visually-hidden">
-                {showPassword ? t("hidePassword") : t("showPassword")}
-              </span>
-            </button>
-          </div>
-          {fieldErrors.password ? (
-            <p className="field-error" id="password-field-error">
-              {fieldErrors.password.join(" ")}
-            </p>
-          ) : null}
-        </div>
+        <PasswordField
+          id="password-field"
+          label={t("passwordLabel")}
+          autoComplete="current-password"
+          value={password}
+          onChange={setPassword}
+          onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
+          error={shown("password")}
+          dir={dir}
+        />
 
         <div className="auth-form__row">
           <label className="auth-form__remember">
@@ -195,10 +191,14 @@ function LoginForm() {
         </div>
 
         <div className="button-row">
-          <button type="submit" className="button auth-submit" disabled={submitting}>
-            {submitting ? t("signingIn") : t("signIn")}
-            <ArrowIcon className="auth-submit__icon" />
-          </button>
+          <SubmitButton
+            className="button auth-submit"
+            loading={submitting}
+            loadingLabel={t("signingIn")}
+            icon={<ArrowIcon className="auth-submit__icon" />}
+          >
+            {t("signIn")}
+          </SubmitButton>
         </div>
       </form>
     </>

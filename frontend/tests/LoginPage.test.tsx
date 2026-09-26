@@ -108,10 +108,73 @@ describe("LoginPage", () => {
     mockAuth({ login });
     renderWithIntl(<LoginPage />);
 
+    await userEvent.type(screen.getByLabelText("Username"), "x");
     await userEvent.type(screen.getByLabelText("Password"), "somepassword");
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
     expect(await screen.findByText("This field is required.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Username")).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("validates required fields on submit without calling the server, and focuses the first invalid field", async () => {
+    const login = vi.fn();
+    mockAuth({ login });
+    renderWithIntl(<LoginPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(login).not.toHaveBeenCalled();
+    expect(screen.getAllByText("This field is required.")).toHaveLength(2);
+    expect(screen.getByLabelText("Username")).toHaveFocus();
+    expect(screen.getByLabelText("Username")).toHaveAccessibleDescription("This field is required.");
+  });
+
+  it("shows a field error on blur, and clears it once the field is filled", async () => {
+    mockAuth({});
+    renderWithIntl(<LoginPage />);
+    await userEvent.click(screen.getByLabelText("Password"));
+    await userEvent.tab();
+    await userEvent.tab();
+    expect(screen.getByText("This field is required.")).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText("Password"), "a");
+    expect(screen.queryByText("This field is required.")).not.toBeInTheDocument();
+  });
+
+  it("shows a busy submitting state while signing in", async () => {
+    let resolve!: (v: unknown) => void;
+    const login = vi.fn().mockReturnValue(new Promise((r) => (resolve = r)));
+    mockAuth({ login });
+    renderWithIntl(<LoginPage />);
+    await userEvent.type(screen.getByLabelText("Username"), "u");
+    await userEvent.type(screen.getByLabelText("Password"), "p");
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+    const busy = await screen.findByRole("button", { name: "Signing in..." });
+    expect(busy).toBeDisabled();
+    expect(busy).toHaveAttribute("aria-busy", "true");
+    resolve({ roles: [] });
+  });
+
+  it("shows the request id with a server error", async () => {
+    const login = vi
+      .fn()
+      .mockRejectedValue(new ApiError({ code: "UNAUTHENTICATED", message: "Invalid login or password.", fields: null }, 401, "req_77"));
+    mockAuth({ login });
+    renderWithIntl(<LoginPage />);
+    await userEvent.type(screen.getByLabelText("Username"), "u");
+    await userEvent.type(screen.getByLabelText("Password"), "p");
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    expect(await screen.findByText("req_77")).toBeInTheDocument();
+  });
+
+  it("has credential-friendly input attributes and a show/hide password toggle", async () => {
+    mockAuth({});
+    renderWithIntl(<LoginPage />);
+    expect(screen.getByLabelText("Username")).toHaveAttribute("autocomplete", "username");
+    const password = screen.getByLabelText("Password");
+    expect(password).toHaveAttribute("autocomplete", "current-password");
+    await userEvent.click(screen.getByRole("button", { name: "Show password" }));
+    expect(password).toHaveAttribute("type", "text");
   });
 
   it("redirects immediately without showing the form when already authenticated", () => {

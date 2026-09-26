@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useCallback, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -13,6 +13,9 @@ import { SearchInput } from "@/components/SearchInput";
 import { SkeletonRows } from "@/components/Skeleton";
 import { SortControl } from "@/components/SortControl";
 import { ApiErrorView } from "@/components/ApiErrorView";
+import { FormError } from "@/components/FormError";
+import { LiveStatus } from "@/components/LiveStatus";
+import { SubmitButton } from "@/components/SubmitButton";
 import { PageHeader } from "@/components/PageHeader";
 import { normalizeSearchText, shouldShowToolbar } from "@/lib/dashboard/listControls";
 import type { AttendanceStatus } from "@/lib/api/types";
@@ -42,6 +45,19 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
   // payload is always built from every row in `currentRows`.
   const [query, setQuery] = useState("");
   const [viewFilter, setViewFilter] = useState<ViewFilter | "">("");
+
+  // Unsaved edits: `rows` is null until the user changes something and is
+  // reset after a successful save. UX only -- the server is untouched.
+  const dirty = rows !== null;
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
 
   if (status === "loading") {
     return <SkeletonRows rows={6} label={t("loading")} />;
@@ -140,12 +156,8 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
   return (
     <div>
       <PageHeader title={<h1>{t("title")}</h1>} />
-      {saveError ? <ApiErrorView error={saveError} onRetry={handleSave} /> : null}
-      {savedAt ? (
-        <p className="badge badge--success" role="status">
-          {t("saved")}
-        </p>
-      ) : null}
+      <FormError error={saveError} onRetry={handleSave} />
+      <LiveStatus message={t("saved")} stamp={savedAt} />
       <ul className="attendance-summary" aria-label={t("summaryLabel")}>
         {VIEW_FILTERS.map((f) => (
           <li key={f}>{t("summaryCount", { label: viewFilterLabel(f), count: counts[f] })}</li>
@@ -247,10 +259,16 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
           </table>
         </div>
       )}
-      <div className="button-row">
-        <button type="button" className="button" onClick={handleSave} disabled={saving}>
-          {saving ? t("saving") : t("save")}
-        </button>
+      <div className="button-row form-actions">
+        <SubmitButton type="button" loading={saving} loadingLabel={t("saving")} onClick={handleSave}>
+          {t("save")}
+        </SubmitButton>
+        {dirty && !saving ? (
+          <p className="unsaved-note">
+            <span className="unsaved-note__dot" aria-hidden="true" />
+            {t("unsavedChanges")}
+          </p>
+        ) : null}
       </div>
     </div>
   );

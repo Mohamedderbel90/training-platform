@@ -268,7 +268,9 @@
     "questionOf": "السؤال {current} من {total}",
     "next": "التالي",
     "previous": "السابق",
-    "progressLabel": "تقدّم الاستبانة"
+    "progressLabel": "تقدّم الاستبانة",
+    "answeredProgress": "تمت الإجابة على {done} من {total} من الأسئلة المطلوبة",
+    "requiredLegend": "* تشير إلى سؤال مطلوب"
   },
   "Attendance": {
     "title": "الحضور",
@@ -295,7 +297,8 @@
     "summaryLabel": "ملخص الحضور",
     "summaryCount": "{label}: {count}",
     "shownOf": "عرض {shown} من {total} متدربة",
-    "statusFor": "حالة {name}"
+    "statusFor": "حالة {name}",
+    "unsavedChanges": "تغييرات غير محفوظة"
   },
   "Profile": {
     "title": "ملفي الشخصي",
@@ -304,7 +307,8 @@
     "rolesLabel": "الأدوار",
     "languageLabel": "اللغة",
     "switchLanguage": "التبديل إلى {locale}",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "timezoneLabel": "المنطقة الزمنية"
   },
   "Pages": {
     "surveysTitle": "استبياناتي",
@@ -388,5 +392,9 @@
     },
     "chipSearch": "بحث: «{value}»",
     "chipFilter": "{name}: {value}"
+  },
+  "Forms": {
+    "required": "هذا الحقل مطلوب.",
+    "requiredLabel": "(مطلوب)"
   }
 }

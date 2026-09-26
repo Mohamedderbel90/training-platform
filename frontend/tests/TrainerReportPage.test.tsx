@@ -81,6 +81,8 @@ describe("Trainer report page", () => {
       expect(trainerApi.saveDraft).toHaveBeenCalledWith(1, [{ question_id: 3, text: "In progress note" }], "en"),
     );
     expect(await screen.findByText("Draft saved")).toBeInTheDocument();
+    // Announced politely through a status region.
+    expect(screen.getByRole("status")).toHaveTextContent("Draft saved");
     // Still editable -- a draft save never finalizes the response.
     expect(screen.getByRole("button", { name: "Submit" })).toBeInTheDocument();
   });

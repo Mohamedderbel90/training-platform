@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { screen, fireEvent, within } from "@testing-library/react";
+import { act, screen, fireEvent, within } from "@testing-library/react";
+import { useState } from "react";
 import { renderWithIntl } from "./testUtils";
 import { SurveyForm } from "@/components/SurveyForm";
 
@@ -136,5 +137,98 @@ describe("SurveyForm", () => {
     expect(input).toHaveAttribute("min", "1");
     expect(input).toHaveAttribute("max", "5");
     expect(input).toHaveAttribute("step", "1");
+  });
+
+  it("shows an answered-of-required progress indicator that follows local answers", () => {
+    renderWithIntl(<SurveyForm definition={definition} readOnly={false} onSubmit={vi.fn()} />);
+    const bar = screen.getByRole("progressbar", { name: "Survey progress" });
+    expect(bar).toHaveAttribute("aria-valuenow", "0");
+    expect(bar).toHaveAttribute("aria-valuemax", "1");
+    expect(screen.getAllByText("Answered 0 of 1 required").length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByLabelText("Excellent"));
+    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "1");
+    expect(screen.getAllByText("Answered 1 of 1 required").length).toBeGreaterThan(0);
+  });
+
+  it("does not show progress in the read-only view", () => {
+    renderWithIntl(<SurveyForm definition={definition} readOnly onSubmit={vi.fn()} />);
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+
+  it("focuses the error summary on every blocked submit and links to the question control", () => {
+    renderWithIntl(<SurveyForm definition={definition} readOnly={false} onSubmit={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    const summary = screen.getByRole("alert");
+    expect(summary).toHaveFocus();
+    // Per-question inline error with the group wired via aria-describedby.
+    const group = screen.getByRole("radiogroup", { name: /Rate the trainer/ });
+    expect(group).toHaveAccessibleDescription("This question is required.");
+
+    (document.activeElement as HTMLElement).blur();
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    expect(summary).toHaveFocus();
+
+    fireEvent.click(within(summary).getByRole("link", { name: /Rate the trainer/ }));
+    expect(screen.getByLabelText("Poor")).toHaveFocus();
+  });
+
+  it("marks required questions with visible and non-visual text, and groups by section heading", () => {
+    const sectioned: SurveyDefinitionDto = {
+      ...definition,
+      sections: [{ ...definition.sections[0], id: 7, title: "Trainer feedback" }],
+    };
+    renderWithIntl(<SurveyForm definition={sectioned} readOnly={false} onSubmit={vi.fn()} />);
+    expect(screen.getByRole("heading", { name: "Trainer feedback" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Trainer feedback" })).toBeInTheDocument();
+    expect(screen.getAllByText("(required)")).toHaveLength(1);
+  });
+
+  it("presents the final confirmation as an accessible dialog and returns focus on cancel", () => {
+    const onSubmit = vi.fn();
+    renderWithIntl(<SurveyForm definition={definition} readOnly={false} onSubmit={onSubmit} />);
+    fireEvent.click(screen.getByLabelText("Excellent"));
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    const dialog = screen.getByRole("dialog", { name: "Submit your response?" });
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("disables actions and shows only the submit button as loading while submitting", () => {
+    renderWithIntl(
+      <SurveyForm definition={definition} readOnly={false} busy onSubmit={vi.fn()} onSaveDraft={vi.fn()} />,
+    );
+    expect(screen.getByRole("button", { name: "Save draft" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Submit" })).toBeDisabled();
+    expect(screen.getByLabelText("Poor")).toBeDisabled();
+  });
+
+  it("shows the submit button as busy after confirming", async () => {
+    let resolve!: () => void;
+    const onSubmit = vi.fn().mockReturnValue(new Promise<void>((r) => (resolve = r)));
+    function Harness() {
+      const [busy, setBusy] = useState(false);
+      return (
+        <SurveyForm
+          definition={definition}
+          readOnly={false}
+          busy={busy}
+          onSubmit={async (a) => {
+            setBusy(true);
+            await onSubmit(a);
+            setBusy(false);
+          }}
+        />
+      );
+    }
+    renderWithIntl(<Harness />);
+    fireEvent.click(screen.getByLabelText("Excellent"));
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Yes, submit" }));
+    const busy = await screen.findByRole("button", { name: "Submitting..." });
+    expect(busy).toBeDisabled();
+    expect(busy).toHaveAttribute("aria-busy", "true");
+    await act(async () => resolve());
   });
 });

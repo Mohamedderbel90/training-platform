@@ -912,7 +912,7 @@ html[dir="rtl"] .program-info-box__label {
   font-size: 0.94rem;
   font-weight: 600;
   cursor: pointer;
-  min-height: 2.6rem;
+  min-height: 2.75rem;
   background: var(--color-primary);
   color: var(--color-primary-contrast);
   transition: background var(--transition-base), border-color var(--transition-base),
@@ -1037,10 +1037,31 @@ html[dir="rtl"] .program-info-box__label {
 }
 
 .field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
   color: var(--color-danger);
   font-size: 0.85rem;
   margin-top: var(--space-1);
   font-weight: 600;
+  overflow: hidden;
+  animation: field-error-in var(--motion-fast) var(--ease-standard) both;
+}
+
+.field-error__icon {
+  flex-shrink: 0;
+  margin-block-start: 0.1rem;
+}
+
+@keyframes field-error-in {
+  from {
+    opacity: 0;
+    max-block-size: 0;
+  }
+  to {
+    opacity: 1;
+    max-block-size: 6rem;
+  }
 }
 
 .field[data-invalid="true"] input,
@@ -3665,4 +3686,292 @@ a.button {
 .task-list__action svg,
 .task-list__when svg {
   flex-shrink: 0;
+}
+
+
+/* ==================== forms & feedback (slice 4) ==================== */
+
+/* Consistent control states: hover, focus ring, invalid, disabled,
+ * read-only. Colour is never the only signal (invalid also shows the
+ * icon + text from FieldError and aria-invalid). */
+.field input[type="text"]:hover:not(:disabled):not([readonly]),
+.field input[type="password"]:hover:not(:disabled):not([readonly]),
+.field input[type="number"]:hover:not(:disabled):not([readonly]),
+.field textarea:hover:not(:disabled):not([readonly]),
+.field select:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.field input:focus-visible,
+.field textarea:focus-visible,
+.field select:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: 0 0 0 3px var(--color-primary-soft-strong);
+}
+
+.field input[aria-invalid="true"],
+.field textarea[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.field input[aria-invalid="true"]:focus-visible,
+.field textarea[aria-invalid="true"]:focus-visible {
+  box-shadow: 0 0 0 3px var(--color-danger-bg);
+}
+
+.field input:disabled,
+.field textarea:disabled,
+.field select:disabled {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.field input[readonly],
+.field textarea[readonly] {
+  background: var(--color-surface-muted);
+}
+
+.option-item:has(input:disabled) {
+  cursor: not-allowed;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+.option-item:has(input:focus-visible) {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.field--icon .field__control:focus-within {
+  box-shadow: 0 0 0 3px var(--color-primary-soft-strong);
+}
+
+.field--icon[data-invalid="true"] .field__control:focus-within {
+  box-shadow: 0 0 0 3px var(--color-danger-bg);
+}
+
+.field--icon .field-error,
+.field--icon .field-hint {
+  padding-inline: 0.25rem;
+}
+
+/* Password toggle: 44px touch target on the inline-end, visible focus. */
+.field__toggle {
+  justify-content: center;
+  min-inline-size: 2.75rem;
+  min-block-size: 2.75rem;
+  margin-inline-end: -0.5rem;
+  transition: background var(--transition-base), color var(--transition-base);
+}
+
+.field__toggle:hover {
+  background: var(--color-primary-soft);
+}
+
+.field__toggle:focus-visible,
+.auth-form__forgot:focus-visible,
+.auth-form__remember:has(input:focus-visible) {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.auth-form__remember,
+.auth-form__forgot {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+}
+
+/* In-button spinner (submit / save). */
+.button__spinner {
+  display: inline-block;
+  inline-size: 1em;
+  block-size: 1em;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  animation: spin 0.7s linear infinite;
+}
+
+.button[aria-busy="true"] {
+  opacity: 0.85;
+  cursor: progress;
+}
+
+/* Focus target for a failed submission's error; no visible ring on the
+ * wrapper itself (the alert inside is the visible thing). */
+.form-error {
+  outline: none;
+}
+
+/* Inline success message (role=status region is always mounted, so it
+ * reserves no space while empty). */
+.live-status:empty {
+  display: none;
+}
+
+.live-status__message {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  animation: field-error-in var(--motion-base) var(--ease-standard) both;
+}
+
+.unsaved-note {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-warning-text);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.unsaved-note__dot {
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ---- survey form ---- */
+.survey-progress {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.survey-progress__text {
+  margin: 0 0 var(--space-2);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.survey-progress .field-hint {
+  margin-block: var(--space-2) 0;
+}
+
+.survey-section {
+  margin-bottom: var(--space-5);
+}
+
+.survey-section .section-title {
+  margin-top: var(--space-5);
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.readonly-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.survey-form--readonly .option-item:has(input:checked) {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+@media (max-width: 720px) {
+  /* Actions stay reachable while scrolling a long form; they sit in
+   * flow at the end, so they never cover content, and respect the
+   * device safe area. */
+  .survey-actions {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 5;
+    margin-inline: calc(var(--space-3) * -1);
+    padding: var(--space-3) var(--space-3) max(var(--space-3), env(safe-area-inset-bottom));
+    background: var(--color-bg);
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  .survey-actions .button {
+    flex: 1 1 8rem;
+  }
+}
+
+/* No zoom-on-focus on iOS: inputs are >= 16px on small screens. */
+@media (max-width: 720px) {
+  .field input,
+  .field textarea,
+  .field select,
+  .late-minutes-input,
+  .search-input__field,
+  .control-select__field {
+    font-size: 1rem;
+  }
+
+  .field input[type="text"],
+  .field input[type="number"],
+  .field textarea,
+  .field select {
+    min-block-size: 2.75rem;
+  }
+}
+
+/* ---- confirm dialog ---- */
+.confirm-dialog__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgba(21, 30, 27, 0.45);
+  animation: confirm-fade var(--motion-base) var(--ease-standard) both;
+}
+
+.confirm-dialog {
+  inline-size: min(100%, 26rem);
+  max-block-size: 100%;
+  overflow: auto;
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  animation: confirm-pop var(--motion-base) var(--ease-standard) both;
+}
+
+.confirm-dialog__title {
+  margin: 0 0 var(--space-2);
+  font-size: 1.1rem;
+}
+
+.confirm-dialog__message {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+@keyframes confirm-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes confirm-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field-error,
+  .live-status__message,
+  .confirm-dialog,
+  .confirm-dialog__backdrop {
+    animation: none;
+  }
+  .button__spinner {
+    animation: none;
+  }
 }

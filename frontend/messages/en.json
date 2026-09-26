@@ -268,7 +268,9 @@
     "questionOf": "Question {current} of {total}",
     "next": "Next",
     "previous": "Previous",
-    "progressLabel": "Survey progress"
+    "progressLabel": "Survey progress",
+    "answeredProgress": "Answered {done} of {total} required",
+    "requiredLegend": "* marks a required question"
   },
   "Attendance": {
     "title": "Attendance",
@@ -295,7 +297,8 @@
     "summaryLabel": "Attendance summary",
     "summaryCount": "{label}: {count}",
     "shownOf": "Showing {shown} of {total} trainees",
-    "statusFor": "Status for {name}"
+    "statusFor": "Status for {name}",
+    "unsavedChanges": "Unsaved changes"
   },
   "Profile": {
     "title": "My Profile",
@@ -304,7 +307,8 @@
     "rolesLabel": "Roles",
     "languageLabel": "Language",
     "switchLanguage": "Switch to {locale}",
-    "logout": "Log out"
+    "logout": "Log out",
+    "timezoneLabel": "Time zone"
   },
   "Pages": {
     "surveysTitle": "My Surveys",
@@ -388,5 +392,9 @@
     },
     "chipSearch": "Search: “{value}”",
     "chipFilter": "{name}: {value}"
+  },
+  "Forms": {
+    "required": "This field is required.",
+    "requiredLabel": "(required)"
   }
 }

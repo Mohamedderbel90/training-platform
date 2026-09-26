@@ -12,6 +12,7 @@ import { ApiErrorView } from "@/components/ApiErrorView";
 import { SurveyForm } from "@/components/SurveyForm";
 import { PageHeader } from "@/components/PageHeader";
 import { SubmittedState } from "@/components/SubmittedState";
+import { LiveStatus } from "@/components/LiveStatus";
 import type { SurveyAnswerDto } from "@/lib/api/types";
 
 export function TrainerReportContent({ dayId }: { dayId: number }) {
@@ -27,7 +28,7 @@ export function TrainerReportContent({ dayId }: { dayId: number }) {
   const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
 
   if (status === "loading") {
-    return <LoadingState label={t("loadingSurvey")} />;
+    return <LoadingState label={t("loadingSurvey")} variant="skeleton" count={2} />;
   }
   if (status === "error" && error) {
     return <ApiErrorView error={error} onRetry={reload} />;
@@ -75,11 +76,7 @@ export function TrainerReportContent({ dayId }: { dayId: number }) {
     <div>
       <PageHeader title={<h1>{data.definition.title}</h1>} />
       {submitted ? <SubmittedState submittedAt={data.status.response?.submitted_at} /> : null}
-      {draftSavedAt && !submitted ? (
-        <p className="badge badge--success" role="status">
-          {t("draftSaved")}
-        </p>
-      ) : null}
+      <LiveStatus message={t("draftSaved")} stamp={submitted ? null : draftSavedAt} />
       <SurveyForm
         definition={data.definition}
         initialAnswers={data.answers}

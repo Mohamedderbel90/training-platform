@@ -74,6 +74,52 @@ describe("Supervisor attendance page", () => {
       ),
     );
     expect(await screen.findByText("Attendance saved")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Attendance saved");
+    // Saved: no unsaved-changes indicator remains.
+    expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
+  });
+
+  it("shows an unsaved-changes indicator after an edit and a busy save button while saving", async () => {
+    mockAuthenticated();
+    vi.mocked(supervisorApi.getAttendance).mockResolvedValue({
+      items: [{ trainee_id: 10, name: "Dev Trainee", status: "present", late_minutes: null }],
+    });
+    let resolve!: (v: unknown) => void;
+    vi.mocked(supervisorApi.putAttendance).mockReturnValue(new Promise((r) => (resolve = r)) as never);
+    renderWithIntl(<AttendanceContent dayId={1} />);
+    await waitFor(() => expect(screen.getByText("Dev Trainee")).toBeInTheDocument());
+    expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText("Absent"));
+    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Save attendance" }));
+    const busy = await screen.findByRole("button", { name: "Saving..." });
+    expect(busy).toBeDisabled();
+    expect(busy).toHaveAttribute("aria-busy", "true");
+    expect(supervisorApi.putAttendance).toHaveBeenLastCalledWith(
+      1,
+      [{ trainee_id: 10, status: "absent" }],
+      "en",
+    );
+    resolve({ items: [{ trainee_id: 10, name: "Dev Trainee", status: "absent", late_minutes: null }] });
+    expect(await screen.findByText("Attendance saved")).toBeInTheDocument();
+  });
+
+  it("warns before unload only while there are unsaved edits", async () => {
+    mockAuthenticated();
+    vi.mocked(supervisorApi.getAttendance).mockResolvedValue({
+      items: [{ trainee_id: 10, name: "Dev Trainee", status: "present", late_minutes: null }],
+    });
+    renderWithIntl(<AttendanceContent dayId={1} />);
+    await waitFor(() => expect(screen.getByText("Dev Trainee")).toBeInTheDocument());
+    const clean = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(clean);
+    expect(clean.defaultPrevented).toBe(false);
+    fireEvent.click(screen.getByLabelText("Absent"));
+    const dirty = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(dirty);
+    expect(dirty.defaultPrevented).toBe(true);
   });
 
   it("surfaces a server validation error instead of silently failing the save", async () => {

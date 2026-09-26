@@ -31,7 +31,7 @@ function ProfileContent() {
   const otherLocale = routing.locales.find((candidate) => candidate !== locale) ?? locale;
 
   if (status === "loading" || !profile) {
-    return <LoadingState label={tc("loadingSession")} />;
+    return <LoadingState label={tc("loadingSession")} variant="skeleton" count={1} />;
   }
 
   const handleLogout = async () => {
@@ -66,6 +66,15 @@ function ProfileContent() {
             </div>
           </div>
         </div>
+
+        {profile.tz ? (
+          <div className="profile-card__row">
+            <div>
+              <p className="card__title">{t("timezoneLabel")}</p>
+              <p className="card__meta">{profile.tz}</p>
+            </div>
+          </div>
+        ) : null}
 
         <div className="profile-card__row">
           <div>
