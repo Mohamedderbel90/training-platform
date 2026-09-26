@@ -7,6 +7,7 @@
  * 401"), not Next.js's own router implementation. */
 import React from "react";
 import { vi } from "vitest";
+import { __setMockSearchParams } from "./nextNavigation";
 
 export const push = vi.fn();
 export const replace = vi.fn();
@@ -15,6 +16,14 @@ let currentPathname = "/trainee";
 
 export function __setMockPathname(path: string) {
   currentPathname = path;
+}
+
+/** Make `replace("/path?a=b")` behave like a real navigation for the
+ * URL-backed list state: it updates the mocked `useSearchParams`. */
+export function __installUrlSync() {
+  replace.mockImplementation((url: string) => {
+    __setMockSearchParams(new URLSearchParams(url.split("?")[1] ?? ""));
+  });
 }
 
 export function useRouter() {

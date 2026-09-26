@@ -38,12 +38,15 @@ export function FilterBar({
   activeFilters = [],
   onClear,
   resultCount,
+  resultText,
 }: {
   search?: ReactNode;
   children?: ReactNode;
   activeFilters?: ActiveFilter[];
   onClear?: () => void;
   resultCount?: number;
+  /** Ready-made result text (e.g. "12 of 32 training days"); wins over `resultCount`. */
+  resultText?: string;
 }) {
   const t = useTranslations("Ui");
   const panelId = useId();
@@ -92,9 +95,9 @@ export function FilterBar({
           ) : null}
         </div>
       ) : null}
-      {resultCount !== undefined ? (
-        <p className="filter-bar__results" aria-live="polite">
-          {t("resultCount", { count: resultCount })}
+      {resultText !== undefined || resultCount !== undefined ? (
+        <p className="filter-bar__results" aria-live="polite" aria-atomic="true">
+          {resultText ?? t("resultCount", { count: resultCount ?? 0 })}
         </p>
       ) : null}
     </div>

@@ -252,7 +252,16 @@
     },
     "saving": "جارٍ الحفظ...",
     "save": "حفظ الحضور",
-    "saved": "تم حفظ الحضور"
+    "saved": "تم حفظ الحضور",
+    "searchLabel": "البحث عن المتدربات",
+    "searchPlaceholder": "ابحثي باسم المتدربة",
+    "filterLabel": "الحالة",
+    "filterAll": "الكل",
+    "notRecorded": "غير مسجَّل",
+    "summaryLabel": "ملخص الحضور",
+    "summaryCount": "{label}: {count}",
+    "shownOf": "عرض {shown} من {total} متدربة",
+    "statusFor": "حالة {name}"
   },
   "Profile": {
     "title": "ملفي الشخصي",
@@ -318,6 +327,30 @@
     "noResults": "لا توجد نتائج",
     "noResultsHint": "تحققي من الإملاء أو جرّبي بحثاً مختلفاً.",
     "noFilterMatch": "لا توجد عناصر تطابق عوامل التصفية المحددة",
-    "noFilterMatchHint": "جرّبي إزالة أحد عوامل التصفية لعرض المزيد."
+    "noFilterMatchHint": "جرّبي إزالة أحد عوامل التصفية لعرض المزيد.",
+    "resultsOf": "{shown} من {total} يوماً تدريبياً",
+    "daysCount": "{count, plural, =1 {يوم تدريبي واحد} =2 {يومان تدريبيان} few {# أيام تدريبية} other {# يوماً تدريبياً}}"
+  },
+  "Lists": {
+    "searchLabel": "البحث في الأيام التدريبية",
+    "searchPlaceholder": "ابحثي بالدورة أو البرنامج أو التاريخ",
+    "all": "الكل",
+    "course": "الدورة",
+    "program": "البرنامج",
+    "from": "من",
+    "to": "إلى",
+    "attendance": "الحضور",
+    "attendanceState": {
+      "complete": "مكتمل",
+      "pending": "يحتاج إلى إجراء"
+    },
+    "sort": {
+      "dateDesc": "التاريخ: الأحدث أولاً",
+      "dateAsc": "التاريخ: الأقدم أولاً",
+      "status": "حالة اليوم",
+      "course": "اسم الدورة (أ-ي)"
+    },
+    "chipSearch": "بحث: «{value}»",
+    "chipFilter": "{name}: {value}"
   }
 }

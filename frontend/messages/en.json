@@ -252,7 +252,16 @@
     },
     "saving": "Saving...",
     "save": "Save attendance",
-    "saved": "Attendance saved"
+    "saved": "Attendance saved",
+    "searchLabel": "Search trainees",
+    "searchPlaceholder": "Search by trainee name",
+    "filterLabel": "Status",
+    "filterAll": "All",
+    "notRecorded": "Not recorded",
+    "summaryLabel": "Attendance summary",
+    "summaryCount": "{label}: {count}",
+    "shownOf": "Showing {shown} of {total} trainees",
+    "statusFor": "Status for {name}"
   },
   "Profile": {
     "title": "My Profile",
@@ -318,6 +327,30 @@
     "noResults": "No results found",
     "noResultsHint": "Check the spelling or try a different search.",
     "noFilterMatch": "No items match the selected filters",
-    "noFilterMatchHint": "Try removing a filter to see more items."
+    "noFilterMatchHint": "Try removing a filter to see more items.",
+    "resultsOf": "{shown} of {total} training days",
+    "daysCount": "{count, plural, one {# training day} other {# training days}}"
+  },
+  "Lists": {
+    "searchLabel": "Search training days",
+    "searchPlaceholder": "Search course, program or date",
+    "all": "All",
+    "course": "Course",
+    "program": "Program",
+    "from": "From",
+    "to": "To",
+    "attendance": "Attendance",
+    "attendanceState": {
+      "complete": "Complete",
+      "pending": "Needs action"
+    },
+    "sort": {
+      "dateDesc": "Date: newest first",
+      "dateAsc": "Date: oldest first",
+      "status": "Day status",
+      "course": "Course name (A-Z)"
+    },
+    "chipSearch": "Search: “{value}”",
+    "chipFilter": "{name}: {value}"
   }
 }

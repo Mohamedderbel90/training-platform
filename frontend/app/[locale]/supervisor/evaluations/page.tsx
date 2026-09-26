@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
@@ -10,6 +10,8 @@ import { ApiErrorView } from "@/components/ApiErrorView";
 import { DayCard, SurveyStatusGroup } from "@/components/DayCard";
 import { DaySection } from "@/components/DaySection";
 import { PageHeader } from "@/components/PageHeader";
+import { DayListNoResults, DayListToolbar } from "@/components/DayListToolbar";
+import { useListControls } from "@/lib/dashboard/useListControls";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ROLE_HOME } from "@/lib/auth/roleHome";
 import type { DashboardEntryDto } from "@/lib/api/types";
@@ -26,12 +28,15 @@ function SupervisorEvaluationsContent() {
   const nav = useTranslations("Nav");
   const { data, status, error, reload } = useDashboardSummary("supervisor");
 
-  const groups = useMemo(() => {
-    const days = data?.days ?? [];
-    return { pending: days.filter((d) => !isComplete(d)), done: days.filter(isComplete) };
-  }, [data]);
+  const allDays = useMemo(() => data?.days ?? [], [data]);
+  const controls = useListControls(allDays, { kind: "survey" });
 
-  if (status === "loading") return <LoadingState label={t("loading")} />;
+  const groups = useMemo(() => {
+    const days = controls.results;
+    return { pending: days.filter((d) => !isComplete(d)), done: days.filter(isComplete) };
+  }, [controls.results]);
+
+  if (status === "loading") return <LoadingState label={t("loading")} variant="skeleton" count={4} />;
   if (status === "error" && error) return <ApiErrorView error={error} onRetry={reload} />;
 
   const renderCard = (entry: DashboardEntryDto) => (
@@ -61,15 +66,16 @@ function SupervisorEvaluationsContent() {
     </DayCard>
   );
 
-  const days = data?.days ?? [];
   return (
     <div>
       <Breadcrumbs homeHref={ROLE_HOME.supervisor} items={[{ label: nav("attendanceEvaluation") }]} />
       <PageHeader title={<h1>{p("evaluationsTitle")}</h1>} subtitle={p("evaluationsSubtitle")} />
-      {days.length === 0 ? (
+      {allDays.length === 0 ? (
         <EmptyState title={t("emptyTitle")} message={t("emptySupervisorMessage")} />
       ) : (
         <>
+          {controls.showToolbar ? <DayListToolbar controls={controls} showAttendance /> : null}
+          {controls.results.length === 0 ? <DayListNoResults controls={controls} /> : null}
           <DaySection title={p("evaluationsPending")} count={groups.pending.length}>
             {groups.pending.map(renderCard)}
           </DaySection>
@@ -85,7 +91,9 @@ function SupervisorEvaluationsContent() {
 export default function SupervisorEvaluationsPage() {
   return (
     <ProtectedRoute role="supervisor">
-      <SupervisorEvaluationsContent />
+      <Suspense fallback={null}>
+        <SupervisorEvaluationsContent />
+      </Suspense>
     </ProtectedRoute>
   );
 }

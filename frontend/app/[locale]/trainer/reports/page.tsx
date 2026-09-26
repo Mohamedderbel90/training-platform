@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
@@ -9,6 +9,8 @@ import { ApiErrorView } from "@/components/ApiErrorView";
 import { DayCard, SurveyStatusGroup } from "@/components/DayCard";
 import { DaySection } from "@/components/DaySection";
 import { PageHeader } from "@/components/PageHeader";
+import { DayListNoResults, DayListToolbar } from "@/components/DayListToolbar";
+import { useListControls } from "@/lib/dashboard/useListControls";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ROLE_HOME } from "@/lib/auth/roleHome";
 import type { DashboardEntryDto } from "@/lib/api/types";
@@ -19,17 +21,20 @@ function TrainerReportsContent() {
   const nav = useTranslations("Nav");
   const { data, status, error, reload } = useDashboardSummary("trainer");
 
+  const allDays = useMemo(() => data?.days ?? [], [data]);
+  const controls = useListControls(allDays, { kind: "report" });
+
   const groups = useMemo(() => {
-    const days = data?.days ?? [];
+    const days = controls.results;
     const submitted = days.filter((d) => d.trainer_report?.response?.state === "submitted");
     const pending = days.filter(
       (d) => !submitted.includes(d) && d.trainer_report?.configured && d.trainer_report.can_submit,
     );
     const unavailable = days.filter((d) => !submitted.includes(d) && !pending.includes(d));
     return { submitted, pending, unavailable };
-  }, [data]);
+  }, [controls.results]);
 
-  if (status === "loading") return <LoadingState label={t("loading")} />;
+  if (status === "loading") return <LoadingState label={t("loading")} variant="skeleton" count={4} />;
   if (status === "error" && error) return <ApiErrorView error={error} onRetry={reload} />;
 
   const renderCard = (entry: DashboardEntryDto) => (
@@ -43,15 +48,16 @@ function TrainerReportsContent() {
     </DayCard>
   );
 
-  const days = data?.days ?? [];
   return (
     <div>
       <Breadcrumbs homeHref={ROLE_HOME.trainer} items={[{ label: nav("myReports") }]} />
       <PageHeader title={<h1>{p("reportsTitle")}</h1>} subtitle={p("reportsSubtitle")} />
-      {days.length === 0 ? (
+      {allDays.length === 0 ? (
         <EmptyState title={t("emptyTitle")} message={t("emptyTrainerMessage")} />
       ) : (
         <>
+          {controls.showToolbar ? <DayListToolbar controls={controls} /> : null}
+          {controls.results.length === 0 ? <DayListNoResults controls={controls} /> : null}
           <DaySection title={p("reportsPending")} count={groups.pending.length}>
             {groups.pending.map(renderCard)}
           </DaySection>
@@ -70,7 +76,9 @@ function TrainerReportsContent() {
 export default function TrainerReportsPage() {
   return (
     <ProtectedRoute role="trainer">
-      <TrainerReportsContent />
+      <Suspense fallback={null}>
+        <TrainerReportsContent />
+      </Suspense>
     </ProtectedRoute>
   );
 }

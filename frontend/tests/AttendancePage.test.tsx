@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
+import { screen, waitFor, fireEvent, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { renderWithIntl } from "./testUtils";
 import { AttendanceContent } from "@/app/[locale]/supervisor/[dayId]/attendance/page";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -95,5 +96,124 @@ describe("Supervisor attendance page", () => {
     expect(
       await screen.findByText("Trainee 10 is not an active enrollment in this training day's program."),
     ).toBeInTheDocument();
+  });
+
+  describe("search and status filter (display only)", () => {
+    const names = ["أحمد", "Beth", "Carla", "Dina", "Emma", "Fatima", "Gina", "Hana"];
+    const items = names.map((name, i) => ({
+      trainee_id: 100 + i,
+      name,
+      status: (i === 0 ? null : i % 3 === 0 ? "absent" : i % 3 === 1 ? "present" : "late") as "present" | "absent" | "late" | null,
+      late_minutes: i % 3 === 2 ? 5 : null,
+    }));
+
+    it("filters displayed rows by Arabic-normalised name and by status, with a live summary", async () => {
+      const user = userEvent.setup();
+      mockAuthenticated();
+      vi.mocked(supervisorApi.getAttendance).mockResolvedValue({ items });
+      renderWithIntl(<AttendanceContent dayId={1} />);
+      await screen.findByText("Beth");
+
+      const summary = screen.getByRole("list", { name: "Attendance summary" });
+      expect(within(summary).getByText("Not recorded: 1")).toBeInTheDocument();
+      // Unrecorded rows are preselected "present" locally, so 1 + 3 present.
+      expect(within(summary).getByText("Present: 4")).toBeInTheDocument();
+
+      await user.type(screen.getByRole("searchbox", { name: "Search trainees" }), "احمد");
+      await waitFor(() => expect(screen.queryByText("Beth")).not.toBeInTheDocument());
+      expect(screen.getByText("أحمد")).toBeInTheDocument();
+      expect(screen.getByText("Showing 1 of 8 trainees")).toBeInTheDocument();
+
+      await user.clear(screen.getByRole("searchbox", { name: "Search trainees" }));
+      await screen.findByText("Beth");
+      await user.selectOptions(screen.getByLabelText("Status"), "late");
+      await waitFor(() => expect(screen.queryByText("Beth")).not.toBeInTheDocument());
+      expect(screen.getByText("Carla")).toBeInTheDocument();
+
+      await user.type(screen.getByRole("searchbox", { name: "Search trainees" }), "zzz");
+      expect(await screen.findByText("No results for “zzz”")).toBeInTheDocument();
+      await user.click(screen.getAllByRole("button", { name: "Clear filters" })[0]);
+      expect(await screen.findByText("Beth")).toBeInTheDocument();
+      expect(supervisorApi.getAttendance).toHaveBeenCalledTimes(1);
+    });
+
+    it("never drops hidden rows from the saved payload", async () => {
+      const user = userEvent.setup();
+      mockAuthenticated();
+      vi.mocked(supervisorApi.getAttendance).mockResolvedValue({ items });
+      vi.mocked(supervisorApi.putAttendance).mockResolvedValue({ items });
+      renderWithIntl(<AttendanceContent dayId={1} />);
+      await screen.findByText("Beth");
+
+      await user.selectOptions(screen.getByLabelText("Status"), "absent");
+      await waitFor(() => expect(screen.queryByText("Beth")).not.toBeInTheDocument());
+      expect(screen.getAllByRole("radiogroup")).toHaveLength(2);
+
+      await user.click(screen.getByRole("button", { name: "Save attendance" }));
+      await waitFor(() => expect(supervisorApi.putAttendance).toHaveBeenCalledTimes(1));
+      expect(supervisorApi.putAttendance).toHaveBeenCalledWith(
+        1,
+        [
+          { trainee_id: 100, status: "present" },
+          { trainee_id: 101, status: "present" },
+          { trainee_id: 102, status: "late", late_minutes: 5 },
+          { trainee_id: 103, status: "absent" },
+          { trainee_id: 104, status: "present" },
+          { trainee_id: 105, status: "late", late_minutes: 5 },
+          { trainee_id: 106, status: "absent" },
+          { trainee_id: 107, status: "present" },
+        ],
+        "en",
+      );
+    });
+
+    it("keeps edits made to a row that is later hidden by a filter", async () => {
+      const user = userEvent.setup();
+      mockAuthenticated();
+      vi.mocked(supervisorApi.getAttendance).mockResolvedValue({ items });
+      vi.mocked(supervisorApi.putAttendance).mockResolvedValue({ items });
+      renderWithIntl(<AttendanceContent dayId={1} />);
+      await screen.findByText("Beth");
+      const bethGroup = screen.getByRole("radiogroup", { name: "Status for Beth" });
+      await user.click(within(bethGroup).getByLabelText("Absent"));
+      await user.type(screen.getByRole("searchbox", { name: "Search trainees" }), "carla");
+      await waitFor(() => expect(screen.queryByText("Beth")).not.toBeInTheDocument());
+      await user.click(screen.getByRole("button", { name: "Save attendance" }));
+      await waitFor(() => expect(supervisorApi.putAttendance).toHaveBeenCalled());
+      const payload = vi.mocked(supervisorApi.putAttendance).mock.calls[0][1];
+      expect(payload).toHaveLength(8);
+      expect(payload.find((r) => r.trainee_id === 101)).toEqual({ trainee_id: 101, status: "absent" });
+    });
+
+    it("renders rows in the stacked-capable markup (labelled cells, no wide-only layout)", async () => {
+      mockAuthenticated();
+      vi.mocked(supervisorApi.getAttendance).mockResolvedValue({ items });
+      const { container } = renderWithIntl(<AttendanceContent dayId={1} />);
+      await screen.findByText("Beth");
+      expect(container.querySelector(".table-scroll--stacked table.data-table--stacked")).toBeInTheDocument();
+      const row = screen.getByText("Beth").closest("tr") as HTMLElement;
+      expect(row.querySelector("td.attendance-name")).toHaveAttribute("data-label", "Name");
+      expect(row.querySelector('td[data-label="Status"] [role="radiogroup"]')).toBeInTheDocument();
+      expect(row.querySelector('td[data-label="Late minutes"]')).toBeInTheDocument();
+      // Not-late rows mark the N/A cell so narrow screens can hide it.
+      expect(row.querySelector("td.attendance-late--na")).toBeInTheDocument();
+    });
+
+    it("hides search and filter on short lists but keeps the summary", async () => {
+      mockAuthenticated();
+      vi.mocked(supervisorApi.getAttendance).mockResolvedValue({ items: items.slice(0, 3) });
+      renderWithIntl(<AttendanceContent dayId={1} />);
+      await screen.findByText("Beth");
+      expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+      expect(screen.getByRole("list", { name: "Attendance summary" })).toBeInTheDocument();
+    });
+
+    it("shows a skeleton while loading", () => {
+      mockAuthenticated();
+      vi.mocked(supervisorApi.getAttendance).mockReturnValue(new Promise(() => {}));
+      const { container } = renderWithIntl(<AttendanceContent dayId={1} />);
+      expect(screen.getByText("Loading attendance...")).toBeInTheDocument();
+      expect(container.querySelector(".skeleton-rows")).toBeInTheDocument();
+    });
   });
 });
