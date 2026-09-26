@@ -50,4 +50,43 @@ describe("FilterBar", () => {
     renderWithIntl(<FilterBar resultCount={2} />, { locale: "ar" });
     expect(screen.getByText("نتيجتان")).toBeInTheDocument();
   });
+
+  it("keeps the panel closed by default and open when a panel filter is already active", () => {
+    const { unmount } = renderWithIntl(
+      <FilterBar primary={<select aria-label="Sort" />} panelActiveCount={0}>
+        <select aria-label="Status" />
+      </FilterBar>,
+    );
+    expect(screen.getByRole("button", { name: /Filters/ })).toHaveAttribute("aria-expanded", "false");
+    unmount();
+    renderWithIntl(
+      <FilterBar activeFilters={filters()} panelActiveCount={2}>
+        <select aria-label="Status" />
+      </FilterBar>,
+    );
+    const toggle = screen.getByRole("button", { name: /Filters/ });
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(toggle).toHaveTextContent("2");
+  });
+
+  it("keeps primary controls outside the panel and the chips/results visible outside it", () => {
+    const { container } = renderWithIntl(
+      <FilterBar
+        primary={<select aria-label="Sort" />}
+        activeFilters={[{ id: "q", label: "Search: x", onRemove: vi.fn() }]}
+        panelActiveCount={0}
+        resultText="1 of 3"
+        onClear={() => {}}
+      >
+        <select aria-label="Status" />
+      </FilterBar>,
+    );
+    const panel = container.querySelector(".filter-bar__panel")!;
+    expect(panel).toContainElement(screen.getByLabelText("Status"));
+    expect(panel).not.toContainElement(screen.getByLabelText("Sort"));
+    expect(panel).not.toContainElement(screen.getByText("Search: x"));
+    expect(panel).not.toContainElement(screen.getByText("1 of 3"));
+    // A search-only chip does not count towards the panel toggle badge.
+    expect(screen.getByRole("button", { name: /Filters/ })).not.toHaveTextContent("1");
+  });
 });

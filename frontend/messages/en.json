@@ -294,6 +294,8 @@
     "filterLabel": "Status",
     "filterAll": "All",
     "notRecorded": "Not recorded",
+    "notYetSaved": "Not yet saved",
+    "notYetSavedHint": "Trainees with no saved attendance record are shown as Present and will be saved that way unless you change them.",
     "summaryLabel": "Attendance summary",
     "summaryCount": "{label}: {count}",
     "shownOf": "Showing {shown} of {total} trainees",

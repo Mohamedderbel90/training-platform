@@ -213,7 +213,8 @@ describe("grouped list page (trainee surveys)", () => {
 
     await user.type(screen.getByRole("searchbox", { name: "Search training days" }), "zzz");
     expect(await screen.findByText("No results for “zzz”")).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { level: 2 })).not.toBeInTheDocument();
+    // Only the empty-state title is a heading now; the group headings are gone.
+    expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["No results for “zzz”"]);
     expect(dashboardApi.get).toHaveBeenCalledTimes(1);
     expect(replace).toHaveBeenCalled();
   });

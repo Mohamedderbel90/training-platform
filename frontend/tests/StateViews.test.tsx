@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { renderWithIntl } from "./testUtils";
-import { EmptyState, ErrorState } from "@/components/StateViews";
+import { EmptyState, ErrorState, ListPageFallback } from "@/components/StateViews";
 
 describe("EmptyState", () => {
   it("default variant shows title/message and no action", () => {
@@ -42,5 +42,24 @@ describe("ErrorState", () => {
     unmount();
     renderWithIntl(<ErrorState title="T" message="M" />);
     expect(screen.queryByText(/Reference/)).toBeNull();
+  });
+});
+
+describe("state titles and list fallback", () => {
+  it("renders titles as h2 by default and honours headingLevel, keeping the visual class", () => {
+    const { rerender } = renderWithIntl(<EmptyState title="Nothing" />);
+    const h = screen.getByRole("heading", { level: 2, name: "Nothing" });
+    expect(h).toHaveClass("state-view__title");
+    rerender(<EmptyState title="Nothing" headingLevel={3} />);
+    expect(screen.getByRole("heading", { level: 3, name: "Nothing" })).toBeInTheDocument();
+    rerender(<ErrorState title="Broke" message="m" />);
+    expect(screen.getByRole("heading", { level: 2, name: "Broke" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
+  });
+
+  it("ListPageFallback shows the skeleton loading state (not a blank frame)", () => {
+    const { container } = renderWithIntl(<ListPageFallback />);
+    expect(container.querySelector(".skeleton-card")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
   });
 });

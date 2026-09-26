@@ -90,6 +90,9 @@ export function SurveyForm({
   const [pending, setPending] = useState<"draft" | "submit" | null>(null);
   const errorSummaryId = useId();
   const summaryRef = useRef<HTMLDivElement>(null);
+  // Focus target when the Submit button is disabled/busy as the confirm
+  // dialog closes (so focus is not lost to <body>).
+  const formRef = useRef<HTMLDivElement>(null);
 
   // Move focus to the error summary when a submit attempt is blocked,
   // so keyboard/screen-reader users land on the list of problems.
@@ -163,7 +166,11 @@ export function SurveyForm({
   };
 
   return (
-    <div className={readOnly ? "survey-form survey-form--readonly" : "survey-form"}>
+    <div
+      className={readOnly ? "survey-form survey-form--readonly" : "survey-form"}
+      ref={formRef}
+      tabIndex={-1}
+    >
       <FormError error={apiError ?? null} onRetry={onRetry} />
 
       {!readOnly && requiredQuestions.length > 0 ? (
@@ -266,6 +273,7 @@ export function SurveyForm({
         confirmLabel={t("confirmYes")}
         cancelLabel={t("confirmCancel")}
         busy={busy}
+        returnFocusFallbackRef={formRef}
         onConfirm={confirmSubmit}
         onCancel={() => setConfirming(false)}
       />

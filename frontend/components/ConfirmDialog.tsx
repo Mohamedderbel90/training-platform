@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, type KeyboardEvent, type RefObject } from "react";
 import { createPortal } from "react-dom";
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -20,6 +20,7 @@ export function ConfirmDialog({
   busy = false,
   onConfirm,
   onCancel,
+  returnFocusFallbackRef,
 }: {
   open: boolean;
   title: string;
@@ -29,18 +30,59 @@ export function ConfirmDialog({
   busy?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Where focus goes on close when the opener can no longer take it (e.g.
+   * it became disabled/busy or was removed). Give it a `tabIndex={-1}`
+   * element such as the form container or heading. */
+  returnFocusFallbackRef?: RefObject<HTMLElement | null>;
 }) {
   const titleId = useId();
   const messageId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const previouslyFocused = document.activeElement as HTMLElement | null;
+    const fallbackEl = returnFocusFallbackRef?.current;
+
+    // Modal: lock page scroll and take the rest of the app out of the
+    // accessibility tree / tab order (siblings of the portal node).
+    const body = document.body;
+    const previousOverflow = body.style.overflow;
+    body.style.overflow = "hidden";
+    const background = Array.from(body.children).filter(
+      (el): el is HTMLElement =>
+        el instanceof HTMLElement && el !== backdropRef.current && el.tagName !== "SCRIPT",
+    );
+    const restore = background.map((el) => ({
+      el,
+      inert: el.hasAttribute("inert"),
+      ariaHidden: el.getAttribute("aria-hidden"),
+    }));
+    for (const el of background) {
+      el.setAttribute("inert", "");
+      el.setAttribute("aria-hidden", "true");
+    }
+
     cancelRef.current?.focus();
-    return () => previouslyFocused?.focus?.();
-  }, [open]);
+    return () => {
+      body.style.overflow = previousOverflow;
+      for (const { el, inert, ariaHidden } of restore) {
+        if (!inert) el.removeAttribute("inert");
+        if (ariaHidden === null) el.removeAttribute("aria-hidden");
+        else el.setAttribute("aria-hidden", ariaHidden);
+      }
+      // Focus can only return to an enabled, still-mounted opener; otherwise
+      // fall back rather than dropping focus onto <body>.
+      const openerUsable =
+        previouslyFocused?.isConnected &&
+        !(previouslyFocused as HTMLButtonElement).disabled &&
+        previouslyFocused !== document.body;
+      if (openerUsable) previouslyFocused.focus?.();
+      else fallbackEl?.focus?.();
+    };
+  }, [open, returnFocusFallbackRef]);
 
   if (!open) return null;
 
@@ -69,6 +111,7 @@ export function ConfirmDialog({
 
   return createPortal(
     <div
+      ref={backdropRef}
       className="confirm-dialog__backdrop"
       onKeyDown={handleKeyDown}
       onMouseDown={(event) => {

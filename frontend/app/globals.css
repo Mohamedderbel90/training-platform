@@ -649,7 +649,26 @@ button.nav-link {
  * the illustration's arch without clipping against the overflow-hidden
  * decor box. */
 html[dir="ltr"] .app-sidebar__decor-text {
-  font-size: 0.76rem;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  /* Keep the longer English copy inside the arch (between the palms)
+   * instead of running over them, and give it a soft paper-coloured
+   * scrim so it stays legible over any part of the artwork. */
+  inset-inline: 20%;
+  top: 30%;
+  padding: 0.35rem 0.25rem;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--color-surface) 88%, transparent) 45%,
+    transparent 78%
+  );
+}
+
+/* English needs more height than Arabic: drop the overlay sooner. */
+@container (max-height: 16rem) {
+  html[dir="ltr"] .app-sidebar__decor-text {
+    display: none;
+  }
 }
 
 .app-sidebar__decor::after {
@@ -1434,6 +1453,8 @@ table.data-table {
 .state-view__title {
   font-weight: 700;
   font-size: 1.1rem;
+  line-height: 1.4;
+  letter-spacing: 0;
   margin: 0 0 var(--space-2);
 }
 
@@ -3294,8 +3315,60 @@ html[dir="ltr"] .task-list__view-all svg {
 
 .filter-bar__top {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
-  align-items: center;
+  align-items: flex-end;
+}
+
+/* Sort stays in the compact primary row next to the search. */
+.filter-bar__primary {
+  flex: 0 1 13rem;
+  min-inline-size: 0;
+}
+
+.filter-bar__primary .control-select {
+  display: flex;
+}
+
+.filter-bar__primary .control-select__wrap {
+  display: flex;
+  inline-size: 100%;
+}
+
+.filter-bar__primary .control-select__field,
+.filter-bar .search-input__field,
+.filter-bar__clear {
+  min-block-size: 2.75rem;
+}
+
+/* Collapsible panel at every width: grid-rows 0fr -> 1fr, <=180ms
+ * (--motion-base), no animation under reduced motion (see the
+ * prefers-reduced-motion block). */
+.filter-bar__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows var(--motion-base) var(--ease-standard),
+    visibility 0s linear var(--motion-base);
+}
+
+.filter-bar__panel[data-open="true"] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition: grid-template-rows var(--motion-base) var(--ease-standard);
+}
+
+.filter-bar__panel-inner {
+  overflow: hidden;
+  min-block-size: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-bar__panel,
+  .filter-bar__panel[data-open="true"],
+  .filter-bar__toggle-chevron {
+    transition: none;
+  }
 }
 
 .filter-bar__search {
@@ -3305,8 +3378,9 @@ html[dir="ltr"] .task-list__view-all svg {
 }
 
 .filter-bar__toggle {
-  display: none;
+  display: inline-flex;
   gap: var(--space-2);
+  min-block-size: 2.75rem;
 }
 
 .filter-bar__toggle-chevron {
@@ -3355,7 +3429,7 @@ html[dir="ltr"] .task-list__view-all svg {
 }
 
 .filter-bar__clear {
-  min-block-size: 2.2rem;
+  min-block-size: 2.75rem;
 }
 
 .filter-bar__results {
@@ -3395,25 +3469,8 @@ html[dir="ltr"] .task-list__view-all svg {
   .filter-bar__search {
     max-inline-size: none;
   }
-  .filter-bar__toggle {
-    display: inline-flex;
-    min-block-size: 2.75rem;
-  }
-  .filter-bar__panel {
-    display: grid;
-    grid-template-rows: 0fr;
-    visibility: hidden;
-    transition: grid-template-rows var(--motion-base) var(--ease-standard),
-      visibility 0s linear var(--motion-base);
-  }
-  .filter-bar__panel[data-open="true"] {
-    grid-template-rows: 1fr;
-    visibility: visible;
-    transition: grid-template-rows var(--motion-base) var(--ease-standard);
-  }
-  .filter-bar__panel-inner {
-    overflow: hidden;
-    min-block-size: 0;
+  .filter-bar__primary {
+    flex: 1 1 9rem;
   }
   .filter-bar__controls > * {
     flex: 1 1 100%;
@@ -3421,9 +3478,6 @@ html[dir="ltr"] .task-list__view-all svg {
   .filter-bar__controls .control-select__field,
   .search-input__field,
   .filter-chip {
-    min-block-size: 2.75rem;
-  }
-  .filter-bar__clear {
     min-block-size: 2.75rem;
   }
   .search-input__clear {
@@ -4186,4 +4240,14 @@ a.button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Programmatic focus fallbacks (tabIndex=-1 containers): no ring on the
+ * container itself; the focused control inside keeps its own. */
+.survey-form:focus {
+  outline: none;
+}
+
+.attendance-summary__hint {
+  margin: calc(-1 * var(--space-2)) 0 var(--space-4);
 }

@@ -31,7 +31,8 @@ export function FilterChip({ label, onRemove }: { label: string; onRemove: () =>
  * controls (`children`, native selects/segmented controls), removable
  * chips for active filters, a "Clear filters" action shown only when
  * something is active, and a polite live result count. The controls panel
- * collapses behind a toggle on small screens (CSS-driven). */
+ * collapses behind a toggle at every width; only search + `primary`
+ * controls stay in the compact top row. */
 export function FilterBar({
   search,
   children,
@@ -39,8 +40,16 @@ export function FilterBar({
   onClear,
   resultCount,
   resultText,
+  primary,
+  panelActiveCount,
 }: {
   search?: ReactNode;
+  /** Always-visible controls beside the search (e.g. the sort select). */
+  primary?: ReactNode;
+  /** How many active filters live inside the collapsible panel (badge on the
+   * toggle, and whether the panel starts open). Defaults to every chip. */
+  panelActiveCount?: number;
+  /** Collapsible panel content (secondary filters). */
   children?: ReactNode;
   activeFilters?: ActiveFilter[];
   onClear?: () => void;
@@ -50,13 +59,16 @@ export function FilterBar({
 }) {
   const t = useTranslations("Ui");
   const panelId = useId();
-  const [open, setOpen] = useState(false);
-  const count = activeFilters.length;
+  const count = panelActiveCount ?? activeFilters.length;
+  // Open on first render only when a panel filter is already active (URL);
+  // afterwards the user owns the toggle.
+  const [open, setOpen] = useState(count > 0);
 
   return (
     <div className="filter-bar">
       <div className="filter-bar__top">
         {search ? <div className="filter-bar__search">{search}</div> : null}
+        {primary ? <div className="filter-bar__primary">{primary}</div> : null}
         {children ? (
           <button
             type="button"
@@ -79,7 +91,7 @@ export function FilterBar({
           </div>
         </div>
       ) : null}
-      {count > 0 ? (
+      {activeFilters.length > 0 ? (
         <div className="filter-bar__active">
           <ul className="filter-bar__chips" aria-label={t("activeFiltersList")}>
             {activeFilters.map((f) => (

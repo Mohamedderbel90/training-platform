@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { act, screen, fireEvent, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { renderWithIntl } from "./testUtils";
 import { FormField } from "@/components/FormField";
 import { PasswordField } from "@/components/PasswordField";
@@ -100,6 +100,55 @@ describe("ConfirmDialog", () => {
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(opener).toHaveFocus();
+  });
+
+  it("locks body scroll and inerts the rest of the app while open, restoring both on close", async () => {
+    const { container } = renderWithIntl(<Harness />);
+    document.body.style.overflow = "auto";
+    await userEvent.click(screen.getByRole("button", { name: "Open" }));
+    expect(document.body.style.overflow).toBe("hidden");
+    const app = container.parentElement === document.body ? container : (container as HTMLElement);
+    expect(app).toHaveAttribute("inert");
+    expect(app).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    expect(document.body.style.overflow).toBe("auto");
+    expect(app).not.toHaveAttribute("inert");
+    expect(app).not.toHaveAttribute("aria-hidden");
+    document.body.style.overflow = "";
+  });
+
+  it("returns focus to the fallback when the opener is disabled as the dialog closes", async () => {
+    function BusyHarness() {
+      const [open, setOpen] = useState(false);
+      const [busy, setBusy] = useState(false);
+      const fallback = useRef<HTMLDivElement>(null);
+      return (
+        <div ref={fallback} tabIndex={-1} data-testid="fallback">
+          <button disabled={busy} onClick={() => setOpen(true)}>
+            Submit
+          </button>
+          <ConfirmDialog
+            open={open}
+            title="Sure?"
+            message="m"
+            confirmLabel="Yes"
+            cancelLabel="No"
+            returnFocusFallbackRef={fallback}
+            onConfirm={() => {
+              setOpen(false);
+              setBusy(true);
+            }}
+            onCancel={() => setOpen(false)}
+          />
+        </div>
+      );
+    }
+    renderWithIntl(<BusyHarness />);
+    await userEvent.click(screen.getByRole("button", { name: "Submit" }));
+    await userEvent.click(screen.getByRole("button", { name: "Yes" }));
+    expect(screen.getByRole("button", { name: "Submit" })).toBeDisabled();
+    expect(screen.getByTestId("fallback")).toHaveFocus();
   });
 
   it("confirms via the confirm button", async () => {

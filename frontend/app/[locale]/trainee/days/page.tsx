@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { dashboardApi } from "@/lib/api/endpoints";
 import { useApiResource } from "@/lib/api/useApiResource";
-import { LoadingState, EmptyState } from "@/components/StateViews";
+import { LoadingState, EmptyState, ListPageFallback } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
 import { DayCard, SurveyStatusGroup } from "@/components/DayCard";
 import { DayListNoResults, DayListPagination, DayListToolbar } from "@/components/DayListToolbar";
@@ -63,7 +63,7 @@ function TraineeDaysContent() {
 export default function TraineeDaysPage() {
   return (
     <ProtectedRoute role="trainee">
-      <Suspense fallback={null}>
+      <Suspense fallback={<ListPageFallback />}>
         <TraineeDaysContent />
       </Suspense>
     </ProtectedRoute>

@@ -45,6 +45,11 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
   // payload is always built from every row in `currentRows`.
   const [query, setQuery] = useState("");
   const [viewFilter, setViewFilter] = useState<ViewFilter | "">("");
+  // Status of every row as of the moment the filter/search was last changed.
+  // The status filter is evaluated against this snapshot, so editing a row
+  // never makes it vanish from under the user's cursor; the live counts
+  // still reflect edits. Display only.
+  const [baseline, setBaseline] = useState<Record<number, AttendanceStatus> | null>(null);
 
   // Unsaved edits: `rows` is null until the user changes something and is
   // reset after a successful save. UX only -- the server is untouched.
@@ -114,38 +119,51 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
     }
   };
 
+  const snapshotStatuses = () =>
+    Object.fromEntries(Object.values(currentRows).map((r) => [r.trainee_id, r.status])) as Record<
+      number,
+      AttendanceStatus
+    >;
+  const changeQuery = (value: string) => {
+    setBaseline(snapshotStatuses());
+    setQuery(value);
+  };
+  const changeViewFilter = (value: ViewFilter | "") => {
+    setBaseline(snapshotStatuses());
+    setViewFilter(value);
+  };
+
+  // Trainees the server has no attendance record for (they default to
+  // Present locally). Counted separately, never inside present/absent/late
+  // twice: the three status counts describe the CURRENT selection of all rows.
   const notRecordedIds = new Set(items.filter((i) => i.status === null).map((i) => i.trainee_id));
-  const counts = {
-    present: 0,
-    absent: 0,
-    late: 0,
-    not_recorded: notRecordedIds.size,
-  } satisfies Record<ViewFilter, number>;
+  const counts: Record<AttendanceStatus, number> = { present: 0, absent: 0, late: 0 };
   for (const row of Object.values(currentRows)) counts[row.status] += 1;
 
   const normalizedQuery = normalizeSearchText(query);
   const visibleItems = items.filter((item) => {
     if (normalizedQuery && !normalizeSearchText(item.name).includes(normalizedQuery)) return false;
     if (viewFilter === "not_recorded") return notRecordedIds.has(item.trainee_id);
-    if (viewFilter) return currentRows[item.trainee_id].status === viewFilter;
+    if (viewFilter) return (baseline?.[item.trainee_id] ?? currentRows[item.trainee_id].status) === viewFilter;
     return true;
   });
   const showControls = shouldShowToolbar(items.length);
   const viewFilterLabel = (f: ViewFilter) => (f === "not_recorded" ? t("notRecorded") : t(`status.${f}`));
   const chips: ActiveFilter[] = [];
   if (normalizedQuery) {
-    chips.push({ id: "q", label: l("chipSearch", { value: query.trim() }), onRemove: () => setQuery("") });
+    chips.push({ id: "q", label: l("chipSearch", { value: query.trim() }), onRemove: () => changeQuery("") });
   }
   if (viewFilter) {
     chips.push({
       id: "status",
       label: l("chipFilter", { name: t("filterLabel"), value: viewFilterLabel(viewFilter) }),
-      onRemove: () => setViewFilter(""),
+      onRemove: () => changeViewFilter(""),
     });
   }
   const clearView = () => {
     setQuery("");
     setViewFilter("");
+    setBaseline(null);
   };
   const clearAction = (
     <button type="button" className="button button--secondary" onClick={clearView}>
@@ -159,35 +177,38 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
       <FormError error={saveError} onRetry={handleSave} />
       <LiveStatus message={t("saved")} stamp={savedAt} />
       <ul className="attendance-summary" aria-label={t("summaryLabel")}>
-        {VIEW_FILTERS.map((f) => (
-          <li key={f}>{t("summaryCount", { label: viewFilterLabel(f), count: counts[f] })}</li>
+        {STATUSES.map((f) => (
+          <li key={f}>{t("summaryCount", { label: t(`status.${f}`), count: counts[f] })}</li>
         ))}
+        <li>{t("summaryCount", { label: t("notYetSaved"), count: notRecordedIds.size })}</li>
       </ul>
+      {notRecordedIds.size > 0 ? <p className="card__meta attendance-summary__hint">{t("notYetSavedHint")}</p> : null}
       {showControls ? (
         <FilterBar
           search={
             <SearchInput
               value={query}
-              onChange={setQuery}
+              onChange={changeQuery}
               label={t("searchLabel")}
               placeholder={t("searchPlaceholder")}
               debounceMs={150}
             />
           }
-          activeFilters={chips}
-          onClear={clearView}
-          resultText={chips.length ? t("shownOf", { shown: visibleItems.length, total: items.length }) : undefined}
-        >
+          primary={
           <SortControl
             label={t("filterLabel")}
             value={viewFilter}
-            onChange={(v) => setViewFilter(v as ViewFilter | "")}
+            onChange={(v) => changeViewFilter(v as ViewFilter | "")}
             options={[
               { value: "", label: t("filterAll") },
               ...VIEW_FILTERS.map((f) => ({ value: f, label: viewFilterLabel(f) })),
             ]}
           />
-        </FilterBar>
+          }
+          activeFilters={chips}
+          onClear={clearView}
+          resultText={chips.length ? t("shownOf", { shown: visibleItems.length, total: items.length }) : undefined}
+        />
       ) : null}
       {visibleItems.length === 0 ? (
         <EmptyState variant={normalizedQuery ? "search" : "filtered"} query={query.trim()} action={clearAction} />

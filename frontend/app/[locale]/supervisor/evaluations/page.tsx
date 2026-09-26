@@ -4,7 +4,7 @@ import { Suspense, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
-import { LoadingState, EmptyState } from "@/components/StateViews";
+import { LoadingState, EmptyState, ListPageFallback } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
 import { DayCard, AttendanceStatusGroup, SurveyStatusGroup } from "@/components/DayCard";
 import { DaySection } from "@/components/DaySection";
@@ -77,7 +77,7 @@ function SupervisorEvaluationsContent() {
 export default function SupervisorEvaluationsPage() {
   return (
     <ProtectedRoute role="supervisor">
-      <Suspense fallback={null}>
+      <Suspense fallback={<ListPageFallback />}>
         <SupervisorEvaluationsContent />
       </Suspense>
     </ProtectedRoute>

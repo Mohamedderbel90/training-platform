@@ -4,7 +4,7 @@ import { Suspense, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
-import { LoadingState, EmptyState } from "@/components/StateViews";
+import { LoadingState, EmptyState, ListPageFallback } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
 import { DayCard, SurveyStatusGroup } from "@/components/DayCard";
 import { DaySection } from "@/components/DaySection";
@@ -78,7 +78,7 @@ function TraineeSurveysContent() {
 export default function TraineeSurveysPage() {
   return (
     <ProtectedRoute role="trainee">
-      <Suspense fallback={null}>
+      <Suspense fallback={<ListPageFallback />}>
         <TraineeSurveysContent />
       </Suspense>
     </ProtectedRoute>

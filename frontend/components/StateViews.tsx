@@ -8,6 +8,15 @@
  */
 
 import type { ReactNode } from "react";
+
+type HeadingLevel = 2 | 3 | 4;
+
+/** State titles are real headings (h2 by default: pages own the h1) that
+ * keep the shared visual class. */
+function StateTitle({ level = 2, children }: { level?: HeadingLevel; children: ReactNode }) {
+  const Tag = `h${level}` as "h2" | "h3" | "h4";
+  return <Tag className="state-view__title">{children}</Tag>;
+}
 import { useTranslations } from "next-intl";
 import { AlertIcon, CheckIcon, InboxIcon, SearchIcon } from "@/components/icons";
 import { SkeletonCard } from "@/components/Skeleton";
@@ -42,6 +51,14 @@ export function LoadingState({
   );
 }
 
+/** Suspense fallback for list pages whose content suspends on the URL
+ * search params: the same skeleton the content shows while loading, so
+ * there is no blank frame. */
+export function ListPageFallback() {
+  const t = useTranslations("Dashboard");
+  return <LoadingState label={t("loading")} variant="skeleton" count={4} />;
+}
+
 /** Calm, neutral "nothing here" state. `positive` is the "all done"
  * variant (check icon, success tint, no dashed border) for an empty list
  * that is good news, not a gap. `search` and `filtered` variants
@@ -53,7 +70,10 @@ export function EmptyState({
   variant = "default",
   query,
   action,
+  headingLevel,
 }: {
+  /** Semantic level of the title (default 2). */
+  headingLevel?: HeadingLevel;
   title?: string;
   message?: string;
   variant?: "default" | "search" | "filtered" | "positive";
@@ -82,7 +102,7 @@ export function EmptyState({
           <SearchIcon />
         )}
       </span>
-      {heading ? <p className="state-view__title">{heading}</p> : null}
+      {heading ? <StateTitle level={headingLevel}>{heading}</StateTitle> : null}
       {body ? <p className="state-view__message">{body}</p> : null}
       {action ? <div className="state-view__action">{action}</div> : null}
     </div>
@@ -96,7 +116,9 @@ export function ErrorState({
   actionLabel,
   onAction,
   action,
+  headingLevel,
 }: {
+  headingLevel?: HeadingLevel;
   title: string;
   message: string;
   requestId?: string | null;
@@ -111,7 +133,7 @@ export function ErrorState({
       <span className="state-view__icon">
         <AlertIcon />
       </span>
-      <p className="state-view__title">{title}</p>
+      <StateTitle level={headingLevel}>{title}</StateTitle>
       <p className="state-view__message">{message}</p>
       {requestId ? (
         <p className="state-view__request-id">

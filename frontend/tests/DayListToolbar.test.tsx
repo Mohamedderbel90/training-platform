@@ -56,4 +56,21 @@ describe("DayListToolbar", () => {
     expect(__getMockSearchParams().toString()).toBe("");
     expect(screen.queryByRole("button", { name: "Clear filters" })).not.toBeInTheDocument();
   });
+
+  it("keeps sort in the compact primary row and the other filters in the collapsed panel", () => {
+    const { container } = renderWithIntl(<Harness attendance />);
+    const panel = container.querySelector(".filter-bar__panel")!;
+    expect(panel).not.toContainElement(screen.getByLabelText("Sort by"));
+    for (const label of ["Day Status", "Survey Status", "Attendance", "Course", "From", "To"]) {
+      expect(panel).toContainElement(screen.getByLabelText(label));
+    }
+    expect(screen.getByRole("button", { name: /Filters/ })).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("opens the panel initially when a filter is already active via the URL", () => {
+    __setMockSearchParams({ status: "open", q: "x" });
+    renderWithIntl(<Harness />);
+    const toggle = screen.getByRole("button", { name: /Filters/ });
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+  });
 });

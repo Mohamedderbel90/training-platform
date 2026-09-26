@@ -161,9 +161,13 @@ describe("Supervisor attendance page", () => {
       await screen.findByText("Beth");
 
       const summary = screen.getByRole("list", { name: "Attendance summary" });
-      expect(within(summary).getByText("Not recorded: 1")).toBeInTheDocument();
-      // Unrecorded rows are preselected "present" locally, so 1 + 3 present.
+      // "Not yet saved" is separate; present/absent/late describe the current
+      // selection of all rows (the unsaved trainee defaults to Present).
+      expect(within(summary).getByText("Not yet saved: 1")).toBeInTheDocument();
       expect(within(summary).getByText("Present: 4")).toBeInTheDocument();
+      expect(within(summary).getByText("Absent: 2")).toBeInTheDocument();
+      expect(within(summary).getByText("Late: 2")).toBeInTheDocument();
+      expect(screen.getByText(/shown as Present and will be saved that way/)).toBeInTheDocument();
 
       await user.type(screen.getByRole("searchbox", { name: "Search trainees" }), "احمد");
       await waitFor(() => expect(screen.queryByText("Beth")).not.toBeInTheDocument());
@@ -204,6 +208,49 @@ describe("Supervisor attendance page", () => {
           { trainee_id: 101, status: "present" },
           { trainee_id: 102, status: "late", late_minutes: 5 },
           { trainee_id: 103, status: "absent" },
+          { trainee_id: 104, status: "present" },
+          { trainee_id: 105, status: "late", late_minutes: 5 },
+          { trainee_id: 106, status: "absent" },
+          { trainee_id: 107, status: "present" },
+        ],
+        "en",
+      );
+    });
+
+    it("keeps an edited row visible under an active status filter while summary counts follow the edit", async () => {
+      const user = userEvent.setup();
+      mockAuthenticated();
+      vi.mocked(supervisorApi.getAttendance).mockResolvedValue({ items });
+      vi.mocked(supervisorApi.putAttendance).mockResolvedValue({ items });
+      renderWithIntl(<AttendanceContent dayId={1} />);
+      await screen.findByText("Beth");
+      await user.selectOptions(screen.getByLabelText("Status"), "absent");
+      await waitFor(() => expect(screen.queryByText("Beth")).not.toBeInTheDocument());
+      const dina = screen.getByRole("radiogroup", { name: "Status for Dina" });
+      const summary = screen.getByRole("list", { name: "Attendance summary" });
+      expect(within(summary).getByText("Absent: 2")).toBeInTheDocument();
+
+      await user.click(within(dina).getByLabelText("Present"));
+      // Row stays put (filter uses the baseline), counts are live.
+      expect(screen.getByRole("radiogroup", { name: "Status for Dina" })).toBeInTheDocument();
+      expect(within(summary).getByText("Absent: 1")).toBeInTheDocument();
+      expect(within(summary).getByText("Present: 5")).toBeInTheDocument();
+
+      // Changing the filter re-evaluates against the new selection.
+      await user.selectOptions(screen.getByLabelText("Status"), "");
+      await user.selectOptions(screen.getByLabelText("Status"), "absent");
+      await waitFor(() => expect(screen.queryByRole("radiogroup", { name: "Status for Dina" })).not.toBeInTheDocument());
+
+      // Payload is unchanged in shape: every row, defaults included.
+      await user.click(screen.getByRole("button", { name: "Save attendance" }));
+      await waitFor(() => expect(supervisorApi.putAttendance).toHaveBeenCalledTimes(1));
+      expect(supervisorApi.putAttendance).toHaveBeenCalledWith(
+        1,
+        [
+          { trainee_id: 100, status: "present" },
+          { trainee_id: 101, status: "present" },
+          { trainee_id: 102, status: "late", late_minutes: 5 },
+          { trainee_id: 103, status: "present" },
           { trainee_id: 104, status: "present" },
           { trainee_id: 105, status: "late", late_minutes: 5 },
           { trainee_id: 106, status: "absent" },

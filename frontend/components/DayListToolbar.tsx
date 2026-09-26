@@ -124,6 +124,14 @@ export function DayListToolbar({
       activeFilters={chips}
       onClear={controls.clear}
       resultText={resultText}
+      panelActiveCount={chips.filter((c) => c.id !== "q").length}
+      primary={
+        <SortControl
+          value={controls.sort}
+          onChange={(v) => controls.setSort(v as SortKey)}
+          options={SORT_KEYS.map((k) => ({ value: k, label: t(`sort.${k}`) }))}
+        />
+      }
     >
       <SortControl
         label={d("dayStatusLabel")}
@@ -176,11 +184,6 @@ export function DayListToolbar({
         value={filters.dateTo}
         min={filters.dateFrom}
         onChange={(v) => controls.setFilter("dateTo", v)}
-      />
-      <SortControl
-        value={controls.sort}
-        onChange={(v) => controls.setSort(v as SortKey)}
-        options={SORT_KEYS.map((k) => ({ value: k, label: t(`sort.${k}`) }))}
       />
     </FilterBar>
   );

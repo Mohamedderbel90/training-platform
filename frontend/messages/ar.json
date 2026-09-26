@@ -294,6 +294,8 @@
     "filterLabel": "الحالة",
     "filterAll": "الكل",
     "notRecorded": "غير مسجَّل",
+    "notYetSaved": "غير محفوظ بعد",
+    "notYetSavedHint": "المتدربات اللواتي ليس لهن سجل حضور محفوظ يظهرن حاضرات وسيُحفظن كذلك ما لم تغيّري حالتهن.",
     "summaryLabel": "ملخص الحضور",
     "summaryCount": "{label}: {count}",
     "shownOf": "عرض {shown} من {total} متدربة",
