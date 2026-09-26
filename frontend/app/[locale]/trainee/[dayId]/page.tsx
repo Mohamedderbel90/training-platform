@@ -52,7 +52,9 @@ export function TraineeSurveyContent({ dayId }: { dayId: number }) {
     return <EmptyState title={t("notConfiguredTitle")} message={t("notConfiguredMessage")} />;
   }
   if (alreadySubmitted || justSubmitted) {
-    return <SubmittedState submittedAt={justSubmitted ?? availability?.response?.submitted_at} />;
+    return (
+      <SubmittedState headingLevel={1} submittedAt={justSubmitted ?? availability?.response?.submitted_at} />
+    );
   }
   if (!availability.can_submit) {
     return (

@@ -193,23 +193,26 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
         <EmptyState variant={normalizedQuery ? "search" : "filtered"} query={query.trim()} action={clearAction} />
       ) : (
         <div className="table-scroll table-scroll--stacked">
-          <table className="data-table data-table--stacked">
-            <thead>
-              <tr>
-                <th>{t("nameColumn")}</th>
-                <th>{t("statusColumn")}</th>
-                <th>{t("lateMinutesColumn")}</th>
+          {/* Explicit ARIA roles: on phones the stacked layout sets
+           * display:block on the table parts, which can drop native table
+           * semantics in some browsers; the roles keep them regardless. */}
+          <table className="data-table data-table--stacked" role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th role="columnheader">{t("nameColumn")}</th>
+                <th role="columnheader">{t("statusColumn")}</th>
+                <th role="columnheader">{t("lateMinutesColumn")}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody role="rowgroup">
               {visibleItems.map((item) => {
                 const row = currentRows[item.trainee_id];
                 return (
-                  <tr key={item.trainee_id}>
-                    <td className="attendance-name" data-label={t("nameColumn")}>
+                  <tr key={item.trainee_id} role="row">
+                    <td role="cell" className="attendance-name" data-label={t("nameColumn")}>
                       {item.name}
                     </td>
-                    <td data-label={t("statusColumn")}>
+                    <td role="cell" data-label={t("statusColumn")}>
                       <div
                         className="status-radio-group"
                         role="radiogroup"
@@ -234,6 +237,7 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
                       </div>
                     </td>
                     <td
+                      role="cell"
                       data-label={t("lateMinutesColumn")}
                       className={row.status === "late" ? undefined : "attendance-late--na"}
                     >

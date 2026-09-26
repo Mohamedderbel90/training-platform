@@ -24,7 +24,8 @@
   --color-border-strong: #d6cdb4;
   --color-text: #24332f;
   --color-text-muted: #5c6b64;
-  --color-text-subtle: #8b978e;
+  /* AA on bg/white/surface-muted (was #8b978e = 2.7-3.0:1). */
+  --color-text-subtle: #657069;
 
   /* ---- brand: deep emerald primary, muted gold accent ---- */
   --color-primary: #153f38;
@@ -47,7 +48,8 @@
   --color-danger: #a3352a;
   --color-danger-hover: #872c22;
   --color-danger-bg: #f8eae7;
-  --color-success: #2f7d54;
+  /* Darkened from #2f7d54 (4.37:1 on success-bg) to reach AA for badge text. */
+  --color-success: #2a7049;
   --color-success-bg: #e7f2ea;
   --color-warning-text: #7d5a12;
   --color-warning-bg: #f8efd9;
@@ -98,7 +100,7 @@
     --color-border-strong: #384c42;
     --color-text: #f1eee3;
     --color-text-muted: #a9b6ae;
-    --color-text-subtle: #778a80;
+    --color-text-subtle: #82958b;
 
     --color-primary: #5fbba0;
     --color-primary-hover: #7bcbb2;
@@ -236,6 +238,10 @@ p {
 
 .app-shell {
   min-height: 100%;
+  /* body is a fixed-height (100%) flex column: without this the shell
+   * shrinks to the viewport and the sticky sidebar's containing block
+   * ends after the first screenful, so it scrolled away on long pages. */
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
 }
@@ -429,7 +435,7 @@ p {
 .app-sidebar__content {
   position: relative;
   z-index: 1;
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -600,14 +606,26 @@ button.nav-link {
  * stretching, mirroring, or flipping the asset itself -- the aspect
  * ratio is preserved exactly via `aspect-ratio` on the inner layer. */
 .app-sidebar__decor {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
+  position: relative;
+  /* In flow below the nav (not behind it): on short viewports the art is
+   * the first thing to shrink (huge shrink factor, cropped from the top
+   * because the image is bottom-anchored), so it can never sit under the
+   * Profile / Log out links. */
+  flex: 0 100000 17rem;
+  min-block-size: 0;
   z-index: 0;
-  height: 17rem;
   max-height: 42%;
   overflow: hidden;
   pointer-events: none;
+  container-type: size;
+}
+
+/* Too little room left for the arch: drop the overlay text rather than
+ * let it float over the wrong part of the artwork. */
+@container (max-height: 15rem) {
+  .app-sidebar__decor-text {
+    display: none;
+  }
 }
 
 /* "بالعلم نبني جيلاً / بكتاب الله" overlay, matching the approved
@@ -677,7 +695,7 @@ html[dir="ltr"] .app-sidebar__decor-text {
 
 /* The Dashboard home is a card grid, not a prose column -- it gets a
  * wider ceiling than every other (text-column) authenticated page. */
-.app-main:has(> .dashboard) {
+.app-main:has(> .page-enter > .dashboard) {
   max-width: 72rem;
 }
 
@@ -1495,7 +1513,7 @@ table.data-table {
   color: var(--color-text-muted);
 }
 
-@media (min-width: 860px) {
+@media (min-width: 1100px) {
   .dashboard-grid {
     grid-template-columns: 1.4fr 1fr;
   }
@@ -3114,7 +3132,10 @@ html[dir="ltr"] .task-list__view-all svg {
 /* ====================== shared UI foundation ======================= */
 
 .page-enter {
-  animation: page-enter var(--motion-base) var(--ease-standard) both;
+  /* `backwards` (not `both`): a finished forwards-fill transform animation
+   keeps the wrapper a containing block for position:fixed descendants
+   (dialogs, drawers) in Chromium. */
+  animation: page-enter var(--motion-base) var(--ease-standard) backwards;
 }
 
 @keyframes page-enter {
@@ -3661,22 +3682,11 @@ html[dir="ltr"] .task-list__view-all svg {
   }
 }
 
-/* Equal-height dashboard columns; the hero card pins its status/action
- * panels to the bottom instead of leaving a void beside a tall list. */
-@media (min-width: 860px) {
-  .dashboard-grid {
-    align-items: stretch;
-  }
-}
-
+/* Dashboard columns align to the start: a long task list beside the hero
+ * card must not stretch the card and open a dead gap above its panels. */
 .upcoming-session {
   display: flex;
   flex-direction: column;
-}
-
-.upcoming-session__actions {
-  margin-block-start: auto;
-  padding-block-start: var(--space-4);
 }
 
 a.button {
@@ -3754,6 +3764,7 @@ a.button {
 .field--icon .field-error,
 .field--icon .field-hint {
   padding-inline: 0.25rem;
+  margin-bottom: 0;
 }
 
 /* Password toggle: 44px touch target on the inline-end, visible focus. */
@@ -3965,6 +3976,8 @@ a.button {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .notif-panel,
   .field-error,
   .live-status__message,
   .confirm-dialog,
@@ -3974,4 +3987,203 @@ a.button {
   .button__spinner {
     animation: none;
   }
+}
+
+/* ==================== responsive / a11y audit (slice 5) ==================== */
+
+/* Calm, proportionate state inside the auth card (e.g. the reset-password
+ * "invalid link" state): no full-bleed tinted panel, tighter spacing; the
+ * icon chip alone carries the error tint. */
+.auth-card .state-view {
+  padding: var(--space-3) 0 0;
+  background: transparent;
+  border: 0;
+}
+
+.auth-card .state-view__icon {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  margin-bottom: var(--space-3);
+}
+
+.auth-card .state-view__title {
+  font-size: 1.05rem;
+}
+
+.auth-card .state-view__message {
+  margin-bottom: var(--space-4);
+  font-size: 0.92rem;
+}
+
+/* Filter panel: a tidy grid instead of a content-sized wrap, so a wide
+ * Course select can no longer push "From"/"To" onto an orphan row. Long
+ * option text is clipped by the select itself. */
+@media (min-width: 768px) {
+  .filter-bar__controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+    align-items: end;
+  }
+
+  .filter-bar__controls > .control-select {
+    display: flex;
+    min-inline-size: 0;
+  }
+
+  .filter-bar__controls .control-select__wrap {
+    display: flex;
+    inline-size: 100%;
+  }
+
+  /* Native date inputs render taller than selects; pin both so the row's
+   * labels and fields line up exactly. */
+  .filter-bar__controls .control-select__field {
+    block-size: 2.75rem;
+  }
+}
+
+/* Dashboards already stagger their own sections in; skip the wrapper fade. */
+.page-enter:has(> .dashboard) {
+  animation: none;
+}
+
+/* Auth fields reserve one line for hint/error so showing or clearing a
+ * validation message never shifts the fields and button below it. The
+ * reserved line replaces the field's bottom margin (net spacing ~unchanged). */
+.auth-card .field--icon {
+  margin-bottom: 0;
+}
+
+.field--icon .field__messages {
+  display: flow-root; /* keep the message's top margin inside the slot */
+  min-block-size: 1.6rem;
+}
+
+/* Touch targets: >= 44px on phones/tablets-portrait for the header
+ * controls, breadcrumb links, "view all" links and the page-size select
+ * (desktop sizing unchanged). */
+@media (max-width: 767px) {
+  .app-topbar .button--icon,
+  .app-topbar .app-nav-toggle {
+    min-block-size: 2.75rem;
+    min-inline-size: 2.75rem;
+    inline-size: auto;
+  }
+
+  .user-menu {
+    min-block-size: 2.75rem;
+    min-inline-size: 2.75rem;
+    justify-content: center;
+  }
+
+  .breadcrumbs__link,
+  .task-list__view-all {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    min-inline-size: 2.75rem;
+  }
+
+  .pagination .control-select__field {
+    min-block-size: 2.75rem;
+  }
+}
+
+/* Notifications popover: subtle entrance (opacity + 4px slide, 120ms;
+ * neutralised by the global reduced-motion block), and on phones a
+ * full-width sheet under the header instead of an absolutely positioned
+ * 16rem box that ran off the screen edge next to the bell. */
+.notif-panel {
+  animation: notif-in var(--motion-fast) var(--ease-standard) both;
+}
+
+@keyframes notif-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (max-width: 767px) {
+  /* The sticky topbar is the positioning context on phones. */
+  .icon-btn-wrap {
+    position: static;
+  }
+
+  .notif-panel {
+    inset-inline: var(--space-3);
+    top: calc(100% + 0.25rem);
+    width: auto;
+  }
+}
+
+/* Header centre (Bismillah): show it only when it has room. Between the
+ * sidebar breakpoint and ~1150px the identity + program box leave ~150px,
+ * which wrapped the calligraphy onto three lines and ballooned the header. */
+.app-topbar__center {
+  container: topbar-center / inline-size;
+}
+
+@container topbar-center (max-width: 16rem) {
+  .topbar-bismillah,
+  .topbar-bismillah__quote {
+    display: none;
+  }
+}
+
+/* Task rows: if the card itself is very narrow (any viewport), wrap the
+ * status/action under the text like on phones instead of squeezing the
+ * course name to one character per line. */
+.task-list {
+  container: task-list / inline-size;
+}
+
+@container task-list (max-width: 19rem) {
+  .task-list__link {
+    flex-wrap: wrap;
+  }
+
+  .task-list__text {
+    flex-basis: calc(100% - 3.2rem);
+  }
+
+  .task-list__aside {
+    box-sizing: border-box;
+    flex-basis: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline-start: 3.2rem;
+  }
+}
+
+/* Kept last so it wins over the base animation declarations above. */
+@media (prefers-reduced-motion: reduce) {
+  .notif-panel,
+  .page-enter {
+    animation: none;
+  }
+}
+
+/* Long-content hardening: one very long unbroken token (course/program or
+ * a user name) must never widen the page or the header. */
+.card,
+.page-header h1 {
+  overflow-wrap: anywhere;
+}
+
+.user-menu {
+  min-inline-size: 0;
+}
+
+.user-menu__details {
+  min-inline-size: 0;
+}
+
+.user-menu__name,
+.user-menu__role {
+  max-inline-size: 13rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

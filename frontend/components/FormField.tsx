@@ -59,7 +59,9 @@ export function FormField({
   /** Optional id on the field wrapper (e.g. an anchor target). */
   wrapperId?: string;
   dir?: "ltr" | "rtl";
-  children: (control: FieldControlProps & { labelId: string }) => ReactNode;
+  /** `labelId` is passed separately (not inside `control`) so callers can
+   * spread `control` onto a DOM element without leaking an unknown prop. */
+  children: (control: FieldControlProps, labelId: string) => ReactNode;
 }) {
   const t = useTranslations("Forms");
   const labelId = `${id}-label`;
@@ -71,8 +73,7 @@ export function FormField({
     "aria-describedby": describedBy || undefined,
     "aria-invalid": error ? true : undefined,
     required: required || undefined,
-    labelId,
-  });
+  }, labelId);
   const showMarker = required && !icon;
   const labelNode = (
     <label id={labelId} htmlFor={group ? undefined : id}>
@@ -107,7 +108,7 @@ export function FormField({
           </div>
           {trailing}
         </div>
-        {messages}
+        <div className="field__messages">{messages}</div>
       </div>
     );
   }

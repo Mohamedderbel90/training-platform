@@ -300,13 +300,13 @@ function QuestionField({
       group={isGroup}
       error={invalid ? t("questionRequiredError") : null}
     >
-      {(control) => (
+      {(control, labelId) => (
         <QuestionInput
           question={question}
           answer={answer}
           disabled={disabled}
           inputId={control.id}
-          labelId={control.labelId}
+          labelId={labelId}
           describedBy={control["aria-describedby"]}
           invalid={invalid}
           onChange={onChange}

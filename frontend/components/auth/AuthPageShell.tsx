@@ -79,6 +79,7 @@ export function AuthPageShell({ children }: { children: React.ReactNode }) {
               alt=""
               width={72}
               height={57}
+              priority
               className="auth-card__logo"
             />
             <p className="auth-card__brand-name">{tc("appName")}</p>

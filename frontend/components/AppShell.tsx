@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
@@ -78,6 +78,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { status, profile, roles, logout } = useAuth();
   const [navOpen, setNavOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const navToggleRef = useRef<HTMLButtonElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
+  const notifRef = useRef<HTMLSpanElement>(null);
 
   const hasNav = status === "authenticated" && roles.length > 0;
   const primaryRole = getPrimaryRole(roles);
@@ -91,11 +94,41 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       if (event.key === "Escape") {
         setNavOpen(false);
         setNotifOpen(false);
+        // Hand focus back to the bell so keyboard users keep their place.
+        if (notifRef.current?.contains(document.activeElement)) {
+          notifRef.current.querySelector<HTMLElement>("button")?.focus();
+        }
+      }
+    };
+    // Clicking/tapping outside the notifications popover dismisses it.
+    const onPointerDown = (event: PointerEvent) => {
+      if (notifOpen && !notifRef.current?.contains(event.target as Node)) {
+        setNotifOpen(false);
       }
     };
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
   }, [navOpen, notifOpen]);
+
+  // Off-canvas drawer focus management: opening moves focus to the first
+  // nav link; closing (Escape, scrim, link) returns focus to the menu
+  // button when focus was inside the drawer, so keyboard users never lose
+  // their place. Never runs on desktop, where the drawer is a static sidebar.
+  useEffect(() => {
+    if (!navOpen) return;
+    const sidebar = sidebarRef.current;
+    const toggle = navToggleRef.current;
+    sidebar?.querySelector<HTMLElement>("a[href]")?.focus();
+    return () => {
+      if (sidebar?.contains(document.activeElement) || document.activeElement === document.body) {
+        toggle?.focus();
+      }
+    };
+  }, [navOpen]);
 
   const handleLogout = async () => {
     await logout();
@@ -141,7 +174,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       ) : null}
 
       {hasNav ? (
-        <aside className="app-sidebar" data-open={navOpen}>
+        <aside className="app-sidebar" data-open={navOpen} ref={sidebarRef}>
           <div className="app-sidebar__content">
             <div className="app-sidebar__brand">
               <span className="app-sidebar__brand-mark" aria-hidden="true">
@@ -228,6 +261,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {hasNav ? (
               <button
                 type="button"
+                ref={navToggleRef}
                 className="app-nav-toggle button button--ghost button--icon"
                 aria-expanded={navOpen}
                 aria-controls="app-nav"
@@ -254,7 +288,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   {initialsOf(profile.name)}
                 </span>
                 <span className="user-menu__details">
-                  <span className="user-menu__name">{profile.name}</span>
+                  <span className="user-menu__name" title={profile.name}>
+                    {profile.name}
+                  </span>
                   {primaryRole ? (
                     <span className="user-menu__role">{tNav(`roleLabel.${primaryRole}`)}</span>
                   ) : null}
@@ -269,7 +305,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               <GlobeIcon />
             </Link>
-            <span className="icon-btn-wrap">
+            <span className="icon-btn-wrap" ref={notifRef}>
               <button
                 type="button"
                 className="button button--ghost button--icon"
@@ -304,7 +340,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <main id="main-content" className="app-main">
-          {children}
+          {/* Keyed by route so the entrance runs once per navigation, never
+           * on filter/search re-renders (those don't change the pathname). */}
+          <div key={pathname} className="page-enter">
+            {children}
+          </div>
         </main>
         <footer className="app-footer">{t("footerNote")}</footer>
       </div>

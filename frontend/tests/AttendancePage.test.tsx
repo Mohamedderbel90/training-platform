@@ -245,6 +245,22 @@ describe("Supervisor attendance page", () => {
       expect(row.querySelector("td.attendance-late--na")).toBeInTheDocument();
     });
 
+    it("keeps table semantics explicit (roles) for the display:block stacked layout", async () => {
+      mockAuthenticated();
+      vi.mocked(supervisorApi.getAttendance).mockResolvedValue({ items });
+      renderWithIntl(<AttendanceContent dayId={1} />);
+      await screen.findByText("Beth");
+      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(screen.getAllByRole("columnheader").map((h) => h.textContent)).toEqual([
+        "Name",
+        "Status",
+        "Late minutes",
+      ]);
+      // header row + one row per trainee
+      expect(screen.getAllByRole("row")).toHaveLength(items.length + 1);
+      expect(screen.getAllByRole("cell").length).toBe(items.length * 3);
+    });
+
     it("hides search and filter on short lists but keeps the summary", async () => {
       mockAuthenticated();
       vi.mocked(supervisorApi.getAttendance).mockResolvedValue({ items: items.slice(0, 3) });
