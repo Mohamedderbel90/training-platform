@@ -16,7 +16,7 @@ import {
 } from "@/lib/dashboard/derive";
 import { LoadingState } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
-import { SurveyAvailabilityBadge } from "@/components/DayCard";
+import { SurveyStatusGroup } from "@/components/DayCard";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { StatCards } from "@/components/dashboard/StatCards";
 import { UpcomingSessionCard } from "@/components/dashboard/UpcomingSessionCard";
@@ -65,7 +65,15 @@ function SupervisorDashboardContent() {
       <div className="dashboard-grid">
         <UpcomingSessionCard
           entry={nextEntry}
-          statusBadge={nextEntry ? <SurveyAvailabilityBadge availability={nextEntry.survey} /> : null}
+          surveyGroup={
+            nextEntry ? (
+              <SurveyStatusGroup
+                availability={nextEntry.survey}
+                dayStatus={nextEntry.state}
+                href={`/supervisor/${nextEntry.training_day_id}/survey`}
+              />
+            ) : null
+          }
           action={
             nextEntry ? (
               <>
@@ -74,11 +82,6 @@ function SupervisorDashboardContent() {
                   href={`/supervisor/${nextEntry.training_day_id}/attendance`}
                 >
                   {t("manageAttendance")}
-                </Link>
-                <Link className="button" href={`/supervisor/${nextEntry.training_day_id}/survey`}>
-                  {nextEntry.survey?.response?.state === "submitted"
-                    ? t("viewSurvey")
-                    : t("openSurvey")}
                 </Link>
               </>
             ) : null

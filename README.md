@@ -95,7 +95,7 @@ already implemented and tested:
 dedicated frontend unit test exercising its own role-specific wiring
 (the `entry.trainer_report` field, the Open/View report link
 switching on submission state). `tests/TrainerDashboard.test.tsx` was
-added (4 tests: loading -> cards, submitted-state badge/link text,
+added (4 tests: loading -> cards, submitted-state status/link text,
 empty state, error+retry). No backend or production frontend code
 needed to change — the underlying implementation was already correct.
 

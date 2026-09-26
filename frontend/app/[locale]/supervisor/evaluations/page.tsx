@@ -7,7 +7,7 @@ import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
 import { LoadingState, EmptyState } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
-import { DayCard, SurveyAvailabilityBadge } from "@/components/DayCard";
+import { DayCard, SurveyStatusGroup } from "@/components/DayCard";
 import { DaySection } from "@/components/DaySection";
 import { PageHeader } from "@/components/PageHeader";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -52,16 +52,12 @@ function SupervisorEvaluationsContent() {
         >
           {t("manageAttendance")}
         </Link>
-        <span aria-label={p("supervisorSurveyLabel")}>
-          <SurveyAvailabilityBadge availability={entry.survey} />
-        </span>
-        <Link
-          className="button button--secondary"
-          href={`/supervisor/${entry.training_day_id}/survey`}
-        >
-          {entry.survey?.response?.state === "submitted" ? t("viewSurvey") : t("openSurvey")}
-        </Link>
       </div>
+      <SurveyStatusGroup
+        availability={entry.survey}
+        dayStatus={entry.state}
+        href={`/supervisor/${entry.training_day_id}/survey`}
+      />
     </DayCard>
   );
 

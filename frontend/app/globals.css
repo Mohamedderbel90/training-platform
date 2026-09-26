@@ -2622,3 +2622,49 @@ html[dir="ltr"] .task-list__view-all svg {
     animation: none;
   }
 }
+
+/* ---- day / survey status labelling ---- */
+
+.status-line {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.status-line dt {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.status-line dd {
+  margin: 0;
+}
+
+.status-line--day dt {
+  font-weight: 600;
+}
+
+.status-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+  padding-block-start: var(--space-3, 0.75rem);
+  margin-block-start: var(--space-3, 0.75rem);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.status-group__title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.status-group__hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}

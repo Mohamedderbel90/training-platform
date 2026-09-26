@@ -180,8 +180,10 @@ a stale authenticated shell around a page that can no longer load data.
 ## 5. Trainee Flow
 
 - `GET /api/v1/dashboard/trainee` → `app/[locale]/trainee/page.tsx`:
-  one card per training day (course/program name, day state,
-  survey-availability badge), linking to the day's survey page.
+  one card per training day (course/program name, a labelled "Day
+  Status", and a "Survey" group with a labelled "Survey Status" and the
+  survey action -- see the 2026-09-26 update below), linking to the day's
+  survey page.
 - `app/[locale]/trainee/[dayId]/page.tsx` (`TraineeSurveyContent`):
   calls `GET .../my-survey/status` first; if already `submitted`, shows
   a read-only "Thank you" card **without** ever fetching or rendering
@@ -367,3 +369,18 @@ or trainee answer review) — flagged here for M6+ prioritization.
   remains the authority and still returns 422 for out-of-range values.
 - `/[locale]/reset-password` is served with `Referrer-Policy: no-referrer`
   because the reset token is in the URL.
+
+## Update (2026-09-26): Day Status vs Survey Status on day cards
+
+The training-day lifecycle status and the user's own survey/report status
+are two different things (`training.day.state` vs the response state; see
+the API fields `state` and `survey`/`trainer_report`, unchanged). Day
+cards now show them separately: `DayStatus` ("Day Status" / "حالة اليوم")
+in the card header, and `SurveyStatusGroup` ("Survey Status" / "حالة
+الاستبيان", or "Report Status" for trainers) grouped with the action in
+the body. The action is driven only by the server's `can_submit` and the
+submitted state (Open / Continue / View); when the survey cannot be acted
+on, a muted hint replaces the link and the day status only selects the hint
+wording. No business rule is derived in the frontend. The TS types were
+renamed to `TrainingDayStatus` and `SurveyResponseStatus` (DTO field names
+unchanged).

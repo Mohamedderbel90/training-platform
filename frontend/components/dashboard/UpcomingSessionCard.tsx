@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { DayStatus } from "@/components/DayCard";
 import { ClockIcon, PersonIcon } from "@/components/icons";
 import { formatSessionDateParts, formatTimeRange } from "@/lib/dashboard/format";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -67,11 +68,11 @@ function UpcomingSessionThumb({ label }: { label: string }) {
  * rather than invented). */
 export function UpcomingSessionCard({
   entry,
-  statusBadge,
+  surveyGroup,
   action,
 }: {
   entry: DashboardEntryDto | null;
-  statusBadge?: ReactNode;
+  surveyGroup?: ReactNode;
   action?: ReactNode;
 }) {
   const t = useTranslations("Dashboard");
@@ -100,7 +101,7 @@ export function UpcomingSessionCard({
     <section className="card upcoming-session">
       <div className="upcoming-session__title-row">
         <h2 className="card__title">{t("upcomingSessionTitle")}</h2>
-        {statusBadge}
+        <DayStatus status={entry.state} />
       </div>
       <div className="upcoming-session__body">
         {dateParts ? (
@@ -128,6 +129,7 @@ export function UpcomingSessionCard({
               </span>
             ) : null}
           </p>
+          {surveyGroup}
           {action ? <div className="button-row button-row--tight">{action}</div> : null}
         </div>
       </div>

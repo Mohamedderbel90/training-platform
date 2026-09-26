@@ -21,11 +21,11 @@ export interface OperationalProfile {
   tz?: string | null;
 }
 
-export type ResponseState = "not_started" | "in_progress" | "submitted";
+export type SurveyResponseStatus = "not_started" | "in_progress" | "submitted";
 
 export interface SurveyStatusDto {
   response_id: number;
-  state: ResponseState;
+  state: SurveyResponseStatus;
   submitted_at: string | null;
   editable: boolean;
 }
@@ -110,7 +110,7 @@ export interface AttendanceSummaryDto {
   complete: boolean;
 }
 
-export type TrainingDayState =
+export type TrainingDayStatus =
   | "planned"
   | "open"
   | "closed"
@@ -131,7 +131,7 @@ export interface DashboardEntryDto {
   program_name: string;
   start_datetime: string | null;
   end_datetime: string | null;
-  state: TrainingDayState;
+  state: TrainingDayStatus;
   survey_open_at: string | null;
   survey_close_at: string | null;
   // Role-specific (see training_day.py `_build_dashboard_entry`):

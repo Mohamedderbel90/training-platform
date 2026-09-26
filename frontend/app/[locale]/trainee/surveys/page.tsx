@@ -2,12 +2,11 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
 import { LoadingState, EmptyState } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
-import { DayCard, SurveyAvailabilityBadge } from "@/components/DayCard";
+import { DayCard, SurveyStatusGroup } from "@/components/DayCard";
 import { DaySection } from "@/components/DaySection";
 import { PageHeader } from "@/components/PageHeader";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -34,14 +33,13 @@ function TraineeSurveysContent() {
 
   const days = data?.days ?? [];
 
-  const renderCard = (entry: (typeof days)[number], action: string | null) => (
+  const renderCard = (entry: (typeof days)[number]) => (
     <DayCard key={entry.training_day_id} entry={entry}>
-      <SurveyAvailabilityBadge availability={entry.survey} />
-      {action ? (
-        <Link className="button button--secondary" href={`/trainee/${entry.training_day_id}`}>
-          {action}
-        </Link>
-      ) : null}
+      <SurveyStatusGroup
+        availability={entry.survey}
+        dayStatus={entry.state}
+        href={`/trainee/${entry.training_day_id}`}
+      />
     </DayCard>
   );
 
@@ -58,13 +56,13 @@ function TraineeSurveysContent() {
             count={groups.available.length}
             emptyMessage={p("surveysEmptyAvailable")}
           >
-            {groups.available.map((e) => renderCard(e, t("openSurvey")))}
+            {groups.available.map(renderCard)}
           </DaySection>
           <DaySection title={p("surveysSubmitted")} count={groups.submitted.length}>
-            {groups.submitted.map((e) => renderCard(e, t("viewSurvey")))}
+            {groups.submitted.map(renderCard)}
           </DaySection>
           <DaySection title={p("surveysUnavailable")} count={groups.unavailable.length}>
-            {groups.unavailable.map((e) => renderCard(e, null))}
+            {groups.unavailable.map(renderCard)}
           </DaySection>
         </>
       )}

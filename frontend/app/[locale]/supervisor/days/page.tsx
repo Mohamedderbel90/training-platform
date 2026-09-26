@@ -8,7 +8,7 @@ import { dashboardApi } from "@/lib/api/endpoints";
 import { useApiResource } from "@/lib/api/useApiResource";
 import { LoadingState, EmptyState } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
-import { DayCard, SurveyAvailabilityBadge } from "@/components/DayCard";
+import { DayCard, SurveyStatusGroup } from "@/components/DayCard";
 import { PageHeader } from "@/components/PageHeader";
 
 /** The full training-day list, moved here (unchanged) from what used
@@ -52,18 +52,12 @@ function SupervisorDaysContent() {
                 >
                   {t("manageAttendance")}
                 </Link>
-                <span>
-                  <SurveyAvailabilityBadge availability={entry.survey} />
-                </span>
-                <Link
-                  className="button button--secondary"
-                  href={`/supervisor/${entry.training_day_id}/survey`}
-                >
-                  {entry.survey?.response?.state === "submitted"
-                    ? t("viewSurvey")
-                    : t("openSurvey")}
-                </Link>
               </div>
+              <SurveyStatusGroup
+                availability={entry.survey}
+                dayStatus={entry.state}
+                href={`/supervisor/${entry.training_day_id}/survey`}
+              />
             </DayCard>
           ))}
         </div>

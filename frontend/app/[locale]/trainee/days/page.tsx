@@ -2,13 +2,12 @@
 
 import { useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { dashboardApi } from "@/lib/api/endpoints";
 import { useApiResource } from "@/lib/api/useApiResource";
 import { LoadingState, EmptyState } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
-import { DayCard, SurveyAvailabilityBadge } from "@/components/DayCard";
+import { DayCard, SurveyStatusGroup } from "@/components/DayCard";
 import { PageHeader } from "@/components/PageHeader";
 
 /** The full training-day list, moved here (unchanged) from what used
@@ -36,15 +35,11 @@ function TraineeDaysContent() {
         <div className="card-list">
           {days.map((entry) => (
             <DayCard key={entry.training_day_id} entry={entry}>
-              <SurveyAvailabilityBadge availability={entry.survey} />
-              <Link
-                className="button button--secondary"
+              <SurveyStatusGroup
+                availability={entry.survey}
+                dayStatus={entry.state}
                 href={`/trainee/${entry.training_day_id}`}
-              >
-                {entry.survey?.response?.state === "submitted"
-                  ? t("viewSurvey")
-                  : t("openSurvey")}
-              </Link>
+              />
             </DayCard>
           ))}
         </div>

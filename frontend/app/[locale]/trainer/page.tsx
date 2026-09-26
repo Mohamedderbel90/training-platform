@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
@@ -15,7 +14,7 @@ import {
 } from "@/lib/dashboard/derive";
 import { LoadingState } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
-import { SurveyAvailabilityBadge } from "@/components/DayCard";
+import { SurveyStatusGroup } from "@/components/DayCard";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { StatCards } from "@/components/dashboard/StatCards";
 import { UpcomingSessionCard } from "@/components/dashboard/UpcomingSessionCard";
@@ -58,16 +57,14 @@ function TrainerDashboardContent() {
       <div className="dashboard-grid">
         <UpcomingSessionCard
           entry={nextEntry}
-          statusBadge={
-            nextEntry ? <SurveyAvailabilityBadge availability={nextEntry.trainer_report} /> : null
-          }
-          action={
+          surveyGroup={
             nextEntry ? (
-              <Link className="button" href={`/trainer/${nextEntry.training_day_id}`}>
-                {nextEntry.trainer_report?.response?.state === "submitted"
-                  ? t("viewReport")
-                  : t("openReport")}
-              </Link>
+              <SurveyStatusGroup
+                kind="report"
+                availability={nextEntry.trainer_report}
+                dayStatus={nextEntry.state}
+                href={`/trainer/${nextEntry.training_day_id}`}
+              />
             ) : null
           }
         />

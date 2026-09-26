@@ -2,12 +2,11 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
 import { LoadingState, EmptyState } from "@/components/StateViews";
 import { ApiErrorView } from "@/components/ApiErrorView";
-import { DayCard, SurveyAvailabilityBadge } from "@/components/DayCard";
+import { DayCard, SurveyStatusGroup } from "@/components/DayCard";
 import { DaySection } from "@/components/DaySection";
 import { PageHeader } from "@/components/PageHeader";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -33,14 +32,14 @@ function TrainerReportsContent() {
   if (status === "loading") return <LoadingState label={t("loading")} />;
   if (status === "error" && error) return <ApiErrorView error={error} onRetry={reload} />;
 
-  const renderCard = (entry: DashboardEntryDto, action: string | null) => (
+  const renderCard = (entry: DashboardEntryDto) => (
     <DayCard key={entry.training_day_id} entry={entry}>
-      <SurveyAvailabilityBadge availability={entry.trainer_report} />
-      {action ? (
-        <Link className="button button--secondary" href={`/trainer/${entry.training_day_id}`}>
-          {action}
-        </Link>
-      ) : null}
+      <SurveyStatusGroup
+        kind="report"
+        availability={entry.trainer_report}
+        dayStatus={entry.state}
+        href={`/trainer/${entry.training_day_id}`}
+      />
     </DayCard>
   );
 
@@ -54,13 +53,13 @@ function TrainerReportsContent() {
       ) : (
         <>
           <DaySection title={p("reportsPending")} count={groups.pending.length}>
-            {groups.pending.map((e) => renderCard(e, t("openReport")))}
+            {groups.pending.map(renderCard)}
           </DaySection>
           <DaySection title={p("reportsSubmitted")} count={groups.submitted.length}>
-            {groups.submitted.map((e) => renderCard(e, t("viewReport")))}
+            {groups.submitted.map(renderCard)}
           </DaySection>
           <DaySection title={p("reportsUnavailable")} count={groups.unavailable.length}>
-            {groups.unavailable.map((e) => renderCard(e, null))}
+            {groups.unavailable.map(renderCard)}
           </DaySection>
         </>
       )}
