@@ -46,3 +46,28 @@ export function errorTitleKey(error: ApiError): string {
 export function clientOnlyMessageKey(error: ApiError): string {
   return error.code === "NETWORK_ERROR" ? "network" : "badResponse";
 }
+
+/** Translation key (under "Errors") for the friendly body text used when
+ * the server's own message must not be shown verbatim: session expiry,
+ * server-side failures and unknown codes. Returns null when the
+ * server's already-localized message is appropriate (403/404/validation/
+ * conflict/rate limit -- those are deliberate, user-facing messages). */
+export function friendlyMessageKey(error: ApiError, variant: "page" | "form" = "page"): string | null {
+  switch (error.code) {
+    case "UNAUTHENTICATED":
+      return variant === "page" ? "sessionExpiredMessage" : null;
+    case "INTERNAL_ERROR":
+      return "internalMessage";
+    case "FORBIDDEN":
+    case "NOT_FOUND":
+    case "VALIDATION_ERROR":
+    case "CONFLICT":
+    case "RATE_LIMITED":
+      return null;
+    case "NETWORK_ERROR":
+    case "BAD_RESPONSE":
+      return clientOnlyMessageKey(error);
+    default:
+      return error.status >= 500 ? "internalMessage" : null;
+  }
+}

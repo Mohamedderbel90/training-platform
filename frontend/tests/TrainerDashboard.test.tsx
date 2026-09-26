@@ -111,7 +111,7 @@ describe("Trainer dashboard homepage", () => {
     );
     renderWithIntl(<TrainerDashboardPage />);
 
-    await waitFor(() => expect(screen.getByText("An unexpected error occurred.")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Something went wrong on our side. Please try again in a moment.")).toBeInTheDocument());
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
   });
 });

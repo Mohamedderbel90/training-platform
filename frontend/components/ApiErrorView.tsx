@@ -3,10 +3,10 @@
 import { useTranslations } from "next-intl";
 import type { ApiError } from "@/lib/api/client";
 import {
-  clientOnlyMessageKey,
   errorTitleKey,
-  isClientOnlyError,
+  friendlyMessageKey,
 } from "@/lib/api/errorMessages";
+import { Link } from "@/i18n/navigation";
 import { ErrorState } from "./StateViews";
 
 /** Renders any ApiError consistently across the app (M5 point 9): a
@@ -17,24 +17,36 @@ import { ErrorState } from "./StateViews";
 export function ApiErrorView({
   error,
   onRetry,
+  variant = "page",
 }: {
   error: ApiError;
   onRetry?: () => void;
+  /** `form` is for credential/form surfaces (login, password reset,
+   * survey submit) where a 401 or 4xx carries a deliberate, localized
+   * server message and "session expired" would be wrong. */
+  variant?: "page" | "form";
 }) {
   const t = useTranslations("Errors");
   const tc = useTranslations("Common");
   const title = t(errorTitleKey(error));
-  const message = isClientOnlyError(error)
-    ? t(clientOnlyMessageKey(error))
-    : error.message;
+  const friendlyKey = friendlyMessageKey(error, variant);
+  const message = friendlyKey ? t(friendlyKey) : error.message || t("genericMessage");
+  const expired = variant === "page" && error.code === "UNAUTHENTICATED";
 
   return (
     <ErrorState
       title={title}
       message={message}
       requestId={error.requestId}
-      actionLabel={onRetry ? tc("retry") : undefined}
+      actionLabel={onRetry && !expired ? tc("retry") : undefined}
       onAction={onRetry}
+      action={
+        expired ? (
+          <Link className="button" href="/login">
+            {t("signIn")}
+          </Link>
+        ) : undefined
+      }
     />
   );
 }

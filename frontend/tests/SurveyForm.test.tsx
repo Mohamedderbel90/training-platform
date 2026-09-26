@@ -2,6 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import { screen, fireEvent, within } from "@testing-library/react";
 import { renderWithIntl } from "./testUtils";
 import { SurveyForm } from "@/components/SurveyForm";
+
+vi.mock("@/i18n/navigation", () => import("./mocks/i18nNavigation"));
 import type { SurveyDefinitionDto } from "@/lib/api/types";
 
 const definition: SurveyDefinitionDto = {

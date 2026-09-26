@@ -118,7 +118,15 @@
     "titleInternal": "Something went wrong",
     "titleGeneric": "Error",
     "network": "Unable to reach the server. Check your connection and try again.",
-    "badResponse": "The server returned an unexpected response. Please try again."
+    "badResponse": "The server returned an unexpected response. Please try again.",
+    "signIn": "Sign in again",
+    "sessionExpiredMessage": "Your session has ended. Please sign in again to continue.",
+    "forbiddenMessage": "Your account does not have permission to view this.",
+    "notFoundStateMessage": "We could not find what you were looking for. It may have been removed or moved.",
+    "validationMessage": "Please review the information and try again.",
+    "internalMessage": "Something went wrong on our side. Please try again in a moment.",
+    "genericMessage": "An unexpected problem occurred. Please try again.",
+    "reference": "Reference"
   },
   "Dashboard": {
     "loading": "Loading your training days...",
@@ -151,7 +159,14 @@
     "sectionReport": "Report",
     "continueSurvey": "Continue survey",
     "continueReport": "Continue report",
-    "hint": {"notConfigured": "Not configured yet", "planned": "Not available yet", "open": "Not available right now", "closed": "The day is closed", "postponed": "The day is postponed", "cancelled": "The day is cancelled"},
+    "hint": {
+      "notConfigured": "Not configured yet",
+      "planned": "Not available yet",
+      "open": "Not available right now",
+      "closed": "The day is closed",
+      "postponed": "The day is postponed",
+      "cancelled": "The day is cancelled"
+    },
     "openSurvey": "Open survey",
     "viewSurvey": "View survey",
     "openReport": "Open report",
@@ -281,5 +296,28 @@
     "reportsUnavailable": "Not available",
     "sectionEmpty": "Nothing to show here.",
     "supervisorSurveyLabel": "Supervisor survey"
+  },
+  "Ui": {
+    "searchLabel": "Search",
+    "searchPlaceholder": "Search...",
+    "clearSearch": "Clear search",
+    "filters": "Filters",
+    "clearFilters": "Clear filters",
+    "activeFilters": "{count, plural, one {# active filter} other {# active filters}}",
+    "activeFiltersList": "Active filters",
+    "removeFilter": "Remove filter: {label}",
+    "resultCount": "{count, plural, =0 {No results} one {# result} other {# results}}",
+    "sortBy": "Sort by",
+    "paginationLabel": "Pagination",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "pageOf": "Page {page} of {pageCount}",
+    "pageSize": "Items per page",
+    "loading": "Loading...",
+    "noResultsFor": "No results for “{query}”",
+    "noResults": "No results found",
+    "noResultsHint": "Check the spelling or try a different search.",
+    "noFilterMatch": "No items match the selected filters",
+    "noFilterMatchHint": "Try removing a filter to see more items."
   }
 }

@@ -105,7 +105,7 @@ function ResetPasswordForm() {
       <h1>{t("resetTitle")}</h1>
       <p className="auth-card__subtitle">{t("resetSubtitle")}</p>
 
-      {error ? <ApiErrorView error={error} /> : null}
+      {error ? <ApiErrorView error={error} variant="form" /> : null}
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="field field--icon" data-invalid={Boolean(passwordFieldErrors.length)}>

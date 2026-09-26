@@ -53,6 +53,6 @@ describe("ForgotPasswordPage", () => {
     await userEvent.type(screen.getByLabelText("Username"), "dev_trainee");
     fireEvent.click(screen.getByRole("button", { name: "Send reset link" }));
 
-    expect(await screen.findByText("An unexpected error occurred.")).toBeInTheDocument();
+    expect(await screen.findByText("Something went wrong on our side. Please try again in a moment.")).toBeInTheDocument();
   });
 });

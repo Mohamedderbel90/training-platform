@@ -286,3 +286,11 @@ export function SurveyIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   );
 }
+
+export function FilterIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M3.5 5h13M6 10h8M8.5 15h3" />
+    </Icon>
+  );
+}

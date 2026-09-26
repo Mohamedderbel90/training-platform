@@ -3,6 +3,7 @@
 import { useId, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { StatusBadge, type StatusTone } from "@/components/StatusBadge";
 import { formatDate } from "@/lib/dashboard/format";
 import type {
   DashboardEntryDto,
@@ -11,16 +12,16 @@ import type {
   TrainingDayStatus,
 } from "@/lib/api/types";
 
-function dayStatusBadgeClass(status: TrainingDayStatus): string {
+function dayStatusTone(status: TrainingDayStatus): StatusTone {
   switch (status) {
     case "open":
-      return "badge badge--success";
+      return "success";
     case "postponed":
-      return "badge badge--warning";
+      return "warning";
     case "cancelled":
-      return "badge badge--danger";
+      return "danger";
     default:
-      return "badge";
+      return "neutral";
   }
 }
 
@@ -32,7 +33,7 @@ export function DayStatus({ status }: { status: TrainingDayStatus }) {
     <dl className="status-line status-line--day" aria-label={t("sectionTrainingDay")}>
       <dt>{t("dayStatusLabel")}</dt>
       <dd>
-        <span className={dayStatusBadgeClass(status)}>{t(`dayState.${status}`)}</span>
+        <StatusBadge tone={dayStatusTone(status)}>{t(`dayState.${status}`)}</StatusBadge>
       </dd>
     </dl>
   );
@@ -62,12 +63,12 @@ export function DayCard({ entry, children }: { entry: DashboardEntryDto; childre
 
 export type AvailabilityKind = "survey" | "report";
 
-function availabilityBadgeClass(availability?: SurveyAvailabilityDto): string {
-  if (!availability?.configured) return "badge";
+function availabilityTone(availability?: SurveyAvailabilityDto): StatusTone {
+  if (!availability?.configured) return "neutral";
   const status: SurveyResponseStatus | undefined = availability.response?.state;
-  if (status === "submitted") return "badge badge--success";
-  if (status === "in_progress") return "badge badge--warning";
-  return "badge";
+  if (status === "submitted") return "success";
+  if (status === "in_progress") return "warning";
+  return "neutral";
 }
 
 /** Status pill for a role's survey/report availability. */
@@ -77,7 +78,7 @@ export function SurveyAvailabilityBadge({ availability }: { availability?: Surve
   const label = !availability.configured
     ? t("surveyState.notConfigured")
     : t(`surveyState.${availability.response?.state ?? "not_started"}`);
-  return <span className={availabilityBadgeClass(availability)}>{label}</span>;
+  return <StatusBadge tone={availabilityTone(availability)}>{label}</StatusBadge>;
 }
 
 /** The secondary, personal-progress group of a day card: "Survey /
@@ -134,10 +135,9 @@ export function SurveyStatusGroup({
       <dl className="status-line">
         <dt>{t(isReport ? "reportStatusLabel" : "surveyStatusLabel")}</dt>
         <dd>
-          <span className={availabilityBadgeClass(availability)}>
+          <StatusBadge tone={availabilityTone(availability)} icon={submitted ? " ✓" : undefined}>
             {!availability.configured ? t("surveyState.notConfigured") : t(`surveyState.${responseStatus}`)}
-            {submitted ? <span aria-hidden="true"> ✓</span> : null}
-          </span>
+          </StatusBadge>
         </dd>
       </dl>
       {action}

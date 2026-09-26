@@ -118,7 +118,7 @@ describe("Trainee survey submit error mapping", () => {
       .mockResolvedValueOnce(definition);
 
     renderWithIntl(<TraineeSurveyContent dayId={1} />);
-    expect(await screen.findByText("Boom")).toBeInTheDocument();
+    expect(await screen.findByText("Something went wrong on our side. Please try again in a moment.")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
 

@@ -117,7 +117,7 @@ function LoginForm() {
       <h1>{t("title")}</h1>
       <p className="auth-card__subtitle">{t("subtitle")}</p>
 
-      {error ? <ApiErrorView error={error} /> : null}
+      {error ? <ApiErrorView error={error} variant="form" /> : null}
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="field field--icon" data-invalid={Boolean(fieldErrors.login)}>

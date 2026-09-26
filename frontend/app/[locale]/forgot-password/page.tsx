@@ -77,7 +77,7 @@ function ForgotPasswordForm() {
       <h1>{t("forgotTitle")}</h1>
       <p className="auth-card__subtitle">{t("forgotSubtitle")}</p>
 
-      {error ? <ApiErrorView error={error} /> : null}
+      {error ? <ApiErrorView error={error} variant="form" /> : null}
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="field field--icon" data-invalid={Boolean(error?.fields?.login)}>
