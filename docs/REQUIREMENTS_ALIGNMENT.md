@@ -148,7 +148,7 @@ Each entry keeps the older text visible as historical rather than deleting it.
   requirement is missing (FR/BR/D identifiers are contiguous).
 - **R11 - Next.js navigation.** UI Flow section 12 lists a shorter sidebar
   per role. ADR-011 (accepted) sets the current sidebar (adds "Training
-  Program" for trainees) and the routes `/trainee/surveys`,
+  Program" for trainees) and the routes
   `/trainee/program`, `/supervisor/evaluations`, `/trainer/reports`.
   ADR-011 supersedes UI Flow 12 for navigation. The trainee "Training
   Program" page is a display of already-supplied data and is not a BRD

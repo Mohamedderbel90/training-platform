@@ -35,7 +35,6 @@
       "supervisor": "مشرفة",
       "trainer": "مدربة"
     },
-    "mySurveys": "استبياناتي",
     "program": "البرنامج التدريبي",
     "attendanceEvaluation": "الحضور والتقييم",
     "myReports": "تقاريري",
@@ -313,12 +312,6 @@
     "timezoneLabel": "المنطقة الزمنية"
   },
   "Pages": {
-    "surveysTitle": "استبياناتي",
-    "surveysSubtitle": "أكمل استبيانات أيامك التدريبية.",
-    "surveysAvailable": "متاحة للتعبئة",
-    "surveysSubmitted": "تم إرسالها",
-    "surveysUnavailable": "غير متاحة",
-    "surveysEmptyAvailable": "لا توجد استبيانات بانتظارك.",
     "programTitle": "البرنامج التدريبي",
     "programSubtitle": "برنامجك الحالي والدورات التابعة له.",
     "programEmptyTitle": "لا يوجد برنامج بعد",

@@ -35,6 +35,17 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // The trainee "My Surveys" page was retired: survey access lives on
+  // Training Days. Keep old bookmarks working.
+  async redirects() {
+    return [
+      {
+        source: "/:locale(ar|en)/trainee/surveys",
+        destination: "/:locale/trainee/days",
+        permanent: false,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

@@ -23,7 +23,6 @@ import {
   LogoutIcon,
   MenuIcon,
   PersonIcon,
-  SurveyIcon,
   UsersIcon,
 } from "@/components/icons";
 
@@ -38,7 +37,6 @@ const ROLE_ICON: Record<OperationalRole, typeof HomeIcon> = {
 const NAV_ICON: Record<RoleNavKey, typeof HomeIcon> = {
   dashboard: HomeIcon,
   trainingDays: CalendarIcon,
-  mySurveys: SurveyIcon,
   program: BookIcon,
   attendanceEvaluation: CheckIcon,
   myReports: ClipboardIcon,

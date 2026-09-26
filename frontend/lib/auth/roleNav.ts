@@ -6,7 +6,7 @@ import { ROLE_HOME } from "@/lib/auth/roleHome";
  * the approved sidebar's visual design stays exactly as it is and only
  * its item list comes from here.
  *
- * - Trainee: Dashboard, Training Days, My Surveys, Training Program
+ * - Trainee: Dashboard, Training Days, Training Program
  * - Supervisor: Dashboard, Training Days, Attendance & Evaluation
  * - Trainer: Dashboard, Training Days, My Reports
  * - Everyone: Profile (ACCOUNT_NAV), then Logout (rendered by AppShell)
@@ -21,7 +21,6 @@ import { ROLE_HOME } from "@/lib/auth/roleHome";
 export type RoleNavKey =
   | "dashboard"
   | "trainingDays"
-  | "mySurveys"
   | "program"
   | "attendanceEvaluation"
   | "myReports"
@@ -35,17 +34,16 @@ export interface RoleNavItem {
   exact?: boolean;
   /** Extra nested routes that belong under this item even though they
    * don't share its href prefix, e.g. the trainee survey form
-   * `/trainee/12` sits under "My Surveys". */
+   * `/trainee/12` sits under "Training Days". */
   alsoActiveOn?: RegExp[];
 }
 
 export const ROLE_NAV: Record<OperationalRole, RoleNavItem[]> = {
   trainee: [
     { key: "dashboard", href: ROLE_HOME.trainee, exact: true },
-    { key: "trainingDays", href: `${ROLE_HOME.trainee}/days` },
     {
-      key: "mySurveys",
-      href: `${ROLE_HOME.trainee}/surveys`,
+      key: "trainingDays",
+      href: `${ROLE_HOME.trainee}/days`,
       alsoActiveOn: [/^\/trainee\/\d+\/?$/],
     },
     { key: "program", href: `${ROLE_HOME.trainee}/program` },

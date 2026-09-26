@@ -8,7 +8,7 @@
 
 The approved sidebar showed only "Dashboard" and "Training Days" per
 role. The product needs a per-role item list (Trainee: Dashboard,
-Training Days, My Surveys, Training Program; Supervisor: Dashboard,
+Training Days, Training Program; Supervisor: Dashboard,
 Training Days, Attendance & Evaluation; Trainer: Dashboard, Training
 Days, My Reports; everyone: Profile, then Logout) without redesigning
 the approved sidebar, and the pages behind those items need data the
@@ -45,7 +45,7 @@ dashboard summary did not yet carry.
   renders it and the sidebar's visual design is unchanged. This is
   presentation only: each destination route enforces its role through
   `ProtectedRoute` and Odoo enforces the real permissions.
-- New routes: `/trainee/surveys`, `/trainee/program`,
+- New routes: `/trainee/program`,
   `/supervisor/evaluations`, `/trainer/reports`. They reuse
   `useDashboardSummary`; no new business rules are computed client
   side beyond grouping already-supplied status fields for display.
@@ -85,3 +85,11 @@ if product wants different wording.
   their content and channels are approved.
 - `dashboardApi.getDay()` exists in the API client but no page calls it
   yet; it is available for a future per-day view.
+
+## Amendment: My Surveys retired
+
+The trainee "My Surveys" item and `/trainee/surveys` page duplicated the survey
+status and actions already on each Training Day card, so they were removed.
+Survey access is via Training Days (`/trainee/days`, form at `/trainee/{dayId}`).
+`/{locale}/trainee/surveys` redirects to `/{locale}/trainee/days`. Backend and
+API are unchanged.

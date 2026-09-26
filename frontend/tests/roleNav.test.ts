@@ -6,7 +6,6 @@ describe("ROLE_NAV destinations", () => {
     expect(ROLE_NAV.trainee.map((i) => i.href)).toEqual([
       "/trainee",
       "/trainee/days",
-      "/trainee/surveys",
       "/trainee/program",
     ]);
     expect(ROLE_NAV.supervisor.map((i) => i.href)).toContain("/supervisor/evaluations");
@@ -14,9 +13,10 @@ describe("ROLE_NAV destinations", () => {
   });
 
   it("marks nested and related routes active", () => {
-    const surveys = ROLE_NAV.trainee[2];
-    expect(isNavItemActive(surveys, "/trainee/surveys")).toBe(true);
-    expect(isNavItemActive(surveys, "/trainee/12")).toBe(true);
+    const days = ROLE_NAV.trainee[1];
+    expect(isNavItemActive(days, "/trainee/days")).toBe(true);
+    expect(isNavItemActive(days, "/trainee/12")).toBe(true);
+    expect(ROLE_NAV.trainee.some((i) => i.href === "/trainee/surveys")).toBe(false);
     expect(isNavItemActive(ROLE_NAV.trainee[0], "/trainee/program")).toBe(false);
   });
 });

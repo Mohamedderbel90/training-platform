@@ -3,14 +3,13 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithIntl } from "./testUtils";
 import SupervisorDaysPage from "@/app/[locale]/supervisor/days/page";
-import TraineeSurveysPage from "@/app/[locale]/trainee/surveys/page";
 import TrainerDaysPage from "@/app/[locale]/trainer/days/page";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { dashboardApi } from "@/lib/api/endpoints";
-import { __installUrlSync, __setMockPathname, replace } from "./mocks/i18nNavigation";
+import { __installUrlSync, __setMockPathname } from "./mocks/i18nNavigation";
 import { __getMockSearchParams, __setMockSearchParams } from "./mocks/nextNavigation";
 import type { DashboardEntryDto, DashboardResponseDto } from "@/lib/api/types";
-import { makeDays, makeEntry, notConfigured, notStarted, submitted } from "./listFixtures";
+import { makeDays, notStarted } from "./listFixtures";
 
 vi.mock("@/i18n/navigation", () => import("./mocks/i18nNavigation"));
 vi.mock("next/navigation", () => import("./mocks/nextNavigation"));
@@ -182,40 +181,5 @@ describe("trainer days uses the Report Status label", () => {
     expect(screen.getByLabelText("Report Status")).toBeInTheDocument();
     expect(screen.queryByLabelText("Survey Status")).not.toBeInTheDocument();
     expect(screen.queryByRole("combobox", { name: "Attendance" })).not.toBeInTheDocument();
-  });
-});
-
-describe("grouped list page (trainee surveys)", () => {
-  it("keeps grouping, applies filters inside groups and hides empty groups", async () => {
-    const user = userEvent.setup();
-    mockAuth("trainee");
-    __setMockPathname("/trainee/surveys");
-    const days = [
-      ...[1, 2, 3].map((i) => makeEntry({ training_day_id: i, course_name: `Open ${i}`, survey: notStarted })),
-      ...[4, 5, 6].map((i) => makeEntry({ training_day_id: i, course_name: `Done ${i}`, survey: submitted })),
-      ...[7, 8].map((i) => makeEntry({ training_day_id: i, course_name: `Closed ${i}`, survey: notConfigured, state: "closed" })),
-    ];
-    vi.mocked(dashboardApi.get).mockResolvedValue(summary(days));
-    renderWithIntl(<TraineeSurveysPage />);
-    await screen.findAllByRole("article");
-    expect(screen.getByRole("heading", { level: 2, name: /Available to complete/ })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: /Submitted/ })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: /Not available/ })).toBeInTheDocument();
-    expect(screen.getByText("8 training days")).toBeInTheDocument();
-
-    await user.selectOptions(screen.getByLabelText("Survey Status"), "submitted");
-    expect(await screen.findByText("3 of 8 training days")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: /Submitted/ })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { level: 2, name: /Available to complete/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { level: 2, name: /Not available/ })).not.toBeInTheDocument();
-    expect(cardTitles().some((t) => t.startsWith("Open"))).toBe(false);
-    expect(screen.queryByRole("navigation", { name: "Pagination" })).not.toBeInTheDocument();
-
-    await user.type(screen.getByRole("searchbox", { name: "Search training days" }), "zzz");
-    expect(await screen.findByText("No results for “zzz”")).toBeInTheDocument();
-    // Only the empty-state title is a heading now; the group headings are gone.
-    expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["No results for “zzz”"]);
-    expect(dashboardApi.get).toHaveBeenCalledTimes(1);
-    expect(replace).toHaveBeenCalled();
   });
 });

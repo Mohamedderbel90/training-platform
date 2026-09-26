@@ -35,7 +35,6 @@
       "supervisor": "Supervisor",
       "trainer": "Trainer"
     },
-    "mySurveys": "My Surveys",
     "program": "Training Program",
     "attendanceEvaluation": "Attendance & Evaluation",
     "myReports": "My Reports",
@@ -313,12 +312,6 @@
     "timezoneLabel": "Time zone"
   },
   "Pages": {
-    "surveysTitle": "My Surveys",
-    "surveysSubtitle": "Complete the surveys for your training days.",
-    "surveysAvailable": "Available to complete",
-    "surveysSubmitted": "Submitted",
-    "surveysUnavailable": "Not available",
-    "surveysEmptyAvailable": "No surveys are waiting for you.",
     "programTitle": "Training Program",
     "programSubtitle": "Your current program and its courses.",
     "programEmptyTitle": "No program yet",
