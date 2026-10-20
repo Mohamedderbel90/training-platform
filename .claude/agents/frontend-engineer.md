@@ -191,7 +191,7 @@ Approved Claude Design work is the visual source of truth.
 
 Current exported reference:
 
-`Sidebar + Header + Trainee Dashboard-html/`
+`design/` (with `design/UI_UX_DESIGN_SPEC.md`; login assets in `noor-login/`)
 
 Also inspect:
 
@@ -267,6 +267,12 @@ Do NOT:
 - create duplicate shared components
 - create duplicate routes
 - introduce a new state-management library without a concrete need
+- invent new workflows, unsupported filters or new KPI calculations
+- change API contracts only for visual convenience
+- redesign approved branding from scratch
+- add fake production data
+- add unnecessary dependencies
+- add animation simply for decoration
 
 ## Design System Requirements
 
@@ -288,6 +294,8 @@ Preserve the approved Nour Qiyada visual system:
 - Header
 - responsive behavior
 - page hierarchy
+
+Keep tables, surfaces, transitions and typography consistent too. Do not create a second design system; extend the existing design tokens and shared styles.
 
 Each page should use the correct UX pattern for its content.
 
@@ -368,8 +376,11 @@ Check:
 - long Arabic/English text
 - button wrapping
 - form usability
+- content priority and card stacking
+- filters, tables and form controls
+- status presentation
 
-Do not simply shrink desktop UI.
+Do not simply shrink desktop UI. Convert layouts when necessary (for example a table to cards) instead of forcing desktop patterns onto mobile.
 
 ## API Integration
 
@@ -398,6 +409,11 @@ Frontend forms should provide:
 - disabled submit while processing
 - success feedback
 - error feedback
+- inline validation with readable errors
+- confirmation for destructive actions
+- draft/resume behavior where supported
+- logical field grouping
+- keyboard usability and mobile readability
 
 Server-side validation remains authoritative.
 
@@ -515,8 +531,10 @@ For design-sensitive tasks:
    - icons
    - gradients
    - responsive behavior
-4. correct visible differences
-5. repeat when needed
+4. identify visible UX/design weaknesses and improve them without changing business logic
+5. check loading, empty and error states in Arabic RTL, English LTR and responsive layouts
+6. run relevant frontend tests/checks
+7. correct visible differences and repeat when needed
 
 Do not claim exact visual fidelity unless it was actually verified.
 
@@ -572,3 +590,37 @@ When finishing a frontend task, report:
 - responsive verification
 - tests/checks run
 - remaining visual differences or risks
+
+## Advanced UI/UX Enhancement Responsibilities
+
+Beyond normal implementation, continuously improve the UI/UX quality of the application: a polished, production-quality frontend that preserves the approved Nour Qiyada identity and all existing business logic.
+
+Proactively review: visual hierarchy, spacing consistency, typography hierarchy, card composition, page density, information grouping, status clarity, hover/focus/disabled/confirmation states, table/list usability, navigation clarity and user feedback (responsive, RTL/LTR, accessibility and the loading/empty/error states are covered above and below).
+
+### Search, Filters, Sorting and Pagination
+
+For any list, table, dashboard section or operational page that can realistically grow, evaluate whether it needs search, filters (date, status, course/program, completion state, trainer/supervisor where supported), sorting, pagination, a result count and clear/reset filters.
+
+Do not add these blindly. Implement them only when they improve real usability and are supported by existing requirements and API data. Prefer server-side filtering and pagination when data volume or correctness requires it. Do not duplicate authoritative backend filtering or business rules in React.
+
+### Professional Data Presentation
+
+Lists and tables must be easy to scan. Where relevant provide a clear column hierarchy, concise status labels, responsive table behavior with mobile-friendly alternatives, empty result states, loading skeletons, pagination controls, filter summaries and search result feedback. Avoid overcrowded interfaces.
+
+### Status and State Clarity
+
+When multiple statuses exist on one screen, never display them as visually identical unexplained badges. Clearly distinguish Training Day status, Survey response status, Attendance status, Report status and Availability/window status, using labels, grouping, hierarchy and contextual placement. Status meaning must never depend on color alone.
+
+### Loading, Empty and Error States
+
+- **Loading:** avoid abrupt or unstable loading. Use skeleton placeholders, structured loading layouts, inline button spinners and progressive loading; minimize layout shift.
+- **Empty:** every meaningful empty state (no training days, surveys, evaluations, reports, search results, notifications) explains why nothing is shown. Show an action only when a valid action exists.
+- **Error:** messages are understandable and actionable: user-friendly text, retry actions, the request ID kept for support/debugging, and distinct handling of authentication, authorization, not-found and validation cases. Never expose stack traces or sensitive backend details.
+
+### Micro-interactions and Animation
+
+Use subtle, professional animation only when it improves usability: hover/focus transitions, button feedback, collapsible filters, modal/dialog transitions, skeleton fade, sidebar and status transitions, small card interactions. Keep motion subtle and fast, respect `prefers-reduced-motion`, never block interaction, and preserve an enterprise feeling.
+
+### Reusable UI Components
+
+When a UX pattern repeats, prefer shared components such as SearchInput, FilterBar, Pagination, StatusBadge, EmptyState, ErrorState, LoadingSkeleton, DataTable, PageHeader, SectionCard and ConfirmDialog. Reuse existing components before creating new ones, and do not over-engineer abstractions.

@@ -5,7 +5,8 @@
 **Version:** 1.1  
 **Date:** 2026-09-14  
 **Source of truth:** `PROJECT_SPEC_v1.1_BILINGUAL.md`  
-**Document authority / open decisions:** `docs/REQUIREMENTS_ALIGNMENT.md`  
+**Document authority / open decisions:** `docs/REQUIREMENTS_ALIGNMENT.md`; decisions `docs/DECISIONS.md`  
+**Status (2026-10-03):** milestones M0-M10 delivered (see ADR-001..ADR-011); the decision follow-ups were implemented on 2026-10-03 (`docs/DECISIONS.md` section 3); only the open items in its section 4 remain.  
 
 This plan breaks implementation into milestones with clear dependencies and acceptance gates. Do not start a milestone whose prerequisite gate is failing.
 
@@ -57,7 +58,6 @@ Implement the project foundation in Odoo.
 - Add `training_management` manifest/dependencies.
 - Define project groups:
   - General Supervisor/Admin
-  - Assistant Admin (optional)
   - Trainee
   - Supervisor
   - Trainer
@@ -122,7 +122,7 @@ Reuse and extend Odoo Survey.
 
 ---
 
-# M3 — Odoo Back-office Operations, Analytics Foundation and Import
+# M3 — Odoo Back-office Operations and Analytics Foundation
 
 ## Scope
 
@@ -131,9 +131,6 @@ Complete administrative workflow before frontend work expands.
 ## Tasks
 
 - Finish menus/actions/search filters/group-bys.
-- Add enrollment import flow:
-  - standard import where enough
-  - preview/validation wizard only if required
 - Implement training-day workflow actions.
 - Implement trainer/supervisor assignment.
 - Implement analytics service/functions:
@@ -147,7 +144,6 @@ Complete administrative workflow before frontend work expands.
 
 ## Tests
 
-- Import duplicate handling.
 - Training-day state transitions.
 - KPI formula tests.
 - Missing-data behavior.

@@ -384,3 +384,13 @@ on, a muted hint replaces the link and the day status only selects the hint
 wording. No business rule is derived in the frontend. The TS types were
 renamed to `TrainingDayStatus` and `SurveyResponseStatus` (DTO field names
 unchanged).
+
+### 12.1 Update 2026-10-03: trainee answer read-back (OPD-01 resolved)
+
+The product owner approved read-only read-back of a trainee's *own* final
+answers. A trainee-only `GET /api/v1/training-days/{day_id}/my-survey/response`
+returns `{definition, status, answers}` for the caller's submitted response
+(ownership via the day record rule, enrolment check and the caller's own
+partner; never a draft, never another trainee's). `my-survey/status` is
+unchanged. The day page renders it with `SurveyForm readOnly`, so no input,
+save or submit action exists. See `docs/REQUIREMENTS_ALIGNMENT.md` 6.B.

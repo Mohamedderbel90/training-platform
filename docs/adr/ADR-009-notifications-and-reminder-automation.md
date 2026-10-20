@@ -291,3 +291,25 @@ PostgreSQL directly.
   value.** No production SLA for reminder latency was specified in
   PROJECT_SPEC; this should be revisited once real usage patterns
   (survey window lengths, number of programs) are known.
+
+## Amendment 2026-10-04
+
+- Configuration moved from `res.config.settings` (needs `base.group_system`) to the General Supervisor form `training.notification.settings` (Training Management > Reminder Settings); same `ir.config_parameter` keys (DEC-26).
+- New `reminder_lead_hours`: 0 keeps the original behaviour (remind from the moment the window opens); N reminds only during the last N hours before `survey_close_at`.
+- SMS and WhatsApp no longer have a simulating "test" mode that reports success: `_deliver_sms` / `_deliver_whatsapp` return a reference only after a real delivery (`sms.sms` state `sent`); otherwise the log is `failed` ("not sent"). WhatsApp has no provider, so it is always `failed` until one exists.
+
+## Amendment 2026-10-04 (2)
+
+Reminder count, interval and channel order are configurable (`reminder_count`, `reminder_interval_hours`, `channel_order`). `training.notification.log` gains `reminder_no`; the uniqueness is now per day, role, recipient, channel, event and reminder number. `_dispatch` runs at most one round per cron run; round N+1 starts only after round N is complete (sent or retries exhausted) and the interval has passed (DEC-26).
+
+## Amendment 2026-10-04 (3)
+
+The configuration is again a native `res.config.settings` page (app "Training Management"), replacing the transient `training.notification.settings` wizard. Values are stored as explicit strings under the same `ir.config_parameter` keys (Odoo's own `config_parameter` fields would delete the key for 0 or False and fall back to the default). `execute()` lets the General Supervisor save without `base.group_system` but applies only the training options; the GS has create/write ACL on `res.config.settings`, so the override is the guard (tested: another setting stays untouched).
+
+## Amendment 2026-10-04 (4)
+
+The page now sits under Training Management > Settings > Settings. `res.config.settings._compute_display_name` is overridden with sudo: core searched `ir.actions.act_window` as the user, so a General Supervisor without technical rights could not open the page (DEC-65).
+
+## Amendment 2026-10-04 (5)
+
+The custom Import Participants and Training Users screens were later removed (2026-10-08); Settings keeps only Settings (DEC-65).

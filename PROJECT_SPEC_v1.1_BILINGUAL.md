@@ -13,7 +13,7 @@
 
 > This file is the implementation source of truth for AI coding and engineering. If an older BRD/SRS/ERD/API/UI document conflicts with this file on architecture, model naming, interface ownership, or implementation boundaries, this file takes precedence. Business requirements remain governed by the latest approved BRD.
 
-> **Document authority and open decisions:** `docs/REQUIREMENTS_ALIGNMENT.md` is the index of which document governs what, the resolved inconsistencies between the older `.docx` sources and this file, the requirements traceability matrix, and the **open product decisions (OPD-xx)**. Where this file says a behaviour is undecided, the decision is tracked there. The `.docx` version labels do not match their file names; use that file's version table.
+> **Document authority and open decisions:** `docs/REQUIREMENTS_ALIGNMENT.md` is the index of which document governs what, the resolved inconsistencies between the older `.docx` sources and this file, the requirements traceability matrix, and the **open product decisions (OPD-xx)**. Where this file says a behaviour is undecided, the decision is tracked there. The `.docx` version labels do not match their file names; use that file's version table. Business decisions that settle conflicts and gaps are in `docs/DECISIONS.md` (DEC-xx); the requirement chain is `docs/TRACEABILITY.md`.
 
 ---
 
@@ -40,7 +40,7 @@ Odoo Back-office owns:
 - Courses.
 - Training days.
 - Trainer/supervisor assignment.
-- Enrollments and participant import.
+- Enrollments.
 - Survey creation/configuration/versioning.
 - Notification templates and schedules.
 - Administrative dashboards and analytics.
@@ -58,7 +58,7 @@ Next.js is used by end users for focused daily tasks:
 - All operational users: login/session/profile/logout.
 - Authorized users may read/download outputs only when explicitly required.
 
-**Do not build in Next.js:** Program CRUD, Course CRUD, Training Day CRUD/configuration, user/role administration, Survey Builder, survey version administration, participant import administration, notification configuration, report approval administration, audit administration, or global settings.
+**Do not build in Next.js:** Program CRUD, Course CRUD, Training Day CRUD/configuration, user/role administration, Survey Builder, survey version administration, notification configuration, report approval administration, audit administration, or global settings.
 
 ## 2.3 Data flow
 
@@ -189,6 +189,7 @@ The following names are canonical for this project. Older document variants such
 - `training.program` 1 -> N `training.course`
 - `training.program` 1 -> N `training.enrollment`
 - `training.course` 1 -> N `training.day`
+- `training.course` has no state field (archive flag only; DEC-31)
 - `training.day` -> one supervisor in v1
 - `training.day` -> one or more trainers
 - `training.day` 1 -> N `training.attendance`
@@ -250,11 +251,9 @@ Can:
 - Configure notifications/settings.
 - Review audit events.
 
-## 7.2 Assistant System Admin (optional)
+## 7.2 (removed)
 
-Primary UI: Odoo Web Client.
-
-Gets only explicitly delegated operational administration. By default cannot approve final reports.
+The optional Assistant System Admin role was removed (DEC-64). The section number is kept so existing references stay stable; the platform has exactly four training roles: General Supervisor (7.1), Trainee, Supervisor and Trainer.
 
 ## 7.3 Trainee
 
@@ -265,7 +264,7 @@ Can:
 - View own training-day tasks.
 - Open own active survey.
 - Submit once.
-- View own submission status.
+- View own submission status and read back her own final answers (read-only).
 
 Cannot:
 
@@ -363,7 +362,6 @@ Recommended submenus:
 - List
 - Form
 - Search
-- Import preview wizard when needed
 
 ### Surveys
 
@@ -396,7 +394,7 @@ Build a custom Odoo client action/dashboard only when standard analysis views ca
 
 ### Configuration
 
-Use `res.config.settings` extension for global configuration. Program-specific settings belong on `training.program`, not global settings.
+Reminder configuration is a native Odoo Settings page ("Training Management" app) opened from Training Management > Settings > Settings; it extends `res.config.settings` but the General Supervisor can open and save it without technical-admin rights (DEC-26, `models/res_config_settings.py`). Program-specific settings belong on `training.program`.
 
 Odoo 19 XML list views must use `<list>`, not legacy `<tree>`.
 
@@ -410,28 +408,28 @@ Odoo 19 XML list views must use `<list>`, not legacy `<tree>`.
 - `/forgot-password`
 - `/reset-password`
 - `/profile`
+- `/help` (includes the support contact), `/terms`, `/privacy` (approved texts, DEC-50, DEC-51; in `frontend/messages/{ar,en}.json` under `Info`)
 
 ## Trainee
 
 - `/trainee` (dashboard)
 - `/trainee/days` (assigned training days list)
-- `/trainee/[dayId]` (day detail — survey open/submit, or read-only confirmation once submitted)
-- `/trainee/surveys` (My Surveys — the trainee's days grouped by survey status)
-- `/trainee/program` (Training Program — program range and per-course breakdown from the dashboard summary)
+- `/trainee/[dayId]` (day detail — survey open/submit, or read-only view once submitted)
 
 Flow:
 
 `Login -> Dashboard -> Open Day -> Survey -> Validate -> Confirm -> Submit -> Odoo state=done -> Success/read-only`
 
+Update 2026-10-03 (OPD-01 resolved by owner instruction): a trainee may read back her own submitted answers read-only. `/trainee/[dayId]` now renders the submitted survey read-only (inputs disabled, no save/submit) from `GET /api/v1/training-days/{day_id}/my-survey/response`; `my-survey/status` is unchanged and still returns no answer content. The historical note follows.
+
 Note: a dedicated `.../survey/result` screen that reads back the trainee's own submitted answers was originally listed here but was never built — the trainee survey status API (`GET .../my-survey/status`) intentionally returns only `{response_id, state, submitted_at, editable}`, never answer content, unlike the trainer report API. The current UI shows a read-only "Thank you, submitted at …" confirmation instead. See ADR-006 §12: closing this gap requires a product decision on whether trainees should be able to read back their own final answers, and is not to be auto-implemented as a defect. Tracked as **OPD-01** in `docs/REQUIREMENTS_ALIGNMENT.md` (no approved source requires or forbids it; "read-only" in the older documents means status/confirmation, not answer read-back).
 
-Sidebar items per role and the four list routes above are defined in ADR-011 (`frontend/lib/auth/roleNav.ts`); ADR-011 supersedes UI Flow section 12 for Next.js navigation. There is no General Supervisor / administrative dashboard in Next.js: administrative dashboards and analytics are Odoo Back-office (section 2.1).
+Sidebar: each role has Dashboard and Training Days, then Profile, Help, Terms and Privacy, and Logout (`frontend/lib/auth/roleNav.ts`, DEC-38). The former `/trainee/surveys`, `/trainee/program`, `/supervisor/evaluations` and `/trainer/reports` pages were folded into Training Days and redirect there; this supersedes UI Flow section 12 and the original ADR-011 item lists. There is no General Supervisor / administrative dashboard in Next.js: administrative dashboards and analytics are Odoo Back-office (section 2.1).
 
 ## Supervisor
 
 - `/supervisor` (dashboard)
 - `/supervisor/days` (assigned training days list)
-- `/supervisor/evaluations` (Attendance & Evaluation — assigned days grouped by what still needs action)
 - `/supervisor/[dayId]/attendance`
 - `/supervisor/[dayId]/survey` (daily evaluation)
 
@@ -443,7 +441,6 @@ Flow:
 
 - `/trainer` (dashboard)
 - `/trainer/days` (assigned training days list)
-- `/trainer/reports` (My Reports — the trainer's days grouped by daily-report status)
 - `/trainer/[dayId]` (daily report — draft/submit, or read-only once submitted)
 
 Flow:
@@ -503,6 +500,7 @@ Implementation transport decision:
 
 - `GET /api/v1/training-days/{day_id}/my-survey`
 - `GET /api/v1/training-days/{day_id}/my-survey/status`
+- `GET /api/v1/training-days/{day_id}/my-survey/response` (own submitted answers, read-only; OPD-01)
 - `POST /api/v1/training-days/{day_id}/my-survey/submit`
 
 Final submit must support idempotency. No trainee `PATCH` endpoint exists after final submission.
@@ -525,6 +523,7 @@ Final submit must support idempotency. No trainee `PATCH` endpoint exists after 
 - `GET /api/v1/dashboard/trainee`
 - `GET /api/v1/dashboard/supervisor`
 - `GET /api/v1/dashboard/trainer`
+  (the three dashboards take an optional `?program_id=`: the header's program selector, DEC-66; the response lists the user's `programs`)
 - `GET /api/v1/dashboard/{trainee|supervisor|trainer}/days/{day_id}` (single day in the dashboard-entry shape; role fixed by the route; added by ADR-011)
 
 ## 10.6 Authorized downloads
@@ -539,7 +538,7 @@ Do not implement Next.js-facing endpoints for:
 - creating/updating/deleting courses
 - creating/updating/configuring training days
 - managing users/roles
-- managing enrollments/import
+- managing enrollments
 - survey builder/version configuration
 - report approval/configuration
 - notification settings
@@ -655,7 +654,9 @@ Rules:
 - One attendance record per trainee/day.
 - Trainee must be enrolled in the program.
 - When `late`, late minutes/time may be recorded.
-- Late counts as present for general attendance rate and separately in late rate.
+- Late counts as present for general attendance rate and separately in late rate. "Late" has no business-defined minute threshold (DEC-06).
+- Attendance is editable only while the day is `open`; correcting a closed day means the General Supervisor reopens it first (DEC-04).
+- Every enrolled trainee needs an explicitly saved status; the UI pre-selects nothing and only chosen rows are saved (DEC-05).
 - Supervisor may only operate on assigned training days.
 
 ---
@@ -678,9 +679,10 @@ Important rules:
 - Analytics logic lives in Odoo services/computed/query layer, not in Next.js.
 - Next.js only displays returned KPI data.
 - Missing data is not treated as zero.
+- Per-response scores are General Supervisor only (DEC-13).
 - Weighted averages must document their denominator/weighting.
 - Same filters must produce the same numbers in dashboard and report.
-- The KPI formulas, their sources and the points still needing owner approval (1..5 mapping, response-rate denominator, trend period, program-level weighting) are tabulated in `docs/REQUIREMENTS_ALIGNMENT.md` section 6.D; do not change a formula without that approval.
+- The KPI definitions (1..5 mapping, response-rate denominator, trend period, program-level weighting, environment indicators, not-held days) are decided in `docs/DECISIONS.md` DEC-16..DEC-22 (analysis in `docs/REQUIREMENTS_ALIGNMENT.md` 6.D); do not change a formula without updating those decisions.
 
 ---
 
@@ -705,6 +707,8 @@ Approval rules:
 - Approved report version is immutable.
 - Re-generation after changes creates a new version.
 - Visual approval stamp/signature is included in PDF.
+- Reports contain the BRD 11.1/11.2 sections (executive summary, strengths/opportunities, day or course comparison with trend, notes and recommendations); each can be hidden before export. Comments carry no identity and are collected only when the General Supervisor generates the report (DEC-15, DEC-23).
+- Environment is reported as two indicators, trainees and supervisor (DEC-21). Cancelled and postponed days are excluded from every KPI (DEC-22).
 - Odoo Sign is optional only if available/licensed and a stronger signature workflow is required.
 
 ---
@@ -754,15 +758,7 @@ Audit records are not editable from normal user interfaces.
 
 ---
 
-# 18. Import and Data Management
-
-Participant import:
-
-- Managed in Odoo Back-office.
-- Prefer Odoo standard import where sufficient.
-- Build a custom preview/validation wizard only for project-specific checks/preview needs.
-- Re-import must not create duplicate users/enrollments.
-- Invalid rows should be reported individually without necessarily rejecting the entire file.
+# 18. Data Management
 
 Data retention:
 
@@ -812,6 +808,9 @@ training_management/
 │   ├── survey_question.py
 │   ├── survey_user_input.py
 │   ├── res_config_settings.py
+│   ├── training_response_correction.py
+│   ├── training_dashboard.py
+│   ├── training_anonymise_wizard.py
 │   └── training_audit_log.py
 ├── controllers/
 │   ├── __init__.py
@@ -832,13 +831,13 @@ training_management/
 │   ├── training_report_views.xml
 │   ├── survey_views.xml
 │   ├── res_config_settings_views.xml
+│   ├── training_response_correction_views.xml
+│   ├── training_dashboard_views.xml
+│   ├── training_anonymise_wizard_views.xml
 │   └── menus.xml
 ├── report/
 │   ├── training_report_actions.xml
 │   └── training_report_templates.xml
-├── wizard/
-│   ├── __init__.py
-│   └── enrollment_import_wizard.py
 ├── data/
 │   ├── mail_templates.xml
 │   └── cron.xml
@@ -996,6 +995,6 @@ No coding agent should guess provider-specific details without configuration or 
 
 # 26. Delivery Sequence
 
-Implementation follows `DEVELOPMENT_PLAN.md` in the same project documentation set.
+Implementation follows `DEVELOPMENT_PLAN_v1.1_BILINGUAL.md` in the same project documentation set (milestones M0-M10 are delivered).
 
 The first coding milestone must start with Odoo addon skeleton, security, verified standard schema smoke tests, and core custom models before building Next.js screens.

@@ -308,3 +308,15 @@ Excel export now honours `show_attendance` and carries the version and
 approval status, matching the PDF. Assistant Admin can generate reports:
 `training.analytics` aggregates through sudo for admin and assistant-admin
 callers only, for aggregate output only.
+
+## Amendment 2026-10-03
+
+`training.report` now also stores a narrative snapshot (`narrative_json`) and three show/hide toggles (`show_summary`, `show_comparison`, `show_comments`): executive summary with strengths/opportunities, day or course comparison with trend, and notes/recommendations (BRD 11.1/11.2, DEC-23). Environment is stored as two indicators: `kpi_environment_score` (trainees) and `kpi_environment_supervisor_score` (DEC-21). Comments are collected only when the General Supervisor generates the report. Everything is rendered in the PDF and the Excel export from the stored snapshot. See `docs/DECISIONS.md`.
+
+## Amendment 2026-10-04
+
+The Assistant Admin no longer has any access to `training.report` (ACL and menu removed) and `action_generate` / `action_export_excel` check for the General Supervisor (DEC-15). The "comments withheld" path of the narrative remains as a defence only.
+
+## Amendment 2026-10-08
+
+The Assistant Admin role was removed (DEC-64): its group, ACL rows and the `training.analytics` branches written for it no longer exist, and only the General Supervisor generates, exports and approves reports. The text above describes the historical state; the report-approval gates in Python remain as defence in depth.

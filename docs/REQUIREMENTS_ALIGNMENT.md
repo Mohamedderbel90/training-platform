@@ -1,6 +1,6 @@
 # Requirements Alignment and Document Authority
 
-- **Date:** 2026-09-25
+- **Date:** 2026-10-03 (first issued 2026-09-25)
 - **Scope:** documentation only. No application code, model, API or UI
   behaviour is changed by this document.
 - **Method:** the five `.docx` sources (BRD, SRS, ERD, API Contract, UI
@@ -10,8 +10,10 @@
   Nothing here closes an open product decision; where a source is silent
   the item is listed in section 6 as **open**.
 
-This file is the single index of *which document governs what*, where the
-documents disagree, and what is still undecided. Read it before treating
+This file is the index of *which document governs what* and where the
+documents disagree. The **decisions** that settle the disagreements are in
+`docs/DECISIONS.md`; the requirement chain and acceptance criteria are in
+`docs/TRACEABILITY.md`; the documentation map is `docs/README.md`. Read it before treating
 any `.docx` as an implementation instruction.
 
 ---
@@ -20,7 +22,7 @@ any `.docx` as an implementation instruction.
 
 | Concern | Governing document | Notes |
 |---|---|---|
-| Business requirements (what and why) | `BRD_Training_Program_Management_System_v1.4_BILINGUAL_RTL.docx` | Internal version label is **1.2 Final**; see 2. Formal sign-off is **not recorded** (OPD-07). |
+| Business requirements (what and why) | `BRD_Training_Program_Management_System_v1.4_BILINGUAL_RTL.docx` | Internal version label is **1.2 Final**; see 2. Approved by the project owner on 2026-10-03 in all three roles (DEC-46); the `.docx` approval table itself is unchanged. |
 | Detailed functional / system requirements | `SRS_Training_Program_Management_System_v1.5_BILINGUAL_RTL.docx` | Internal label **1.2**. Refines the BRD; must not contradict it. |
 | Implementation architecture, ownership boundaries, model names, API conventions | `PROJECT_SPEC_v1.1_BILINGUAL.md` | Wins over older `.docx` on architecture, naming, interface ownership. |
 | Execution roadmap | `DEVELOPMENT_PLAN_v1.1_BILINGUAL.md` | Milestones M0..M10. The milestone list inside the API Contract (M1..M7) is superseded. |
@@ -29,7 +31,9 @@ any `.docx` as an implementation instruction.
 | Data model (business intent) | ERD `.docx` | Field/model *names* are governed by `PROJECT_SPEC` sections 4-6 and ADR-001/002, not by the ERD. |
 | Operational API contract | API Contract `.docx` for intent; `PROJECT_SPEC` section 10-11 for the endpoint list actually allowed | See 5, item R4. |
 | Screens / navigation | UI Flow `.docx` for Odoo menus and screen intent; `PROJECT_SPEC` section 8-9 and ADR-006/011 for the Next.js routes and sidebar actually built | See R11. |
-| Visual design | `Sidebar + Header + Trainee Dashboard-html/` and `noor-login/` (approved exports/assets) | Visual source of truth only; not requirements. |
+| Visual design | `design/` (approved prototype export and `UI_UX_DESIGN_SPEC.md`) and `noor-login/` (approved login assets) | Visual source of truth only; not requirements. |
+| Business decisions settling conflicts and gaps | `docs/DECISIONS.md` | Wins over `.docx` text it supersedes (DEC-xx). |
+| Requirement chain, acceptance criteria | `docs/TRACEABILITY.md` | BRD -> SRS -> ERD -> API -> UI -> code. |
 | Agent working rules | `CLAUDE.md` | Points here for document authority. |
 
 Precedence when documents disagree: latest **explicitly approved** BRD for
@@ -73,33 +77,7 @@ files, ADRs, tests present). They are not a substitute for the QA pass.
 
 ## 4. Traceability matrix
 
-| # | Business requirement | Source(s) | Design / implementation | Status | Action |
-|---|---|---|---|---|---|
-| 1 | 4-month / 16-week program, 2 days/week, 4 h/day, 5 courses (~1 month each) | BRD 3.1, FR-010..013, FR-016 | `training.program/course/day` (ADR-002/004). Week count, days/week, hours/day and course count are configuration data, not enforced rules. | Covered | None. Do not add validation the BRD does not state. |
-| 2a | Trainee: one daily evaluation per day | BRD FR-020..029A, BR-002; SRS-TRN-001..003 | `training.day` survey window, `survey.user_input` final-submit lock, unique per (day, role, partner) (ADR-003, ADR-005) | Covered | None. |
-| 2b | Supervisor: attendance (present/absent/late) + daily evaluation | BRD FR-030..035, BR-006; SRS-SUP | `training.attendance`, supervisor survey (ADR-003/004/007) | Covered | None. |
-| 2c | Trainer: technical observations + daily report, draft then submit | BRD FR-040..044 | Trainer report API, per-trainer response (ADR-003/005) | Covered | None. |
-| 2d | General Supervisor: full monitoring, history, report review/approval | BRD section 6, FR-080..083 | Odoo Back-office (`UI Flow` OD-07..OD-12), record rules | Covered (Odoo) | See 6.A. |
-| 3a | Trainee survey items (trainer, style, interaction, content, material, comprehensiveness, practical value, environment, organisation, facilities, logistics) | BRD FR-021..024 | Question content is authored in Odoo Survey; KPI category mapping on `survey.question` | Not code | Initial question set is not seeded and its approval is a stated SRS readiness gate (OPD-09). |
-| 3b | Supervisor daily evaluation (attendance, absence, lateness, environment, flow) | BRD FR-031..034 | `training.attendance` + Odoo Survey | Covered | None. |
-| 3c | Trainer report (response, notes, recommendations) | BRD FR-041..043 | Odoo Survey via trainer-report API | Covered | None. |
-| 4a | GS dashboard aggregates the three inputs automatically after submit | BRD FR-050, AC-006; SRS-DASH-001 | `training.analytics` computes from source data (ADR-004); Odoo Graph/Pivot views on attendance and survey KPI | Partial | Verified (gap analysis 2026-09-26): the survey KPI view carries `respondent_role`, so supervisor-survey and trainer-report *ratings* appear, and Trainee/Supervisor/Trainer filters were added. Free-text answers are not KPIs and do not appear. |
-| 4b | Day-by-day tracking, cumulative course performance, any of five courses, history | BRD FR-051..056 | Odoo Graph/Pivot + filters; `get_kpi(program, course, day, trainer, dates)` | Partial | Standard views only (permitted by UI Flow 1 / PROJECT_SPEC 8). Bespoke five-course comparison and trend views are not confirmed; see OPD-04 for the undefined trend definition. |
-| 4c | Where the GS dashboard lives | UI Flow 1-3, 14, OD-10; PROJECT_SPEC 2.1; API 11 | Odoo Back-office. No admin dashboard in Next.js. | Covered / resolved | See 6.A and R3. |
-| 5a | Course-end report (trainer, content, environment, attendance/absence) | BRD FR-060/061, 11.1; SRS-RPT-001 | `training.report` (ADR-008): KPI summary + attendance sections, PDF, Excel | Partial | BRD 11.1 also lists executive summary, highest/lowest indicators, qualitative notes and recommendations, day comparison/trend. These sections are **not** in the generated report. |
-| 5b | Final program report (statistics, analysis, filters, show/hide) | BRD FR-062..064, 11.2; SRS-RPT-002 | Same model, `report_type` program | Partial | BRD 11.2 five-course comparison, 16-week trend, strengths/opportunities, recurring recommendations are not generated. Weighting rule needs approval (OPD-04). |
-| 5c | Filters and show/hide | BRD FR-055, FR-063, FR-064 | Filters: report type, program, course, date range. Toggles: five KPI sections (`show_*`). | Ambiguous | Scope of "full flexibility" is undefined; see 6.E. |
-| 5d | PDF and Excel export | BRD FR-065/066, AC-009 | `ir.actions.report` QWeb Arabic RTL PDF, `xlsxwriter` Excel (ADR-008, ADR-010 real render check) | Covered | None. |
-| 5e | Versioning, approval, approver, timestamp, immutability, new version on change | BRD FR-067, FR-080..082, BR-005 | Write-guard lock, `action_new_version()`, `action_approve()`, `training.audit.log` entry (ADR-008) | Covered | BRD marks FR-067/FR-082 "Should" while BR-005 is a rule; treated as required (R6). |
-| 6a | Automated reminders SMS/WhatsApp before survey closes | BRD FR-070..073, D-08; SRS-NTF-001 | `ir.cron` + `training.notification.log`, three channels behind adapters, duplicate-safe (ADR-009) | Partial | No "N hours before close" variant; policy values undefined (6.C). Providers are infrastructure (section 7). |
-| 6b | KPI dashboard: comparisons and trends | BRD FR-053/054 | See 4b | Partial | Same as 4b. |
-| 6c | PDF/Excel export | BRD FR-065/066 | See 5d | Covered | None. |
-| 6d | Electronic approval / "digital signature" | BRD 4.2, 18, FR-083, D-10; SRS-APR-001 | Approved-report PDF carries approver, date/time and visual stamp; no PKI (ADR-008) | Covered | Terminology, see 6.F. |
-| 7 | Participant list import from Excel | BRD FR-015, D-09; SRS AC-SRS-014 | Odoo standard import + `unique(program_id, partner_id)` (PROJECT_SPEC 18) | Partial | The SRS acceptance criterion asks for a valid/invalid-row **preview**; no custom preview wizard exists. Standard Odoo import is the documented path. Confirm it is acceptable (OPD-10). |
-| 8 | Multiple programs with separated data | BRD FR-016, BR-012, D-15, NFR-008; SRS NFR-004 | `program_id` scoping on courses/enrollments/reports | Covered | See 6.G. |
-| 9 | Bilingual Arabic RTL / English LTR from first release | BRD "approved decision" section; PROJECT_SPEC 2A | next-intl, `dir` per locale, message parity (ADR-006/010) | Covered | R2. |
-| 10 | Audit of sensitive events | BRD NFR-006, FR-005; SRS 6.11; PROJECT_SPEC 17 | `training.audit.log`: `day_reopen`, `day_close`, `report_approval`, `permission_change` (project groups via `res.users` create/write and `res.groups` user changes), on every code path | Partial | PROJECT_SPEC 17 events are logged except **exceptional administrative correction of a final response**, for which no workflow exists (OPD-11). SRS 6.11 also lists login, user edit/disable and published-survey edits; PROJECT_SPEC 17 does not require them and they are not logged. |
-| 11 | AI-assisted analysis | BRD 12 (Phase 2/3) | Not built | Out of phase | Future scope. Must remain human-approved (BRD 12). |
+Moved to `docs/TRACEABILITY.md` (requirement chain and status table). Decisions are in `docs/DECISIONS.md`.
 
 ## 5. Resolved inconsistencies
 
@@ -146,18 +124,17 @@ Each entry keeps the older text visible as historical rather than deleting it.
 - **R10 - Numbering.** BRD jumps from section 16 to 18 and carries an
   appended architecture/bilingual block after section 24. Cosmetic; no
   requirement is missing (FR/BR/D identifiers are contiguous).
-- **R11 - Next.js navigation.** UI Flow section 12 lists a shorter sidebar
-  per role. ADR-011 (accepted) sets the current sidebar (adds "Training
-  Program" for trainees) and the routes
-  `/trainee/program`, `/supervisor/evaluations`, `/trainer/reports`.
-  ADR-011 supersedes UI Flow 12 for navigation. The trainee "Training
-  Program" page is a display of already-supplied data and is not a BRD
-  functional requirement.
+- **R11 - Next.js navigation.** UI Flow section 12 and the original
+  ADR-011 item lists are superseded: each role has Dashboard and Training
+  Days (plus Profile, Logout). The extra pages (`/trainee/program`,
+  `/trainee/surveys`, `/supervisor/evaluations`, `/trainer/reports`) were
+  folded into Training Days and redirect there (DEC-38).
 - **R12 - Runtime deviations.** `res.partner.mobile`, Odoo Sign and
   WhatsApp are absent on the verified Odoo 19 Community runtime (ADR-001).
   ERD/SRS assumptions on those are historical; `PROJECT_SPEC` and ADR-001
   govern.
 - **R13 - Multi-program wording.** See 6.G.
+- **R14 - Conflicts settled by decision.** State vocabularies, day lifecycle, rate definitions, group names, trainer-report cardinality, Email requirement, AI phase and the standard-field annex are settled in `docs/DECISIONS.md` (DEC-01..DEC-40, section 2 maps each audit finding).
 
 ## 6. Focus areas and open product decisions
 
@@ -169,7 +146,20 @@ requested. None is closed by this document.
 Odoo owns it. Next.js has role dashboards for trainee, supervisor and
 trainer only. Adding a GS dashboard to Next.js would be a Change Request.
 
-### 6.B Trainee read-back of a submitted survey - OPEN (OPD-01)
+### 6.B Trainee read-back of a submitted survey - RESOLVED 2026-10-03 (OPD-01)
+
+**Decision (owner instruction, 2026-10-03):** a trainee may read back her *own*
+final answers, read-only. Implemented as `GET /api/v1/training-days/{day_id}/my-survey/response`
+(`training.day.get_trainee_submitted_response_dto`): trainee role only, day record
+rule + enrolment check, search scoped to the caller's own partner and `state = done`
+(a draft or another trainee's response is never returned; no draft -> 400).
+The Next.js day page opens it in read-only mode ("View Survey"): inputs disabled,
+no save/submit actions. Supervisor and trainer access is unchanged. Comments are
+included only to the extent the survey's own free-text questions are answers.
+Tests: `test_get_my_submitted_response_read_back`, `..._denied_before_submit`,
+`..._never_returns_another_trainees_answers`, `..._is_trainee_only_and_day_scoped`.
+
+The text below records the pre-decision analysis.
 
 Every mention found, grouped by what it actually says:
 
@@ -195,7 +185,9 @@ Current behaviour: confirmation/status only. Decision needed: keep
 status-only, or allow read-only access to the trainee's own final
 answers (and if so, whether comments are included).
 
-### 6.C Survey window and reminder policy - PARTLY OPEN (OPD-03)
+### 6.C Survey window and reminder policy - RESOLVED as configuration (DEC-26)
+
+> Lead time, count, channel order, fallback and retry are Odoo configuration values, not fixed requirements. The table records the analysis behind that decision.
 
 | Item | Defined by | Status |
 |---|---|---|
@@ -212,7 +204,9 @@ answers (and if so, whether comments are included).
 
 Nothing above may be filled in with invented values.
 
-### 6.D KPI definitions - PARTLY OPEN (OPD-04)
+### 6.D KPI definitions - RESOLVED (DEC-16..22)
+
+> Response-rate denominator = present or late (DEC-17); weighting = pooled equal weight per response (DEC-19); trend = days within a course, courses within a program (DEC-20); environment = two separate indicators (DEC-21); not-held days excluded (DEC-22). The table records the analysis behind those decisions.
 
 Same filters must give the same numbers in dashboard and report
 (PROJECT_SPEC 14; ADR-004 single `training.analytics` service).
@@ -232,7 +226,9 @@ Also undefined: treatment of cancelled/postponed days beyond SRS 5.2
 (cancelled days excluded unless documented data exists), and whether late
 minutes affect any KPI (they do not in any source).
 
-### 6.E Report filters and show/hide - AMBIGUOUS (OPD-05)
+### 6.E Report filters and show/hide - RESOLVED (DEC-23, DEC-24)
+
+> Required filters: program, course, date range (trainer on dashboards; "status" = training-day state). BRD 11.1/11.2 sections are required report content. The table records the analysis behind those decisions.
 
 "Full flexibility" (requirement text) is not defined by the BRD. It is
 replaced here by an explicit model. **Basis** says where the source
@@ -298,7 +294,7 @@ only the General Supervisor does (BRD BR-008, D-01/D-14; SRS section 4,
 SEC-007, AC-SRS-001). Aggregates exposed to non-GS roles must be
 anonymous (SRS-TRN-003). Enforcement is in Odoo (groups, ACL, record
 rules, server-side ownership checks); the frontend only hides UI. Status:
-covered and tested (security/API test classes). Open: OPD-01 above.
+covered and tested (security/API test classes). Tightening rules (per-response scores GS-only, no single-response aggregates) are DEC-13/DEC-14.
 
 ### 6.I Reporting and approvals
 
@@ -324,47 +320,50 @@ credentials (section 7).
 
 ### 6.K Open product decisions (summary)
 
-| ID | Decision needed | Why open |
+Resolved items point to `docs/DECISIONS.md`; the still-open register is
+`docs/DECISIONS.md` section 4.
+
+| ID | Status | Resolution |
 |---|---|---|
-| OPD-01 | May a trainee read back her own submitted answers, or status only? | No approved source decides (6.B) |
-| OPD-02 | Content and channels for Help / Contact / Terms / Privacy sidebar items | Not in BRD/SRS/UI Flow; referenced only in ADR-011 and the nav config |
-| OPD-03 | Reminder policy: lead time, number/frequency, fallback order, retry values | 6.C |
-| OPD-04 | KPI approvals: 1..5 mapping, response-rate denominator, trend period, weighting, headline environment source | 6.D |
-| OPD-05 | Scope of report filters and toggleable sections ("full flexibility") | 6.E |
-| OPD-06 | Whether any legal/PKI signature is wanted later | Currently out of scope (6.F); listed only so it is not silently added |
-| OPD-07 | Formal BRD sign-off | BRD approvals table shows all three approvers "not approved / to be named"; SRS section 19 nonetheless states the BRD is approved |
-| OPD-08 | Confirm the report-content gap: are the BRD 11.1/11.2 narrative and comparison sections required in the generated report? | Documented in the BRD, absent in the build (5a/5b) |
-| OPD-09 | Approval of the initial survey question sets (three roles) | SRS section 19 readiness item; no seeded surveys |
-| OPD-10 | Is standard Odoo import (no preview wizard) acceptable for FR-015? | SRS AC-SRS-014 asks for preview |
-| OPD-11 | Administrative correction of a final response: workflow, "Administratively Corrected" state, reason, before/after audit | BRD BR-004, SRS 5.3/6.11 and PROJECT_SPEC 17 require it to be audited but define no workflow; today nobody can alter a done response without `su`, and a `su` write is unaudited |
-| OPD-12 | Attendance edit window: may a supervisor edit attendance after the day is closed/postponed/cancelled, and for how long? | BRD says "within a defined time window" without a value; the API currently does not check day state |
-| OPD-13 | Should Assistant Admin see anonymous per-response scores (`training.survey.response.kpi`, no identity)? | Read access exists; tension with BR-008/SEC-007 if "individual details" includes scores |
+| OPD-01 | Resolved (owner, 2026-10-03) | Trainee reads back own final answers, read-only (DEC-12) |
+| OPD-02 | Resolved | Help, Terms and Privacy texts approved and active; contact email (DEC-50, DEC-51) |
+| OPD-03 | Resolved | Reminder policy values are configuration (DEC-26) |
+| OPD-04 | Resolved | KPI definitions (DEC-16..22) |
+| OPD-05 | Resolved | Filters and show/hide (DEC-23, DEC-24) |
+| OPD-06 | Closed | Legal/PKI signature out of scope (DEC-41) |
+| OPD-07 | Resolved | BRD approved 2026-10-03 (DEC-46) |
+| OPD-08 | Resolved | BRD 11.1/11.2 sections are required (DEC-23); implemented 2026-10-03 |
+| OPD-09 | Resolved | Survey wording approved and seeded (DEC-43, `docs/SURVEY_QUESTIONS.md`) |
+| OPD-11 | Resolved | Correction policy (DEC-11); reason mandatory, implemented 2026-10-03 |
+| OPD-12 | Resolved (owner, 2026-10-01) | Attendance editable only while the day is open (DEC-04) |
+| OPD-13 | Resolved | Per-response scores are GS-only (DEC-13); ACL changed 2026-10-03 |
+| OPD-14 | Resolved | Saudi PDPL; retention until requested (DEC-44, DEC-45) |
+| OPD-15 | **Open** | Expected trainees and concurrent programs not defined; no system limit (DEC-47 withdrawn) |
+| OPD-16 | Resolved | RPO 24 h, RTO 4 h on training days (DEC-42, DEC-48) |
+| OPD-17 | Resolved | No KPI targets in v1 (DEC-49) |
 
 ### 6.L Residual risks recorded by the 2026-09-26 gap analysis (not decisions)
 
-- **Standard Odoo `/survey/start/<token>` route.** Trainees have read access
+- **Standard Odoo `/survey/start/<token>` route (resolved 2026-10-04, DEC-54: project surveys are refused there; the text below is the original analysis).** Trainees have read access
   to `survey.survey`, which includes its `access_token`; the API never
   returns it. Responses created through the standard route are not linked
   to a training day, so they do not enter KPIs, but they bypass the
   project's window checks. Not changed (survey access mode is Odoo
   configuration); recommended follow-up: set survey access to invitation/
   login-required and hide the token from operational roles.
-- **No minimum cohort size** for aggregates: an Assistant Admin (or any
-  reader of aggregates) filtering to one day or trainer can see effectively
-  one person's score. No identity is exposed. Needs a policy if individual
-  scores must stay General Supervisor-only.
-- **Environment KPI mixes roles.** `get_kpi` pools trainee and supervisor
-  ratings for the same category; SRS 6.7 wants separate indicators or a
-  labelled composite (part of OPD-04).
-- **Cancelled days** are not excluded from analytics; SRS 5.2 has a
-  historical-data caveat (part of OPD-04).
+- **Minimum cohort** (resolved 2026-10-03, DEC-13/DEC-14): per-response
+  scores are General Supervisor only; the Assistant Admin role, the only
+  one a single-response suppression applied to, was removed (DEC-64). A
+  larger threshold would be a configuration value; none is defined.
+- **Environment KPI** (resolved 2026-10-03, DEC-21): reported as two
+  separate indicators, trainees and supervisor.
+- **Cancelled / postponed days** (resolved 2026-10-03, DEC-22): excluded
+  from every KPI, attendance and response-rate figure.
 - **Group `implied_ids` propagation** that grants a project group is not
   audited (project groups imply only base/survey groups today).
-- **Attendance default in the UI.** Trainees with no recorded status are
-  preselected "present" and a bulk save records them as present. The BRD
-  requires an explicit status per trainee (FR-031) but does not say whether
-  an unrecorded trainee defaults to present; kept as is pending a decision
-  (part of OPD-12).
+- **Attendance default in the UI** (resolved 2026-10-03, DEC-05): nothing
+  is pre-selected; only rows the supervisor chose are saved, and "Mark
+  remaining as Present" is an explicit action.
 - **Odoo `admin` account and `group_training_admin`.** The model-level
   guards and report approval treat only `group_training_admin` (and `su`)
   as privileged; `base.group_system` alone is not. The go-live administrator
@@ -401,7 +400,9 @@ external accounts (ADR-010 "Remaining Blockers", RUNBOOK):
 | API Contract examples: `POST /courses/{id}/days`, `POST /reports/course/preview`, `POST /reports/{id}/approve`, "Admin dashboard response" | Historical, illustrative | PROJECT_SPEC 10, ADR-008 |
 | SRS section 8 rows for Users/Programs/TrainingDays CRUD as "operational" APIs | Historical | PROJECT_SPEC 10.7 |
 | API Contract milestone list M1..M7 | Superseded | DEVELOPMENT_PLAN M0..M10 |
-| UI Flow section 12 navigation | Superseded for Next.js sidebar | ADR-011, `roleNav.ts` |
+| UI Flow section 12 navigation | Superseded for Next.js sidebar | DEC-38, `roleNav.ts` |
+| SRS sections 7 (UI-06..09, 14..19) and 8 admin CRUD rows; SRS/ERD/API standard-field annexes; ERD section 9 group names and course `state`; SRS 5.1/5.3/5.4 state lists | Historical | DEC-31, DEC-32, DEC-34, DEC-40 |
+| PROJECT_SPEC former routes `/trainee/surveys`, `/trainee/program`, `/supervisor/evaluations`, `/trainer/reports` | Removed | DEC-38 |
 | ERD/SRS use of `res.partner.mobile`, Odoo Sign, WhatsApp module | Not available on the verified runtime | ADR-001, PROJECT_SPEC 4 |
 | PROJECT_SPEC 25 "trainer assignment model" open item | Resolved | R8 |
 
@@ -412,43 +413,12 @@ source of truth.
 
 ## 9. Acceptance criteria for the clarified requirements
 
-Each criterion is a testable behaviour. **Evidence** names an existing test
-(in `custom_addons/training_management/tests/`) or frontend test where one
-exists. **Pending** means the behaviour depends on an open decision and no
-test may be written until the owner decides; the criterion is stated
-conditionally.
-
-| ID | Requirement clarified | Acceptance criterion | Evidence |
-|---|---|---|---|
-| AC-ALN-01 | GS dashboard, analytics, report generation and approval are Odoo | No Next.js route or `/api/v1` endpoint creates, configures, approves or exports a report or serves an admin dashboard; Odoo menus for Analytics, Reports and Approval exist | PROJECT_SPEC 10.7 forbidden list; ADR-008 (no report endpoints); `test_trainee_cannot_access_report_model` |
-| AC-ALN-02 | Submitted response is final | After final submit no edit action or endpoint exists for the trainee; lines cannot be added, changed or deleted; a second submit creates no second record | `test_final_response_lines_cannot_be_added_modified_or_deleted`, `test_duplicate_final_response_prevented_at_db_level`, `test_duplicate_final_response_prevented_by_service`, `test_cannot_edit_after_final_submit` (README) |
-| AC-ALN-03 | Post-submit view (status only, current behaviour) | `my-survey/status` returns only `response_id, state, submitted_at, editable` and never answer content | API trainee tests (ADR-006 section 12) |
-| AC-ALN-04 | Read-back of own answers (OPD-01) | **Pending.** If approved: a trainee can read only her own final answers and never another trainee's; supervisor and trainer still cannot read any | Isolation tests exist: `test_trainee_cannot_access_another_trainee_response`, `test_supervisor_cannot_access_trainee_response`, `test_trainer_cannot_access_trainee_response` |
-| AC-ALN-05 | Survey window | Submit is denied before `survey_open_at` and after `survey_close_at` even when the day is open; the window never changes day state | `test_survey_denied_before_window_opens_even_if_day_open`, `test_survey_denied_after_window_closes_even_if_day_open`, `test_no_automatic_state_transition_from_time_window` |
-| AC-ALN-06 | Reminder exclusion and duplicates | A person with a final response is never a pending recipient; a second cron run creates no duplicate row for the same day/role/person/channel/event, enforced by the database | `test_pending_recipients_includes_unsubmitted_trainee_and_supervisor`, `test_duplicate_prevention_second_cron_run_does_not_duplicate`, `test_duplicate_log_row_blocked_at_db_level` |
-| AC-ALN-07 | Reminder outside the window | The cron skips a day that is not open or is outside its window | `test_cron_skips_day_outside_survey_window` |
-| AC-ALN-08 | Channel fallback and retry | With fallback on, the next channel is tried only after a failure and never after a success; with it off, each enabled channel is attempted independently; automatic retries stop at the configured maximum | `test_fallback_stops_at_first_success`, `test_fallback_tries_next_channel_after_failure`, `test_fallback_disabled_attempts_every_enabled_channel_independently`, `test_retry_budget_exhausted_stops_further_attempts` |
-| AC-ALN-09 | Reminder lead time, count, priority values (OPD-03) | **Pending.** If approved: a reminder is sent at the approved lead time before `survey_close_at`, not more than the approved number of times per recipient, in the approved channel order | none |
-| AC-ALN-10 | Attendance, absence, late rates | For a day with p on time, l late, a absent: attendance = (p+l)/(p+l+a), absence = a/(p+l+a), late = l/(p+l); a zero denominator returns no value, never 0 | `test_attendance_rates`, ADR-004 section 5 |
-| AC-ALN-11 | Survey KPI averages | Category averages ignore skipped and non-rating lines; no valid data returns no value, never 0 | `test_no_valid_data_is_none_not_zero`, `test_no_data_returns_none_not_zero` |
-| AC-ALN-12 | Program/course aggregation | Program averages pool every valid response with equal weight and are not an average of course averages | `test_course_kpi_equal_weight_per_response_not_average_of_days`, `test_program_kpi_pools_all_courses_equal_weight` |
-| AC-ALN-13 | Response rate | Absent trainees are excluded from the denominator; no attendance recorded returns no value | `test_trainee_response_rate_excludes_absent`, `test_trainee_response_rate_pending_when_no_attendance` |
-| AC-ALN-14 | KPI approvals (OPD-04) | **Pending.** If the denominator becomes "enrolled targets", or the mapping, trend period or weighting changes, dashboard and report must both change together and produce identical numbers for identical filters | none |
-| AC-ALN-15 | Dashboard/report consistency | The same filters give the same KPI numbers in analytics and in the generated report (single `training.analytics` service) | ADR-004 section 7; report tests |
-| AC-ALN-16 | Report filters | Scope filters and toggles are fixed once generated; changing them requires a new version; a new version leaves the old one untouched | `test_generated_report_filters_locked_without_new_version`, `test_new_version_creates_independent_draft`, `test_regenerate_allowed_while_generated_not_approved` |
-| AC-ALN-17 | Filter scope (OPD-05) | **Pending.** If additional report filters (trainer, attendance status, survey completion) are approved, the report shows the applied filters and dashboard and report agree | none |
-| AC-ALN-18 | Approval is internal, not legal | Only an admin can approve, only from the generated state; approval stores approver and timestamp, locks the record, writes an audit entry; the PDF carries the approver, date/time and stamp; no PKI signature is produced | `test_approve_requires_admin_group`, `test_approve_requires_generated_state`, `test_approve_sets_metadata_and_locks`, `test_approved_report_is_immutable`, `test_report_approval_is_logged` |
-| AC-ALN-19 | Export | PDF (Arabic RTL) and Excel export succeed for an approved report; a trainee cannot reach the report or its attachment | `test_export_excel_allowed_after_approval`, `test_trainee_cannot_access_report_attachment`; ADR-010 section 3 real PDF render |
-| AC-ALN-20 | Multi-program separation | Program KPIs, attendance, response rate, program and course reports and the Back-office KPI view never mix programs; each program has its own courses, enrollments and reports; the initial data set is the single Quran-school principals program | SRS AC-SRS-009; `TestMultiProgramIsolation` in `tests/test_requirements_alignment.py` |
-| AC-ALN-21 | Document authority | `CLAUDE.md`, `README` and `PROJECT_SPEC` all point to this file; the version table in section 2 decodes every `.docx` citation; sections 5 and 8 mark each superseded example | Manual review of this file and its pointers |
-| AC-ALN-22 | Report content gap (OPD-08) | **Pending.** If the BRD 11.1/11.2 sections are confirmed as required, the generated course report shows the narrative and comparison sections and the program report shows the five-course comparison and 16-week trend | none |
-
-Missing tests worth adding once the decisions above are made are the rows
-whose Evidence is "none".
+Moved to `docs/TRACEABILITY.md` section 4.
 
 ## 10. Documentation clarifications applied alongside this file
 
-- Sections 6.E (explicit filter model) and 9 (acceptance criteria) were added in a second review pass.
+- 2026-10-03: decisions moved to `docs/DECISIONS.md`; traceability and acceptance criteria moved to `docs/TRACEABILITY.md` (sections 4 and 9 here are pointers); visual reference is `design/`.
+- Sections 6.E (explicit filter model) and the acceptance criteria were added in a second review pass.
 - `PROJECT_SPEC`: authority block, section 9 routes and section 10.5
   endpoints brought in line with ADR-011, section 25 status, pointers to
   this file. No requirement removed.

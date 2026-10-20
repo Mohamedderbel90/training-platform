@@ -300,7 +300,7 @@ Three real, previously-documented gaps were closed:
    can actually produce: `training.day.action_reopen()`,
    `training.report.action_approve()`, and a new, narrowly-scoped
    `res.users.write()` override that logs only changes to *this
-   project's own five groups* (never any other group on the system).
+   project's own four groups* (never any other group on the system).
 2. **Password recovery was never implemented.** PROJECT_SPEC section
    10.1 lists `POST /api/v1/auth/password/forgot` and
    `.../password/reset` as part of the *required* auth contract since
@@ -417,9 +417,17 @@ after M10 and wait for approval.
 ## Update (2026-09-26): audit event coverage
 
 Events now logged in `training.audit.log`: `day_reopen`, `day_close`,
-`report_approval`, `permission_change` (the five project groups, via
+`report_approval`, `permission_change` (the four project groups, via
 `res.users` create/write and `res.groups` user changes). Not logged and
 not required by PROJECT_SPEC section 17: day open/postpone/cancel, login,
 user edit/disable, published-survey edits. Not logged because no mechanism
 exists: exceptional administrative correction of a final response (OPD-11
 in `docs/REQUIREMENTS_ALIGNMENT.md`).
+
+## Amendment 2026-10-03
+
+The trainee own-answers read-back mentioned above as open was approved and built (ADR-006 section 12.1, DEC-12 in `docs/DECISIONS.md`).
+
+## Amendment 2026-10-08
+
+The Assistant Admin role was removed (DEC-64): its group, ACL rows and the `training.analytics` branches written for it no longer exist, and only the General Supervisor generates, exports and approves reports. The text above describes the historical state; the ACL statements above about the Assistant Admin no longer apply.

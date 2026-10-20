@@ -16,6 +16,8 @@ database backup schedule, restore test, monitoring/logging, scheduled
 
 ## 1. Production Topology
 
+> Sizing: the expected number of trainees and concurrent programs is not defined (OPD-15). The system has no built-in limit on either; size the hosting once the business confirms the volume.
+
 ```
 Browser --HTTPS--> [reverse proxy / TLS terminator] --HTTP (internal)--> Next.js --HTTP (internal)--> Odoo (this addon) --> PostgreSQL 13+
 ```
@@ -147,6 +149,7 @@ Production schedule (not automated by this milestone — wire this into
 the deployment's own cron/systemd-timer/orchestrator):
 
 - Daily full backup, retained for at least the last 14 days.
+- Objectives (DEC-42, DEC-48): recovery point 24 hours, recovery time 4 hours on training days; the restore below must fit that window.
 - Optionally, more frequent (e.g. every 4-6 hours) incremental/WAL
   -based backups if the RPO (recovery point objective) requires
   finer granularity than 24 hours — PostgreSQL's continuous archiving
@@ -211,6 +214,8 @@ against a real PostgreSQL 13+ instance is a required, outstanding step**
 
 ## 8. Scheduled Action (`ir.cron`) Monitoring
 
+Reminder timing (lead time, number of reminders, interval) and channels (order, fallback, retries) are edited by the General Supervisor in Training Management > Settings > Settings (a native Odoo Settings page). `Remind Within Hours Before Survey Closes` = 0 reminds from the moment the survey window opens. A channel without a real provider logs attempts as failed (never as sent).
+
 This addon defines one `ir.cron` job:
 `ir_cron_training_notification_reminders`
 (`data/cron.xml`, hourly, runs `training.notification.log.cron_send_reminders()`
@@ -241,6 +246,9 @@ M10) — wire both into the deployment's load balancer/uptime monitor as
 two independent checks.
 
 ## 10. Deployment Checklist Before Go-Live
+
+- [ ] Create users and contacts with standard Odoo, then enroll trainees under Training Management > Enrollments. Report PDFs need `wkhtmltopdf` on the Odoo host; with the project-local copy `scripts/run_odoo.sh` sets `PATH` and `LD_LIBRARY_PATH`. Each account holds one operational role (DEC-09); a training day needs a Supervisor-role user and at least one Trainer-role user (DEC-57).
+- [ ] Load the approved survey sets once: `./scripts/run_odoo.sh shell -d <db> --no-http < scripts/seed_surveys.py` (idempotent; links each survey to training days that have no response of that role yet). Set `NEXT_PUBLIC_SUPPORT_EMAIL` if the support contact differs from the default.
 
 - [ ] Real PostgreSQL 13+ instance provisioned; full test suite run
       against it (see section 7 — not yet done).

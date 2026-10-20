@@ -38,17 +38,7 @@ Do not duplicate Odoo business rules in the frontend.
 
 ## Functional Source of Truth
 
-Before implementing or changing business behavior, consult the relevant project documentation:
-
-- BRD
-- SRS
-- UI Flow
-- API Contract
-- ERD / Odoo Model Mapping
-- PROJECT_SPEC
-- DEVELOPMENT_PLAN
-- README
-- existing code and tests
+Before implementing or changing business behavior, consult the relevant project documents (index and precedence rules: `docs/README.md`; business decisions: `docs/DECISIONS.md`), plus the existing code and tests.
 
 Do not invent:
 - business rules
@@ -61,6 +51,8 @@ Do not invent:
 
 If documents conflict, prefer the most recent explicitly approved version.
 
+Documentation map: `docs/README.md`. Business decisions: `docs/DECISIONS.md`. Requirement chain: `docs/TRACEABILITY.md`.
+
 Document authority, the version-label mapping for the `.docx` sources, superseded/historical references, and the list of **open product decisions** (which must not be decided by guessing) are in `docs/REQUIREMENTS_ALIGNMENT.md`. Read it before using a `.docx` as an implementation instruction. In short: BRD for business intent, `PROJECT_SPEC` for implementation, ADRs for recorded decisions; the API Contract examples showing admin/report endpoints are historical and must not be built for Next.js.
 
 ## Visual Source of Truth
@@ -69,7 +61,7 @@ Approved Claude Design prototypes, exported HTML/CSS, screenshots, and approved 
 
 Current design reference export:
 
-`Sidebar + Header + Trainee Dashboard-html/`
+`design/` (with `design/UI_UX_DESIGN_SPEC.md`; login assets in `noor-login/`)
 
 Use it for visual fidelity when implementing approved screens.
 

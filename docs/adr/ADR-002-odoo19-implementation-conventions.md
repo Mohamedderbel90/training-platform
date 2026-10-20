@@ -30,8 +30,8 @@ mutually-related, typically mutually-exclusive access-level groups
 (e.g. the "Internal User / Administrator" radio-style selector on the
 user form) — a different semantic than a simple cosmetic category tag.
 
-**Convention:** The five V1 project groups
-(`group_training_admin`, `group_training_assistant_admin`,
+**Convention:** The four V1 project groups
+(`group_training_admin`,
 `group_training_trainee`, `group_training_supervisor`,
 `group_training_trainer`) are independent, non-exclusive roles and do
 not fit the privilege model's exclusivity semantics. They are defined
@@ -141,8 +141,8 @@ development and the M1 test suite worked despite this.
   eventual Operational API implementations (M4+) will need — this is
   necessary at the ORM/ACL level even though these roles have **no**
   Odoo Back-office menu items (the M1 `menu_training_management_root`
-  and its children are restricted to `group_training_admin` and
-  `group_training_assistant_admin` only).
+  and its children are restricted to `group_training_admin`
+  only).
 - Next.js remains the primary, and for these three roles the only
   intended, user interface (PROJECT_SPEC section 2.2). Model-level ACL
   access without backend menu access is the expected, intentional

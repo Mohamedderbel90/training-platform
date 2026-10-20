@@ -229,8 +229,8 @@ record rules:
   sees another trainee's row. `group_training_admin` gets full standard
   Survey administration via `implied_ids` on `survey.group_survey_manager`
   (matching PROJECT_SPEC's "Admin manages Survey templates/questions/
-  versioning via standard Survey Back-office"); `group_training_assistant_admin`
-  intentionally gets no survey access in M2 (not requested, kept minimal).
+  versioning via standard Survey Back-office"); the (since removed, DEC-64) Assistant Admin
+  group intentionally got no survey access in M2.
 
 M1's existing security (groups, ACLs, record rules on
 `training.program`/`course`/`day`/`enrollment`/`attendance`) is
@@ -265,3 +265,17 @@ response's survey/question (option belongs to question, scale value within
 `scale_min..scale_max`, one line per single-answer question). No API shape
 changed. The standard `/survey/...` token route is a recorded residual risk
 (`docs/REQUIREMENTS_ALIGNMENT.md` 6.L).
+
+## Amendment 2026-10-03
+
+Correcting a final response now requires a reason (DEC-11): `survey.user_input.action_correct_final_response(vals, reason)` (General Supervisor only) or the `correction_reason` context key; the reason and before/after values are stored in the `response_correction` audit entry. See `docs/DECISIONS.md`.
+
+## Amendment 2026-10-04
+
+- Answer options (`survey.question.answer`) of a survey with submitted responses are frozen like its questions (DEC-53).
+- The standard public survey routes refuse any survey that has a role (`controllers/survey_access.py`, DEC-54); only the General Supervisor's Test previews remain.
+- Correction of a final response has an Odoo screen (wizard on the response form, mandatory reason); answer-line changes are audited with before/after values (DEC-11).
+
+## Amendment 2026-10-04 (2)
+
+The standard "Print" action is refused for training responses (DEC-59). An account holds one of trainee, supervisor, trainer (DEC-09).

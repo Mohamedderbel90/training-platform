@@ -1121,8 +1121,8 @@ table.data-table {
 }
 
 /* =====================================================================
-   Dashboard home -- approved design (noor-login/README.md's dashboard
-   reference). `.dashboard` widens past the app's normal
+   Dashboard home -- approved design (dashboard reference: dashboard.png, see the
+   noor-login/ row in docs/README.md). `.dashboard` widens past the app's normal
    `--content-max-width` prose column since this page is a card grid,
    not text.
    ===================================================================== */
@@ -1472,7 +1472,7 @@ table.data-table {
 }
 
 /* =====================================================================
-   Login page -- approved design (noor-login/README.md +
+   Login page -- approved design (see the noor-login/ row in docs/README.md, and
    approved-login-reference.png). `background-login.png` is a single
    pre-composed background image (photo + emerald panel + subtle gold
    pattern baked in, no text) applied once on `.auth-page`; there are

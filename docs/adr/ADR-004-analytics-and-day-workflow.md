@@ -165,7 +165,7 @@ they remain a `training.analytics` service output for now (consumed
 by M4+ dashboards/reports/API).
 
 Security: `training.survey.response.kpi` grants `perm_read` only to
-`group_training_admin`/`group_training_assistant_admin`; Trainee/
+`group_training_admin`; Trainee/
 Supervisor/Trainer have no ACL row at all (matching PROJECT_SPEC's
 "General Supervisor works primarily in Odoo Web Client... Trainee/
 Supervisor/Trainer use Next.js" and the requirement to never expose
@@ -235,3 +235,15 @@ The statement above that `action_reopen` has no audit trail is superseded:
 every `closed -> open` transition (statusbar or direct write included) is
 logged as `day_reopen`, and every transition to `closed` as `day_close`
 (`training.audit.log`, ADR-010). The KPI formulas in this ADR are unchanged.
+
+## Amendment 2026-10-03
+
+Cancelled and postponed days are now excluded from every KPI, attendance and response-rate figure (`_resolve_days`, DEC-22), and `get_kpi` accepts `respondent_role` so the environment indicator can be reported separately for trainees and the supervisor (DEC-21). For the Assistant Admin a category resting on a single response is withheld (DEC-14). The formulas above are otherwise unchanged. See `docs/DECISIONS.md`.
+
+## Amendment 2026-10-04
+
+The Back-office score view (`training.survey.response.kpi`) now also excludes cancelled and postponed days and carries day date and status. `training.dashboard` is the General Supervisor overview; all its numbers come from this service (`get_period_figures`, `states` and `trainer` filters), DEC-55.
+
+## Amendment 2026-10-04 (2)
+
+Response rate (DEC-17): numerator = final trainee responses of the trainees recorded present or late that day (matched by day and partner), denominator = those targets, so the rate never exceeds 100%. Attendance rates keep counting every recorded row whatever the enrollment is now (DEC-18, clarified by the owner). Postponing or cancelling a day needs `status_reason`; a postponed day reopens only on a new date (DEC-56); a day opens only if its surveys have questions; assignments are validated (DEC-57).

@@ -93,3 +93,17 @@ status and actions already on each Training Day card, so they were removed.
 Survey access is via Training Days (`/trainee/days`, form at `/trainee/{dayId}`).
 `/{locale}/trainee/surveys` redirects to `/{locale}/trainee/days`. Backend and
 API are unchanged.
+
+## Amendment 2026-10-03: navigation reduced to two items
+
+Superseded in part. The per-role third item (Training Program, Attendance &
+Evaluation, My Reports) and their pages were folded into Training Days; the
+old routes redirect there. Every role now has Dashboard and Training Days,
+then Profile and Logout (`frontend/lib/auth/roleNav.ts`, DEC-38). The
+dashboard data additions in Decision 1 and the timezone handling in
+Decision 2 remain in force. Help, Terms and Privacy items were added after Profile on the same date (DEC-50). Trainee read-back of own answers, listed above
+as "not done", was approved on 2026-10-03 (ADR-006 section 12.1, DEC-12).
+
+## Amendment 2026-10-04 (2)
+
+The API reports back-office roles too; `AuthContext` keeps only trainee, supervisor and trainer (DEC-63) so an administrator session shows the "no training role" screen. The Help page renders the contact as an isolated left-to-right link inside Arabic text.

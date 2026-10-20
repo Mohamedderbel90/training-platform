@@ -214,7 +214,7 @@ time — wrapping them in `_()` would be incorrect there.
 
 `res.users._get_operational_roles()` (`models/res_users.py`) derives
 roles **only** from Odoo group membership (`has_group()` against
-`group_training_{trainee,supervisor,trainer,admin,assistant_admin}`).
+`group_training_{trainee,supervisor,trainer,admin}`).
 No endpoint accepts or trusts a client-supplied role; every controller
 calls `_require_<role>()`/`_require_role(role)` which checks group
 membership server-side before doing anything else — verified by
@@ -222,8 +222,8 @@ membership server-side before doing anything else — verified by
 `test_operational_api_security.py`. `_get_operational_capabilities()`
 maps each role to a small, fixed capability-tag list
 (`CAPABILITIES_BY_ROLE`) for the frontend's own routing/rendering
-decisions; `admin`/`assistant_admin` intentionally have no capability
-tags here since those roles work from Odoo Back-office, not this API.
+decisions; `admin` intentionally has no capability
+tags here since that role works from Odoo Back-office, not this API.
 
 ## 10. Endpoints Implemented
 
