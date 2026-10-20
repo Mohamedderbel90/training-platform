@@ -36,7 +36,7 @@ proxy_mode = True
 workers = 0
 max_cron_threads = 1
 db_maxconn = 8
-without_demo = all
+without_demo = True
 log_level = info
 EOF
 
@@ -54,10 +54,38 @@ if ! installed; then
         exit 1
     fi
     echo "==> First boot: database not initialised yet."
+    # Render kills a web service that does not bind $PORT within ~5 min, and
+    # installing base on the free CPU takes longer. Serve a tiny placeholder
+    # on $PORT while the slow init steps run; it is stopped before Odoo starts.
+    python3 - "$PORT" <<'PYEOF' &
+import sys, http.server
+class H(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        body = b"Odoo is initialising, please retry in a few minutes."
+        self.send_response(200 if self.path.startswith("/web/health") else 503)
+        self.send_header("Content-Type", "text/plain")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+    do_HEAD = do_GET
+    def log_message(self, *a):
+        pass
+http.server.HTTPServer(("0.0.0.0", int(sys.argv[1])), H).serve_forever()
+PYEOF
+    PLACEHOLDER_PID=$!
+    trap 'kill "$PLACEHOLDER_PID" 2>/dev/null || true' EXIT
+    # A previous boot may have been killed half-way through installing base:
+    # start again from an empty schema in that case.
+    base_state=$(psql -tAc "SELECT state FROM ir_module_module WHERE name='base'" 2>/dev/null || true)
+    if [ "$base_state" != "installed" ] && \
+       [ "$(psql -tAc "SELECT count(*) FROM pg_tables WHERE schemaname='public'")" != "0" ]; then
+        echo "==> Partial install detected (base state: '${base_state}'), resetting schema public."
+        psql -v ON_ERROR_STOP=1 -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+    fi
     # 1) Install base only, so we can switch attachment storage to the DB
     #    (Render free has no persistent disk: the filestore would be lost
     #    on every restart).
-    if ! psql -tAc "SELECT 1 FROM ir_config_parameter LIMIT 1" >/dev/null 2>&1; then
+    if [ "$(psql -tAc "SELECT state FROM ir_module_module WHERE name='base'" 2>/dev/null || true)" != "installed" ]; then
         odoo -c "$CONF" -d "$DB_NAME" -i base --stop-after-init
     fi
     psql -c "INSERT INTO ir_config_parameter (key, value, create_date, write_date)
@@ -72,6 +100,12 @@ fi
 
 if [ -n "${UPDATE_MODULES:-}" ] && installed; then
     EXTRA_ARGS+=(-u "$UPDATE_MODULES")
+fi
+
+if [ -n "${PLACEHOLDER_PID:-}" ]; then
+    kill "$PLACEHOLDER_PID" 2>/dev/null || true
+    wait "$PLACEHOLDER_PID" 2>/dev/null || true
+    trap - EXIT
 fi
 
 echo "==> Starting Odoo on port ${PORT}"
