@@ -1,0 +1,25 @@
+# Render Blueprint -- Odoo backend (free plan). Database is external (Neon).
+# Secrets are entered in the Render dashboard (sync: false), never committed.
+services:
+  - type: web
+    name: training-platform-odoo
+    runtime: docker
+    plan: free
+    dockerfilePath: ./deploy/odoo/Dockerfile
+    dockerContext: .
+    healthCheckPath: /web/health
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: neondb
+      - key: DB_SSLMODE
+        value: require
+      - key: ADMIN_PASSWD
+        generateValue: true
+      - key: AUTO_INIT
+        value: "1"
