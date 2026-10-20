@@ -5,6 +5,7 @@ services:
     name: training-platform-odoo
     runtime: docker
     plan: free
+    region: frankfurt   # same region as Neon (eu-central-1) for low DB latency
     dockerfilePath: ./deploy/odoo/Dockerfile
     dockerContext: .
     healthCheckPath: /web/health
