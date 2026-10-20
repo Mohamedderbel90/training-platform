@@ -13,6 +13,7 @@ import { SurveyForm } from "@/components/SurveyForm";
 import { PageHeader } from "@/components/PageHeader";
 import { SubmittedState } from "@/components/SubmittedState";
 import { LiveStatus } from "@/components/LiveStatus";
+import { DayContextHeader } from "@/components/dashboard/DayContextHeader";
 import type { SurveyAnswerDto } from "@/lib/api/types";
 
 export function TrainerReportContent({ dayId }: { dayId: number }) {
@@ -27,14 +28,31 @@ export function TrainerReportContent({ dayId }: { dayId: number }) {
   const [actionError, setActionError] = useState<ApiError | null>(null);
   const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
 
+  const context = <DayContextHeader role="trainer" dayId={dayId} trainingDaysHref="/trainer/days" />;
+
   if (status === "loading") {
-    return <LoadingState label={t("loadingSurvey")} variant="skeleton" count={2} />;
+    return (
+      <div>
+        {context}
+        <LoadingState label={t("loadingSurvey")} variant="skeleton" count={2} />
+      </div>
+    );
   }
   if (status === "error" && error) {
-    return <ApiErrorView error={error} onRetry={reload} />;
+    return (
+      <div>
+        {context}
+        <ApiErrorView headingLevel={1} error={error} onRetry={reload} />
+      </div>
+    );
   }
   if (!data?.status.configured || !data.definition) {
-    return <EmptyState title={t("notConfiguredTitle")} message={t("notConfiguredMessage")} />;
+    return (
+      <div>
+        {context}
+        <EmptyState title={t("notConfiguredTitle")} message={t("notConfiguredMessage")} />
+      </div>
+    );
   }
 
   const submitted = data.status.response?.state === "submitted";
@@ -74,6 +92,7 @@ export function TrainerReportContent({ dayId }: { dayId: number }) {
 
   return (
     <div>
+      {context}
       <PageHeader title={<h1>{data.definition.title}</h1>} />
       {submitted ? <SubmittedState submittedAt={data.status.response?.submitted_at} /> : null}
       <LiveStatus message={t("draftSaved")} stamp={submitted ? null : draftSavedAt} />

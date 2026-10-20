@@ -287,10 +287,61 @@ export function SurveyIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function TrashIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M4 6h12M8 6V4.5h4V6M5.5 6l.7 9.5h7.6L14.5 6M8.5 9v4M11.5 9v4" />
+    </Icon>
+  );
+}
+
 export function FilterIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <Icon {...props}>
       <path d="M3.5 5h13M6 10h8M8.5 15h3" />
+    </Icon>
+  );
+}
+
+/** Four-tile grid glyph for the "Cards" view-mode toggle (as opposed to
+ * `CalendarIcon` for the "Calendar" view). */
+export function GridIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <rect x="3.3" y="3.3" width="5.8" height="5.8" rx="1.2" />
+      <rect x="10.9" y="3.3" width="5.8" height="5.8" rx="1.2" />
+      <rect x="3.3" y="10.9" width="5.8" height="5.8" rx="1.2" />
+      <rect x="10.9" y="10.9" width="5.8" height="5.8" rx="1.2" />
+    </Icon>
+  );
+}
+
+/** Small "i" glyph for an inline info hint trigger (e.g. clarifying that
+ * "Evaluation Status" reflects action availability, not the day's own
+ * lifecycle state -- see SortControl's optional `hint` prop). */
+export function InfoIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <circle cx="10" cy="10" r="6.7" />
+      <path d="M10 9.2v4.3" />
+      <circle cx="10" cy="6.7" r="0.15" fill="currentColor" />
+    </Icon>
+  );
+}
+
+export function CheckSmallIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M4.5 10.5l3.5 3.5 7.5-8" />
+    </Icon>
+  );
+}
+
+export function CalendarSmallIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <rect x="3.5" y="4.5" width="13" height="12" rx="2" />
+      <path d="M3.5 8.5h13M7 3v3M13 3v3" />
     </Icon>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { screen, fireEvent, waitFor } from "@testing-library/react";
+import { screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { renderWithIntl } from "./testUtils";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -108,5 +108,31 @@ describe("AppShell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Log out" }));
     await waitFor(() => expect(logout).toHaveBeenCalledOnce());
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/login"));
+  });
+
+  it("lists Help, Terms and Privacy in the footer navigation, not in the sidebar", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      status: "authenticated",
+      profile: { id: 1, partner_id: 1, name: "Dev Trainee", locale: "en_US", roles: ["trainee"], capabilities: [] },
+      roles: ["trainee"],
+      login: vi.fn(),
+      logout: vi.fn(),
+      refresh: vi.fn(),
+    });
+    renderWithIntl(
+      <AppShell>
+        <div>page body</div>
+      </AppShell>,
+    );
+    const footer = screen.getByRole("navigation", { name: "Footer navigation" });
+    const links = within(footer).getAllByRole("link");
+    expect(links.map((a) => a.textContent)).toEqual(["Help", "Terms", "Privacy"]);
+    expect(links.map((a) => a.getAttribute("href"))).toEqual(["/help", "/terms", "/privacy"]);
+    // the sidebar nav keeps Profile but no longer carries the three info pages
+    const sidebar = screen.getByRole("navigation", { name: "Primary navigation" });
+    expect(within(sidebar).getByRole("link", { name: "Profile" })).toBeInTheDocument();
+    for (const name of ["Help", "Terms", "Privacy"]) {
+      expect(within(sidebar).queryByRole("link", { name })).not.toBeInTheDocument();
+    }
   });
 });

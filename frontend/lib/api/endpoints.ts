@@ -20,6 +20,7 @@ import type {
   SurveyAvailabilityDto,
   SurveyDefinitionDto,
   SurveyStatusDto,
+  TraineeSubmittedResponseDto,
   TrainerReportDto,
 } from "./types";
 
@@ -54,8 +55,11 @@ export const authApi = {
 };
 
 export const dashboardApi = {
-  get: (role: OperationalRole, locale: string) =>
-    apiFetch<DashboardResponseDto>(`/dashboard/${role}`, { locale }),
+  get: (role: OperationalRole, locale: string, programId?: number | null) =>
+    apiFetch<DashboardResponseDto>(
+      `/dashboard/${role}${programId ? `?program_id=${programId}` : ""}`,
+      { locale },
+    ),
   getDay: (role: OperationalRole, dayId: number, locale: string) =>
     apiFetch<DashboardEntryDto>(`/dashboard/${role}/days/${dayId}`, { locale }),
 };
@@ -65,6 +69,11 @@ export const traineeApi = {
     apiFetch<SurveyDefinitionDto>(`/training-days/${dayId}/my-survey`, { locale }),
   getSurveyStatus: (dayId: number, locale: string) =>
     apiFetch<SurveyAvailabilityDto>(`/training-days/${dayId}/my-survey/status`, {
+      locale,
+    }),
+  /** The trainee's own submitted answers (read-only read-back, OPD-01). */
+  getMyResponse: (dayId: number, locale: string) =>
+    apiFetch<TraineeSubmittedResponseDto>(`/training-days/${dayId}/my-survey/response`, {
       locale,
     }),
   submitSurvey: (dayId: number, answers: SurveyAnswerDto[], locale: string) =>

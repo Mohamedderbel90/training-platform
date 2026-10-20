@@ -3,7 +3,10 @@
 import { useEffect, useId, useRef, type KeyboardEvent, type RefObject } from "react";
 import { createPortal } from "react-dom";
 
-const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
+/** Exported so other modal-like overlays (e.g. the Training Days filter
+ * sheet on narrow viewports, see FilterBar.tsx) can reuse the same
+ * focus-trap query instead of redefining it. */
+export const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 /** Accessible modal confirmation (no library): `role="dialog"` +
  * `aria-modal`, focus moves inside on open (to Cancel -- the safe

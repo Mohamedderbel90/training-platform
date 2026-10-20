@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import { useTranslations } from "next-intl";
+import { SelectMenu } from "@/components/SelectMenu";
 import { ChevronIcon } from "@/components/icons";
 
 /** Previous/next pagination with "Page X of Y" and an optional page-size
@@ -26,6 +27,7 @@ export function Pagination({
 }) {
   const t = useTranslations("Ui");
   const sizeId = useId();
+  const sizeLabelId = `${sizeId}-label`;
   const showSize = Boolean(onPageSizeChange && pageSizeOptions?.length);
   if (pageCount <= 1 && !showSize) return null;
   const current = Math.min(Math.max(page, 1), Math.max(pageCount, 1));
@@ -56,22 +58,18 @@ export function Pagination({
         </button>
       </div>
       {showSize ? (
-        <div className="control-select">
-          <label htmlFor={sizeId} className="control-select__label">
+        <div className="pagination__size">
+          <span id={sizeLabelId} className="pagination__size-label">
             {t("pageSize")}
-          </label>
-          <select
+          </span>
+          <SelectMenu
             id={sizeId}
-            className="control-select__field"
-            value={pageSize}
-            onChange={(e) => onPageSizeChange?.(Number(e.target.value))}
-          >
-            {pageSizeOptions?.map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
+            labelledBy={sizeLabelId}
+            className="control-select__field pagination__size-select"
+            value={String(pageSize)}
+            onChange={(v) => onPageSizeChange?.(Number(v))}
+            options={(pageSizeOptions ?? []).map((n) => ({ value: String(n), label: String(n) }))}
+          />
         </div>
       ) : null}
     </nav>

@@ -21,7 +21,7 @@ describe("ApiErrorView", () => {
     expect(
       screen.getByText("You are not enrolled in this training day's program."),
     ).toBeInTheDocument();
-    expect(screen.getByText("req_123")).toBeInTheDocument();
+    expect(screen.queryByText("req_123")).not.toBeInTheDocument();
   });
 
   it("overrides the message with a translated string for a client-only NETWORK_ERROR", () => {
@@ -36,10 +36,22 @@ describe("ApiErrorView", () => {
 
   it("calls onRetry when the retry action is used", () => {
     const onRetry = vi.fn();
-    const error = new ApiError({ code: "NOT_FOUND", message: "x", fields: null }, 404, "req_1");
+    const error = new ApiError({ code: "INTERNAL_ERROR", message: "x", fields: null }, 500, "req_1");
     renderWithIntl(<ApiErrorView error={error} onRetry={onRetry} />);
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(onRetry).toHaveBeenCalledOnce();
+  });
+
+  it("NOT_FOUND offers no retry (it can only fail again)", () => {
+    const error = new ApiError({ code: "NOT_FOUND", message: "Record not found.", fields: null }, 404, "req_1");
+    renderWithIntl(<ApiErrorView error={error} onRetry={vi.fn()} />);
+    expect(screen.getByText("Not found")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Try again" })).toBeNull();
+  });
+
+  it("renders its title as the page h1 when asked", () => {
+    renderWithIntl(<ApiErrorView error={mk("NOT_FOUND", 404)} headingLevel={1} />);
+    expect(screen.getByRole("heading", { level: 1, name: "Not found" })).toBeInTheDocument();
   });
 
   it("401: session-expired message with a sign-in link instead of retry", () => {
@@ -48,6 +60,16 @@ describe("ApiErrorView", () => {
     expect(screen.getByRole("link", { name: "Sign in again" })).toHaveAttribute("href", "/login");
     expect(screen.queryByText("raw backend text")).toBeNull();
     expect(screen.queryByRole("button", { name: "Try again" })).toBeNull();
+  });
+
+  it("401 on the form variant shows a neutral sign-in-failed title, not session expired", () => {
+    renderWithIntl(
+      <ApiErrorView error={mk("UNAUTHENTICATED", 401, "Invalid login or password.")} variant="form" />,
+    );
+    expect(screen.getByText("Sign-in failed")).toBeInTheDocument();
+    expect(screen.getByText("Invalid login or password.")).toBeInTheDocument();
+    expect(screen.queryByText("Session expired")).toBeNull();
+    expect(screen.queryByRole("link", { name: "Sign in again" })).toBeNull();
   });
 
   it("403 shows access denied; 404 shows not found; validation stays friendly", () => {
@@ -62,15 +84,15 @@ describe("ApiErrorView", () => {
     expect(screen.getByText("Date is required")).toBeInTheDocument();
   });
 
-  it("5xx never shows raw backend text, offers retry and shows the reference", () => {
+  it("5xx never shows raw backend text, offers retry and never shows a reference", () => {
     const onRetry = vi.fn();
     renderWithIntl(
       <ApiErrorView error={mk("INTERNAL_ERROR", 500, "Traceback (most recent call last)")} onRetry={onRetry} />,
     );
     expect(screen.queryByText(/Traceback/)).toBeNull();
     expect(screen.getByText("Something went wrong on our side. Please try again in a moment.")).toBeInTheDocument();
-    expect(screen.getByText(/Reference/)).toBeInTheDocument();
-    expect(screen.getByText("req_7")).toBeInTheDocument();
+    expect(screen.queryByText(/Reference/)).not.toBeInTheDocument();
+    expect(screen.queryByText("req_7")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(onRetry).toHaveBeenCalled();
   });
@@ -78,5 +100,12 @@ describe("ApiErrorView", () => {
   it("unknown 5xx code falls back to the friendly message", () => {
     renderWithIntl(<ApiErrorView error={mk("WEIRD", 502, "upstream stack")} />);
     expect(screen.queryByText("upstream stack")).toBeNull();
+  });
+
+  it("keeps the request id in the console log for debugging", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    renderWithIntl(<ApiErrorView error={mk("INTERNAL_ERROR", 500)} />);
+    expect(spy).toHaveBeenCalledWith("[api-error]", { code: "INTERNAL_ERROR", status: 500, requestId: "req_7" });
+    spy.mockRestore();
   });
 });

@@ -41,7 +41,8 @@ describe("Pagination", () => {
     renderWithIntl(
       <Pagination page={1} pageCount={1} onPageChange={() => {}} pageSize={10} pageSizeOptions={[10, 25]} onPageSizeChange={onSize} />,
     );
-    fireEvent.change(screen.getByRole("combobox", { name: "Items per page" }), { target: { value: "25" } });
+    fireEvent.click(screen.getByRole("combobox", { name: "Items per page" }));
+    fireEvent.click(screen.getByRole("option", { name: "25" }));
     expect(onSize).toHaveBeenCalledWith(25);
   });
 });

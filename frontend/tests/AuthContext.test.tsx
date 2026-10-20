@@ -119,3 +119,22 @@ describe("AuthProvider session bootstrap", () => {
     expect(screen.getByTestId("name")).toHaveTextContent("");
   });
 });
+
+describe("AuthProvider back-office role", () => {
+  it("keeps only operational roles, so an admin-only session has none", async () => {
+    vi.mocked(authApi.me).mockResolvedValue({
+      ...profile,
+      roles: ["admin"] as unknown as typeof profile.roles,
+    });
+    function Roles() {
+      const { roles } = useAuth();
+      return <span data-testid="roles">{roles.join(",") || "none"}</span>;
+    }
+    renderWithIntl(
+      <AuthProvider>
+        <Roles />
+      </AuthProvider>,
+    );
+    await waitFor(() => expect(screen.getByTestId("roles")).toHaveTextContent("none"));
+  });
+});

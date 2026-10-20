@@ -55,6 +55,7 @@ function ResetPasswordForm() {
   if (!token) {
     return (
       <ErrorState
+        headingLevel={1}
         title={t("invalidLinkTitle")}
         message={t("invalidLinkMessage")}
         action={

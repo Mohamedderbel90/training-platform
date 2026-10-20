@@ -1,10 +1,10 @@
 "use client";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { supervisorApi, type AttendanceUpsertItem } from "@/lib/api/endpoints";
+import { dashboardApi, supervisorApi, type AttendanceUpsertItem } from "@/lib/api/endpoints";
 import { ApiError } from "@/lib/api/client";
 import { useApiResource } from "@/lib/api/useApiResource";
 import { EmptyState } from "@/components/StateViews";
@@ -17,7 +17,11 @@ import { FormError } from "@/components/FormError";
 import { LiveStatus } from "@/components/LiveStatus";
 import { SubmitButton } from "@/components/SubmitButton";
 import { PageHeader } from "@/components/PageHeader";
-import { normalizeSearchText, shouldShowToolbar } from "@/lib/dashboard/listControls";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { useLeaveGuard } from "@/lib/useLeaveGuard";
+import { LockIcon } from "@/components/icons";
+import { DayContextHeader } from "@/components/dashboard/DayContextHeader";
+import { isDayClosedLike, normalizeSearchText, shouldShowToolbar } from "@/lib/dashboard/listControls";
 import type { AttendanceStatus } from "@/lib/api/types";
 
 const STATUSES: AttendanceStatus[] = ["present", "absent", "late"];
@@ -25,6 +29,11 @@ const STATUSES: AttendanceStatus[] = ["present", "absent", "late"];
 /** Display-only view filter. "not_recorded" means the server has no
  * attendance record yet for that trainee. */
 type ViewFilter = AttendanceStatus | "not_recorded";
+
+/** Local editable row. `status` is null until the supervisor explicitly
+ * picks one (DEC-05): an unrecorded trainee is never pre-selected, and
+ * only rows with a chosen status are sent on save. */
+type Row = Omit<AttendanceUpsertItem, "status"> & { status: AttendanceStatus | null };
 const VIEW_FILTERS: ViewFilter[] = [...STATUSES, "not_recorded"];
 
 export function AttendanceContent({ dayId }: { dayId: number }) {
@@ -37,7 +46,27 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
   const fetcher = useCallback((loc: string) => supervisorApi.getAttendance(dayId, loc), [dayId]);
   const { data, status, error, reload, setData } = useApiResource(fetcher);
 
-  const [rows, setRows] = useState<Record<number, AttendanceUpsertItem> | null>(null);
+  // Read-only vs editable is decided purely from the day's own real
+  // lifecycle state, never from whether a save previously succeeded or
+  // failed. The attendance list endpoint itself returns no day-state
+  // field, so the day's own record is fetched by id (the same
+  // `isDayClosedLike` the Training Days card's action link uses,
+  // components/DayCard.tsx) rather than looked up in the selected
+  // program's list -- which would miss a day of another program and leave
+  // it editable. While that lookup is in flight the page keeps showing the
+  // loading skeleton (below) alongside the attendance fetch, so editable
+  // controls never flash on screen only to flip to read-only.
+  const dayFetcher = useCallback((loc: string) => dashboardApi.getDay("supervisor", dayId, loc), [dayId]);
+  const { data: dayEntry, status: dayStatus } = useApiResource(dayFetcher);
+  const resolvingDayStatus = dayStatus === "loading";
+  // A Planned day is not editable either: attendance can only be recorded
+  // while the day is Open (DEC-04), so it is shown read-only with its own
+  // notice instead of letting the supervisor fill in a sheet that the
+  // server will refuse at save time.
+  const notOpenYet = dayStatus === "success" && dayEntry?.state === "planned";
+  const readOnly = dayStatus === "success" && !!dayEntry && (isDayClosedLike(dayEntry.state) || notOpenYet);
+
+  const [rows, setRows] = useState<Record<number, Row> | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<ApiError | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
@@ -49,30 +78,39 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
   // The status filter is evaluated against this snapshot, so editing a row
   // never makes it vanish from under the user's cursor; the live counts
   // still reflect edits. Display only.
-  const [baseline, setBaseline] = useState<Record<number, AttendanceStatus> | null>(null);
+  const [baseline, setBaseline] = useState<Record<number, AttendanceStatus | null> | null>(null);
 
   // Unsaved edits: `rows` is null until the user changes something and is
   // reset after a successful save. UX only -- the server is untouched.
   const dirty = rows !== null;
-  useEffect(() => {
-    if (!dirty) return;
-    const warn = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
-    };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  const leaveGuard = useLeaveGuard(dirty);
 
-  if (status === "loading") {
-    return <SkeletonRows rows={6} label={t("loading")} />;
+  const context = <DayContextHeader role="supervisor" dayId={dayId} trainingDaysHref="/supervisor/days" />;
+
+  if (status === "loading" || resolvingDayStatus) {
+    return (
+      <div>
+        {context}
+        <SkeletonRows rows={6} label={t("loading")} />
+      </div>
+    );
   }
   if (status === "error" && error) {
-    return <ApiErrorView error={error} onRetry={reload} />;
+    return (
+      <div>
+        {context}
+        <ApiErrorView headingLevel={1} error={error} onRetry={reload} />
+      </div>
+    );
   }
   const items = data?.items ?? [];
   if (items.length === 0) {
-    return <EmptyState title={t("emptyTitle")} message={t("emptyMessage")} />;
+    return (
+      <div>
+        {context}
+        <EmptyState title={t("emptyTitle")} message={t("emptyMessage")} />
+      </div>
+    );
   }
 
   const currentRows =
@@ -82,13 +120,13 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
         item.trainee_id,
         {
           trainee_id: item.trainee_id,
-          status: item.status ?? "present",
+          status: item.status ?? null,
           late_minutes: item.late_minutes ?? 0,
-        } satisfies AttendanceUpsertItem,
+        } satisfies Row,
       ]),
     );
 
-  const updateRow = (traineeId: number, patch: Partial<AttendanceUpsertItem>) => {
+  const updateRow = (traineeId: number, patch: Partial<Row>) => {
     setRows({
       ...currentRows,
       [traineeId]: { ...currentRows[traineeId], ...patch },
@@ -99,11 +137,15 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
     setSaving(true);
     setSaveError(null);
     setSavedAt(null);
-    const payload = Object.values(currentRows).map((row) => ({
-      trainee_id: row.trainee_id,
-      status: row.status,
-      ...(row.status === "late" ? { late_minutes: row.late_minutes ?? 0 } : {}),
-    }));
+    const payload: AttendanceUpsertItem[] = [];
+    for (const row of Object.values(currentRows)) {
+      if (row.status === null) continue;
+      payload.push({
+        trainee_id: row.trainee_id,
+        status: row.status,
+        ...(row.status === "late" ? { late_minutes: row.late_minutes ?? 0 } : {}),
+      });
+    }
     try {
       const result = await supervisorApi.putAttendance(dayId, payload, locale);
       setData(result);
@@ -122,7 +164,7 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
   const snapshotStatuses = () =>
     Object.fromEntries(Object.values(currentRows).map((r) => [r.trainee_id, r.status])) as Record<
       number,
-      AttendanceStatus
+      AttendanceStatus | null
     >;
   const changeQuery = (value: string) => {
     setBaseline(snapshotStatuses());
@@ -133,18 +175,42 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
     setViewFilter(value);
   };
 
-  // Trainees the server has no attendance record for (they default to
-  // Present locally). Counted separately, never inside present/absent/late
-  // twice: the three status counts describe the CURRENT selection of all rows.
-  const notRecordedIds = new Set(items.filter((i) => i.status === null).map((i) => i.trainee_id));
+  // Trainees with no status yet: read-only = what the server has not
+  // recorded; editable = rows the supervisor has not chosen a status for
+  // (DEC-05: nothing is pre-selected, so nothing is saved for them).
+  const notRecordedIds = new Set(
+    readOnly
+      ? items.filter((i) => i.status === null).map((i) => i.trainee_id)
+      : Object.values(currentRows)
+          .filter((r) => r.status === null)
+          .map((r) => r.trainee_id),
+  );
   const counts: Record<AttendanceStatus, number> = { present: 0, absent: 0, late: 0 };
-  for (const row of Object.values(currentRows)) counts[row.status] += 1;
+  if (readOnly) {
+    for (const item of items) if (item.status) counts[item.status] += 1;
+  } else {
+    for (const row of Object.values(currentRows)) if (row.status) counts[row.status] += 1;
+  }
+  const markRemainingPresent = () => {
+    setRows(
+      Object.fromEntries(
+        Object.values(currentRows).map((r) => [
+          r.trainee_id,
+          r.status === null ? { ...r, status: "present" as const, late_minutes: 0 } : r,
+        ]),
+      ),
+    );
+  };
+  const nothingToSave = notRecordedIds.size === Object.keys(currentRows).length;
 
   const normalizedQuery = normalizeSearchText(query);
   const visibleItems = items.filter((item) => {
     if (normalizedQuery && !normalizeSearchText(item.name).includes(normalizedQuery)) return false;
     if (viewFilter === "not_recorded") return notRecordedIds.has(item.trainee_id);
-    if (viewFilter) return (baseline?.[item.trainee_id] ?? currentRows[item.trainee_id].status) === viewFilter;
+    if (viewFilter) {
+      const statusValue = readOnly ? item.status : (baseline?.[item.trainee_id] ?? currentRows[item.trainee_id].status);
+      return statusValue === viewFilter;
+    }
     return true;
   });
   const showControls = shouldShowToolbar(items.length);
@@ -173,16 +239,37 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
 
   return (
     <div>
+      {context}
       <PageHeader title={<h1>{t("title")}</h1>} />
-      <FormError error={saveError} onRetry={handleSave} />
-      <LiveStatus message={t("saved")} stamp={savedAt} />
+      {readOnly ? (
+        <p className="readonly-notice">
+          <LockIcon aria-hidden="true" />
+          {t(notOpenYet ? "notOpenNotice" : "readOnlyNotice")}
+        </p>
+      ) : (
+        <>
+          <FormError error={saveError} onRetry={handleSave} />
+          <LiveStatus message={t("saved")} stamp={savedAt} />
+        </>
+      )}
       <ul className="attendance-summary" aria-label={t("summaryLabel")}>
         {STATUSES.map((f) => (
-          <li key={f}>{t("summaryCount", { label: t(`status.${f}`), count: counts[f] })}</li>
+          <li key={f} className={`attendance-summary__item attendance-summary__item--${f}`}>
+            {t("summaryCount", { label: t(`status.${f}`), count: counts[f] })}
+          </li>
         ))}
-        <li>{t("summaryCount", { label: t("notYetSaved"), count: notRecordedIds.size })}</li>
+        <li className="attendance-summary__item attendance-summary__item--pending">
+          {t("summaryCount", { label: t(readOnly ? "notRecorded" : "notYetSaved"), count: notRecordedIds.size })}
+        </li>
       </ul>
-      {notRecordedIds.size > 0 ? <p className="card__meta attendance-summary__hint">{t("notYetSavedHint")}</p> : null}
+      {!readOnly && notRecordedIds.size > 0 ? (
+        <div className="attendance-summary__hint">
+          <p className="card__meta">{t("notYetSavedHint")}</p>
+          <button type="button" className="button button--secondary" onClick={markRemainingPresent}>
+            {t("markRemainingPresent")}
+          </button>
+        </div>
+      ) : null}
       {showControls ? (
         <FilterBar
           search={
@@ -196,6 +283,7 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
           }
           primary={
           <SortControl
+            compact
             label={t("filterLabel")}
             value={viewFilter}
             onChange={(v) => changeViewFilter(v as ViewFilter | "")}
@@ -234,47 +322,73 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
                       {item.name}
                     </td>
                     <td role="cell" data-label={t("statusColumn")}>
-                      <div
-                        className="status-radio-group"
-                        role="radiogroup"
-                        aria-label={t("statusFor", { name: item.name })}
-                      >
-                        {STATUSES.map((candidate) => (
-                          <label key={candidate}>
-                            <input
-                              type="radio"
-                              name={`status-${item.trainee_id}`}
-                              checked={row.status === candidate}
-                              onChange={() =>
-                                updateRow(item.trainee_id, {
-                                  status: candidate,
-                                  late_minutes: candidate === "late" ? row.late_minutes || 0 : 0,
-                                })
-                              }
-                            />
-                            {t(`status.${candidate}`)}
-                          </label>
-                        ))}
-                      </div>
+                      {readOnly ? (
+                        item.status ? (
+                          t(`status.${item.status}`)
+                        ) : (
+                          <span className="card__meta">{t("notRecorded")}</span>
+                        )
+                      ) : (
+                        <div
+                          className="status-radio-group"
+                          role="radiogroup"
+                          aria-label={t("statusFor", { name: item.name })}
+                        >
+                          {STATUSES.map((candidate) => (
+                            <label key={candidate} data-status={candidate}>
+                              <input
+                                type="radio"
+                                name={`status-${item.trainee_id}`}
+                                checked={row.status === candidate}
+                                onChange={() =>
+                                  updateRow(item.trainee_id, {
+                                    status: candidate,
+                                    late_minutes: candidate === "late" ? row.late_minutes || 0 : 0,
+                                  })
+                                }
+                              />
+                              {t(`status.${candidate}`)}
+                            </label>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td
                       role="cell"
                       data-label={t("lateMinutesColumn")}
-                      className={row.status === "late" ? undefined : "attendance-late--na"}
+                      className={(readOnly ? item.status : row.status) === "late" ? undefined : "attendance-late--na"}
                     >
-                      {row.status === "late" ? (
+                      {readOnly ? (
+                        item.status === "late" ? (
+                          item.late_minutes ?? 0
+                        ) : (
+                          <span className="attendance-na">
+              <span aria-hidden="true">&mdash;</span>
+              <span className="visually-hidden">{t("notApplicable")}</span>
+            </span>
+                        )
+                      ) : row.status === "late" ? (
+                        <span className="late-minutes">
                         <input
                           type="number"
                           min={0}
                           className="late-minutes-input"
+                          inputMode="numeric"
                           aria-label={t("lateMinutesColumn")}
                           value={row.late_minutes ?? 0}
                           onChange={(event) =>
                             updateRow(item.trainee_id, { late_minutes: Number(event.target.value) })
                           }
                         />
+                          <span className="late-minutes__unit" aria-hidden="true">
+                            {t("minutesUnit")}
+                          </span>
+                        </span>
                       ) : (
-                        <span className="card__meta">{t("notApplicable")}</span>
+                        <span className="attendance-na">
+              <span aria-hidden="true">&mdash;</span>
+              <span className="visually-hidden">{t("notApplicable")}</span>
+            </span>
                       )}
                     </td>
                   </tr>
@@ -284,17 +398,28 @@ export function AttendanceContent({ dayId }: { dayId: number }) {
           </table>
         </div>
       )}
-      <div className="button-row form-actions">
-        <SubmitButton type="button" loading={saving} loadingLabel={t("saving")} onClick={handleSave}>
-          {t("save")}
-        </SubmitButton>
-        {dirty && !saving ? (
-          <p className="unsaved-note">
-            <span className="unsaved-note__dot" aria-hidden="true" />
-            {t("unsavedChanges")}
-          </p>
-        ) : null}
-      </div>
+      {!readOnly ? (
+        <div className="button-row form-actions attendance-actions">
+          <SubmitButton type="button" loading={saving} disabled={nothingToSave} loadingLabel={t("saving")} onClick={handleSave}>
+            {t("save")}
+          </SubmitButton>
+          {dirty && !saving ? (
+            <p className="unsaved-note">
+              <span className="unsaved-note__dot" aria-hidden="true" />
+              {t("unsavedChanges")}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+      <ConfirmDialog
+        open={leaveGuard.pendingHref !== null}
+        title={t("leaveTitle")}
+        message={t("leaveMessage")}
+        confirmLabel={t("leaveConfirm")}
+        cancelLabel={t("leaveStay")}
+        onConfirm={leaveGuard.confirmLeave}
+        onCancel={leaveGuard.stay}
+      />
     </div>
   );
 }

@@ -107,6 +107,7 @@ export function UpcomingSessionCard({
     entry.end_datetime,
     locale,
     profile?.tz,
+    t,
   );
   const trainerNames = entry.trainers?.map((trainer) => trainer.name).join(t("listSeparator"));
 

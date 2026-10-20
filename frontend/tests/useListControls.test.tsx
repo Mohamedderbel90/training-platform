@@ -135,11 +135,66 @@ describe("useListControls", () => {
     expect(result.current.filters.dayStatus).toBe("open");
   });
 
+  it("leaves a set date range in place but inert while in calendar view (point 8/9)", () => {
+    __setMockSearchParams({ from: "2026-09-10", to: "2026-09-20" });
+    const { result } = renderHook(() => useListControls(days), { wrapper });
+    const narrowedCount = result.current.results.length;
+    expect(result.current.activeCount).toBe(2); // dateFrom + dateTo
+    expect(narrowedCount).toBeLessThan(days.length);
+
+    act(() => result.current.setViewMode("calendar"));
+    // The value survives the view switch...
+    expect(result.current.filters.dateFrom).toBe("2026-09-10");
+    expect(result.current.filters.dateTo).toBe("2026-09-20");
+    // ...but no longer narrows the results or counts as an active filter.
+    expect(result.current.results).toHaveLength(days.length);
+    expect(result.current.activeCount).toBe(0);
+
+    // Switching back to Cards immediately re-applies it, unchanged.
+    act(() => result.current.setViewMode("card"));
+    expect(result.current.results).toHaveLength(narrowedCount);
+    expect(result.current.activeCount).toBe(2);
+  });
+
   it("hides the toolbar and ignores URL filters on short lists", () => {
     __setMockSearchParams({ status: "closed", q: "zzz" });
     const { result } = renderHook(() => useListControls(days.slice(0, 5)), { wrapper });
     expect(result.current.showToolbar).toBe(false);
     expect(result.current.results).toHaveLength(5);
     expect(result.current.activeCount).toBe(0);
+  });
+
+  describe("role-based filter visibility", () => {
+    it("hides Evaluation Status and Attendance from a trainee and ignores their URL params in both views", () => {
+      __setMockSearchParams({ avail: "closed", attendance: "complete" });
+      const open = renderHook(() => useListControls(days, { role: "trainee" }), { wrapper });
+      expect(open.result.current.visibleFilters.availability).toBe(false);
+      expect(open.result.current.visibleFilters.attendance).toBe(false);
+      expect(open.result.current.filters.availability).toBe("");
+      expect(open.result.current.filters.attendance).toBe("");
+      expect(open.result.current.results).toHaveLength(days.length);
+      expect(open.result.current.activeCount).toBe(0);
+
+      act(() => open.result.current.setViewMode("calendar"));
+      expect(open.result.current.results).toHaveLength(days.length);
+      expect(open.result.current.activeCount).toBe(0);
+    });
+
+    it("still applies the same params for a supervisor", () => {
+      __setMockSearchParams({ attendance: "complete" });
+      const { result } = renderHook(() => useListControls(days, { role: "supervisor" }), { wrapper });
+      expect(result.current.visibleFilters.attendance).toBe(true);
+      expect(result.current.filters.attendance).toBe("complete");
+      expect(result.current.results.length).toBeLessThan(days.length);
+    });
+
+    it("gives trainers Report status but not Evaluation Status or Attendance", () => {
+      const { result } = renderHook(() => useListControls(days, { role: "trainer", kind: "report" }), { wrapper });
+      expect(result.current.visibleFilters).toMatchObject({
+        responseStatus: true,
+        availability: false,
+        attendance: false,
+      });
+    });
   });
 });

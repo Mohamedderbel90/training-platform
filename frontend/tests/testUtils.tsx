@@ -1,5 +1,6 @@
 import { Suspense, type ReactElement, type ReactNode } from "react";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import type { UserEvent } from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import enMessages from "@/messages/en.json";
 import arMessages from "@/messages/ar.json";
@@ -28,4 +29,11 @@ export function renderWithIntl(
     );
   }
   return render(ui, { wrapper: Wrapper });
+}
+
+/** Picks an option in a themed dropdown (`SelectMenu`): open the combobox
+ * by its label, then click the option by its visible name. */
+export async function chooseOption(user: UserEvent, label: string, option: string | RegExp) {
+  await user.click(screen.getByRole("combobox", { name: label }));
+  await user.click(await screen.findByRole("option", { name: option }));
 }

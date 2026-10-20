@@ -43,6 +43,8 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const OPERATIONAL_ROLES: string[] = ["trainee", "supervisor", "trainer"];
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const locale = useLocale();
   const [status, setStatus] = useState<AuthStatus>("loading");
@@ -100,7 +102,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       status,
       profile,
-      roles: profile?.roles ?? [],
+      // The API also reports the back-office role (admin); it works in
+      // Odoo and has no operational UI here, so only the three operational
+      // roles are kept (an admin-only session then gets
+      // the "no role" screen instead of a crash).
+      roles: (profile?.roles ?? []).filter((role): role is OperationalRole =>
+        OPERATIONAL_ROLES.includes(role),
+      ),
       login,
       logout,
       refresh: bootstrap,

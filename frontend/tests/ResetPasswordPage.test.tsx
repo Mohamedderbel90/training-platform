@@ -21,6 +21,8 @@ describe("ResetPasswordPage", () => {
   it("shows an invalid-link state and no form when the token is missing", () => {
     renderWithIntl(<ResetPasswordPage />);
     expect(screen.getByText("Invalid or expired link")).toBeInTheDocument();
+    // the page has no other heading, so this state is its h1
+    expect(screen.getByRole("heading", { level: 1, name: "Invalid or expired link" })).toBeInTheDocument();
     expect(screen.queryByLabelText("New password")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Request a new link" })).toHaveAttribute(
       "href",

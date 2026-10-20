@@ -56,25 +56,38 @@ describe("LoginPage", () => {
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/trainee"));
   });
 
-  it("redirects to a safe returnTo path instead of the default dashboard when present", async () => {
-    __setMockSearchParams({ returnTo: "/trainee/42" });
+  async function signIn(returnTo: string | undefined) {
+    __setMockSearchParams(returnTo === undefined ? {} : { returnTo });
     const login = vi.fn().mockResolvedValue({
       id: 1,
       partner_id: 1,
-      name: "Dev Trainee",
+      name: "Dev Supervisor",
       locale: "en_US",
-      roles: ["trainee"],
+      roles: ["supervisor"],
       capabilities: [],
     });
     mockAuth({ login });
     renderWithIntl(<LoginPage />);
-
-    await userEvent.type(screen.getByLabelText("Username"), "dev_trainee");
+    await userEvent.type(screen.getByLabelText("Username"), "dev_supervisor");
     await userEvent.type(screen.getByLabelText("Password"), "Dev12345!");
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    await waitFor(() => expect(login).toHaveBeenCalled());
+  }
 
-    await waitFor(() => expect(replace).toHaveBeenCalledWith("/trainee/42"));
+  it("returns to the originally requested page after login when returnTo is a same-app path", async () => {
+    await signIn("/supervisor/93/attendance");
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/supervisor/93/attendance"));
+    expect(replace).not.toHaveBeenCalledWith("/supervisor");
   });
+
+  it.each(["//evil.example/x", "https://evil.example", "/\\evil.example", "/login", "evil"])(
+    "ignores the unsafe returnTo %s and lands on the role dashboard",
+    async (value) => {
+      await signIn(value);
+      await waitFor(() => expect(replace).toHaveBeenCalledWith("/supervisor"));
+      expect(replace).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it("shows the server's error message on invalid credentials (401) and does not redirect", async () => {
     const login = vi
@@ -90,6 +103,8 @@ describe("LoginPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
     expect(await screen.findByText("Invalid login or password.")).toBeInTheDocument();
+    expect(screen.getByText("Sign-in failed")).toBeInTheDocument();
+    expect(screen.queryByText("Session expired")).not.toBeInTheDocument();
     expect(replace).not.toHaveBeenCalled();
   });
 
@@ -155,7 +170,7 @@ describe("LoginPage", () => {
     resolve({ roles: [] });
   });
 
-  it("shows the request id with a server error", async () => {
+  it("never shows the request id with a server error", async () => {
     const login = vi
       .fn()
       .mockRejectedValue(new ApiError({ code: "UNAUTHENTICATED", message: "Invalid login or password.", fields: null }, 401, "req_77"));
@@ -164,7 +179,8 @@ describe("LoginPage", () => {
     await userEvent.type(screen.getByLabelText("Username"), "u");
     await userEvent.type(screen.getByLabelText("Password"), "p");
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
-    expect(await screen.findByText("req_77")).toBeInTheDocument();
+    await screen.findByRole("alert");
+    expect(screen.queryByText("req_77")).not.toBeInTheDocument();
   });
 
   it("has credential-friendly input attributes and a show/hide password toggle", async () => {
@@ -182,5 +198,40 @@ describe("LoginPage", () => {
     renderWithIntl(<LoginPage />);
     expect(replace).toHaveBeenCalledWith("/supervisor");
     expect(screen.queryByLabelText("Username")).not.toBeInTheDocument();
+  });
+});
+
+describe("LoginPage credentials handling", () => {
+  beforeEach(() => {
+    __setMockSearchParams({});
+  });
+
+  it("trims the username but sends the password exactly as typed", async () => {
+    const login = vi.fn().mockResolvedValue({
+      id: 1, partner_id: 1, name: "X", locale: "en_US", roles: ["trainee"], capabilities: [],
+    });
+    mockAuth({ login });
+    renderWithIntl(<LoginPage />);
+    await userEvent.type(screen.getByLabelText("Username"), "  dev_trainee  ");
+    await userEvent.type(screen.getByLabelText("Password"), " pa ss ");
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    await waitFor(() => expect(login).toHaveBeenCalledWith("dev_trainee", " pa ss "));
+  });
+
+  it("clears the password and keeps the username after a failed sign-in", async () => {
+    const login = vi
+      .fn()
+      .mockRejectedValue(
+        new ApiError({ code: "UNAUTHENTICATED", message: "Invalid login or password.", fields: null }, 401, "req_1"),
+      );
+    mockAuth({ login });
+    renderWithIntl(<LoginPage />);
+    await userEvent.type(screen.getByLabelText("Username"), "dev_trainee");
+    await userEvent.type(screen.getByLabelText("Password"), "wrong");
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+    await screen.findByText("Invalid login or password.");
+    expect(screen.getByLabelText("Password")).toHaveValue("");
+    expect(screen.getByLabelText("Username")).toHaveValue("dev_trainee");
   });
 });

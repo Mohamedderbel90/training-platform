@@ -16,6 +16,7 @@ export function NoRoleState() {
   const router = useRouter();
   return (
     <ErrorState
+      headingLevel={1}
       title={t("noRoleTitle")}
       message={t("noRoleMessage")}
       actionLabel={t("logout")}

@@ -7,19 +7,21 @@ import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { getPrimaryRole } from "@/lib/auth/roleHome";
-import { ACCOUNT_NAV, isNavItemActive, ROLE_NAV, type RoleNavKey } from "@/lib/auth/roleNav";
+import { ACCOUNT_NAV, FOOTER_NAV, isNavItemActive, ROLE_NAV, type RoleNavKey } from "@/lib/auth/roleNav";
 import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
+import { useProgramSelection } from "@/lib/dashboard/ProgramSelection";
 import type { OperationalRole } from "@/lib/api/types";
 import { BrandMark } from "@/components/BrandMark";
 import { ProgramInfoBox } from "@/components/dashboard/ProgramInfoBox";
 import {
   BellIcon,
-  BookIcon,
   CalendarIcon,
-  CheckIcon,
   ClipboardIcon,
+  DocumentIcon,
   GlobeIcon,
   HomeIcon,
+  InfoIcon,
+  LockIcon,
   LogoutIcon,
   MenuIcon,
   PersonIcon,
@@ -37,10 +39,10 @@ const ROLE_ICON: Record<OperationalRole, typeof HomeIcon> = {
 const NAV_ICON: Record<RoleNavKey, typeof HomeIcon> = {
   dashboard: HomeIcon,
   trainingDays: CalendarIcon,
-  program: BookIcon,
-  attendanceEvaluation: CheckIcon,
-  myReports: ClipboardIcon,
   profile: PersonIcon,
+  help: InfoIcon,
+  terms: DocumentIcon,
+  privacy: LockIcon,
 };
 
 /** Public, unauthenticated screens that render their own full-bleed
@@ -64,7 +66,7 @@ export function initialsOf(name: string) {
  * the shared header (current-program box, locale switch, user
  * identity), and the sidebar's decorative bottom illustration. Mounted
  * once in the locale layout so every authenticated page gets
- * consistent chrome; the approved Login page (see noor-login/README.md)
+ * consistent chrome; the approved Login page (see docs/README.md (noor-login/ row))
  * opts out entirely via the bare branch below and is never touched by
  * anything here. */
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -82,7 +84,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const hasNav = status === "authenticated" && roles.length > 0;
   const primaryRole = getPrimaryRole(roles);
-  const { data: dashboard } = useDashboardSummary(hasNav ? primaryRole : null);
+  const { data: dashboard, error: dashboardError } = useDashboardSummary(
+    hasNav ? primaryRole : null,
+  );
+  const { selectedProgramId, setSelectedProgramId } = useProgramSelection();
+
+  // A remembered program the user is no longer assigned in (another account on
+  // this browser, or an assignment that ended) is refused by the backend:
+  // fall back to the current program instead of showing an error.
+  useEffect(() => {
+    if (selectedProgramId !== null && dashboardError?.code === "FORBIDDEN") {
+      setSelectedProgramId(null);
+    }
+  }, [dashboardError, selectedProgramId, setSelectedProgramId]);
   const otherLocale = routing.locales.find((candidate) => candidate !== locale) ?? locale;
 
   // Escape dismisses the mobile drawer / notifications popover.
@@ -133,7 +147,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     router.replace("/login");
   };
 
-  // The approved login design (see noor-login/README.md) is a fully
+  // The approved login design (see docs/README.md (noor-login/ row)) is a fully
   // immersive, edge-to-edge page with no app chrome of its own -- it
   // builds its own language switcher and footer. Showing the normal
   // topbar above it would duplicate both. The forgot/reset-password
@@ -177,7 +191,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="app-sidebar__brand">
               <span className="app-sidebar__brand-mark" aria-hidden="true">
                 {/* Real brand mark (dome + open book emblem), matching the
-                 * approved reference -- see noor-login/README.md; this is
+                 * approved reference -- see docs/README.md (noor-login/ row); this is
                  * the same asset already used on the login page, not the
                  * abstract star glyph. */}
                 <Image
@@ -334,9 +348,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ) : null}
 
           <div className="app-topbar__end">
-            <ProgramInfoBox program={dashboard?.program ?? null} topbar />
+            <ProgramInfoBox
+              program={dashboard?.program ?? null}
+              programs={dashboard?.programs ?? []}
+              onSelect={setSelectedProgramId}
+              topbar
+            />
           </div>
         </header>
+        {/* Phones: the header box is hidden (no room), so the same box is
+         * shown as a slim strip under the header; it keeps the switcher when
+         * the user has several programs. Hidden from 561px up in CSS. */}
+        <div className="program-strip">
+          <ProgramInfoBox
+            program={dashboard?.program ?? null}
+            programs={dashboard?.programs ?? []}
+            onSelect={setSelectedProgramId}
+            topbar
+          />
+        </div>
         <main id="main-content" className="app-main">
           {/* Keyed by route so the entrance runs once per navigation, never
            * on filter/search re-renders (those don't change the pathname). */}
@@ -344,7 +374,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {children}
           </div>
         </main>
-        <footer className="app-footer">{t("footerNote")}</footer>
+        <footer className="app-footer">
+          <nav className="app-footer__nav" aria-label={t("footerNavLabel")}>
+            <ul className="app-footer__links">
+              {FOOTER_NAV.map((item) => (
+                <li key={item.key}>
+                  <Link
+                    href={item.href}
+                    className="app-footer__link"
+                    aria-current={isNavItemActive(item, pathname) ? "page" : undefined}
+                  >
+                    {tNav(item.key)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <p className="app-footer__note">{t("footerNote")}</p>
+        </footer>
       </div>
     </div>
   );

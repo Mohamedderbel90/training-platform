@@ -9,12 +9,13 @@
 
 import type { ReactNode } from "react";
 
-type HeadingLevel = 2 | 3 | 4;
+type HeadingLevel = 1 | 2 | 3 | 4;
 
 /** State titles are real headings (h2 by default: pages own the h1) that
- * keep the shared visual class. */
+ * keep the shared visual class. Level 1 is for the standalone screens
+ * where the state is the whole page and nothing else supplies an h1. */
 function StateTitle({ level = 2, children }: { level?: HeadingLevel; children: ReactNode }) {
-  const Tag = `h${level}` as "h2" | "h3" | "h4";
+  const Tag = `h${level}` as "h1" | "h2" | "h3" | "h4";
   return <Tag className="state-view__title">{children}</Tag>;
 }
 import { useTranslations } from "next-intl";
@@ -112,7 +113,6 @@ export function EmptyState({
 export function ErrorState({
   title,
   message,
-  requestId,
   actionLabel,
   onAction,
   action,
@@ -121,13 +121,11 @@ export function ErrorState({
   headingLevel?: HeadingLevel;
   title: string;
   message: string;
-  requestId?: string | null;
   actionLabel?: string;
   onAction?: () => void;
   /** Custom action (e.g. a sign-in link); shown instead of the retry button. */
   action?: ReactNode;
 }) {
-  const t = useTranslations("Errors");
   return (
     <div className="state-view state-view--error" role="alert">
       <span className="state-view__icon">
@@ -135,12 +133,6 @@ export function ErrorState({
       </span>
       <StateTitle level={headingLevel}>{title}</StateTitle>
       <p className="state-view__message">{message}</p>
-      {requestId ? (
-        <p className="state-view__request-id">
-          <span>{t("reference")}: </span>
-          <code>{requestId}</code>
-        </p>
-      ) : null}
       {action ? (
         <div className="state-view__action">{action}</div>
       ) : actionLabel && onAction ? (

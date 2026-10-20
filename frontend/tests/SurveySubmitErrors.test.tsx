@@ -10,7 +10,7 @@ import type { SurveyDefinitionDto } from "@/lib/api/types";
 vi.mock("@/i18n/navigation", () => import("./mocks/i18nNavigation"));
 vi.mock("@/lib/auth/AuthContext", () => ({ useAuth: vi.fn() }));
 vi.mock("@/lib/api/endpoints", () => ({
-  traineeApi: { getSurvey: vi.fn(), getSurveyStatus: vi.fn(), submitSurvey: vi.fn() },
+  traineeApi: { getSurvey: vi.fn(), getSurveyStatus: vi.fn(), getMyResponse: vi.fn(), submitSurvey: vi.fn() },
 }));
 
 const refresh = vi.fn();
@@ -82,14 +82,14 @@ describe("Trainee survey submit error mapping", () => {
     ["FORBIDDEN", 403, "You do not have access to this survey.", "Access denied"],
     ["CONFLICT", 409, "Please try again.", "Already submitted"],
     ["VALIDATION_ERROR", 422, "Invalid answer option for question 'Rate the trainer'.", "Some information is missing or invalid"],
-  ])("surfaces %s (%i) with the server message and request id, keeping the form", async (code, status, message, title) => {
+  ])("surfaces %s (%i) with the server message (no request id), keeping the form", async (code, status, message, title) => {
     vi.mocked(traineeApi.submitSurvey).mockRejectedValue(apiError(code, status, message));
 
     await openFormAndSubmit();
 
     expect(await screen.findByText(message)).toBeInTheDocument();
     expect(screen.getByText(title)).toBeInTheDocument();
-    expect(screen.getByText("req_abc123")).toBeInTheDocument();
+    expect(screen.queryByText("req_abc123")).not.toBeInTheDocument();
     // Not stuck busy: the form is still there and can be resubmitted.
     expect(screen.getByRole("button", { name: "Submit" })).toBeEnabled();
     expect(refresh).not.toHaveBeenCalled();
@@ -132,6 +132,11 @@ describe("Trainee survey submit error mapping", () => {
       response: { response_id: 1, state: "submitted", submitted_at: "2026-09-15 10:00:00", editable: false },
       can_submit: false,
       reason: "already_submitted",
+    });
+    vi.mocked(traineeApi.getMyResponse).mockResolvedValue({
+      definition,
+      status: { response_id: 1, state: "submitted", submitted_at: "2026-09-15 10:00:00", editable: false },
+      answers: [],
     });
     renderWithIntl(<TraineeSurveyContent dayId={1} />);
     expect(await screen.findByText(/Submitted at/)).toBeInTheDocument();

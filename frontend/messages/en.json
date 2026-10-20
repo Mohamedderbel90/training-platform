@@ -24,7 +24,9 @@
     "notificationsUnavailable": "No notifications to show yet.",
     "decorLine1": "Through knowledge we raise a generation",
     "decorLine2": "with the Book of Allah",
-    "switchToLocale": "Switch to {locale}"
+    "switchToLocale": "Switch to {locale}",
+    "backToTrainingDays": "Back to Training Days",
+    "footerNavLabel": "Footer navigation"
   },
   "Nav": {
     "primaryNavigation": "Primary navigation",
@@ -35,10 +37,10 @@
       "supervisor": "Supervisor",
       "trainer": "Trainer"
     },
-    "program": "Training Program",
-    "attendanceEvaluation": "Attendance & Evaluation",
-    "myReports": "My Reports",
-    "profile": "Profile"
+    "profile": "Profile",
+    "help": "Help",
+    "terms": "Terms",
+    "privacy": "Privacy"
   },
   "Breadcrumbs": {
     "ariaLabel": "Breadcrumb",
@@ -108,12 +110,14 @@
     "notFoundMessage": "The page you are looking for does not exist or has moved.",
     "backHome": "Back to home",
     "titleUnauthenticated": "Session expired",
+    "titleSignInFailed": "Sign-in failed",
     "titleForbidden": "Access denied",
     "titleNotFound": "Not found",
     "titleValidation": "Some information is missing or invalid",
     "titleConflict": "Already submitted",
     "titleRateLimited": "Too many attempts",
     "titleNetwork": "Connection problem",
+    "titleUnavailable": "Service unavailable",
     "titleInternal": "Something went wrong",
     "titleGeneric": "Error",
     "network": "Unable to reach the server. Check your connection and try again.",
@@ -124,8 +128,7 @@
     "notFoundStateMessage": "We could not find what you were looking for. It may have been removed or moved.",
     "validationMessage": "Please review the information and try again.",
     "internalMessage": "Something went wrong on our side. Please try again in a moment.",
-    "genericMessage": "An unexpected problem occurred. Please try again.",
-    "reference": "Reference"
+    "genericMessage": "An unexpected problem occurred. Please try again."
   },
   "Dashboard": {
     "loading": "Loading your training days...",
@@ -133,10 +136,10 @@
     "emptyTraineeMessage": "You have no enrolled training days to show right now.",
     "emptySupervisorMessage": "You have no assigned training days to show right now.",
     "emptyTrainerMessage": "You have no assigned training days to show right now.",
-    "traineeTitle": "My Training Days",
-    "supervisorTitle": "Assigned Training Days",
-    "trainerTitle": "Assigned Training Days",
     "dateUnknown": "Date not set",
+    "dayNumberLabel": "Day {number}",
+    "dayNumberWithTopic": "Day {number} — {topic}",
+    "timeRange": "{start} – {end}",
     "dayState": {
       "planned": "Planned",
       "open": "Open",
@@ -156,21 +159,36 @@
     "sectionTrainingDay": "Training Day",
     "sectionSurvey": "Survey",
     "sectionReport": "Report",
+    "sectionEvaluation": "Evaluation",
     "continueSurvey": "Continue survey",
-    "continueReport": "Continue report",
+    "continueReport": "Continue impression report",
+    "continueEvaluation": "Continue supervisory evaluation",
     "hint": {
       "notConfigured": "Not configured yet",
       "planned": "Not available yet",
       "open": "Not available right now",
       "closed": "The day is closed",
       "postponed": "The day is postponed",
-      "cancelled": "The day is cancelled"
+      "cancelled": "The day is cancelled",
+      "missedDeadline": "You did not complete this before the window closed."
     },
-    "openSurvey": "Open survey",
+    "openSurvey": "Fill out survey",
     "viewSurvey": "View survey",
-    "openReport": "Open report",
-    "viewReport": "View report",
-    "manageAttendance": "Manage attendance",
+    "openReport": "Fill out impression report",
+    "viewReport": "View impression report",
+    "openEvaluation": "Fill out supervisory evaluation",
+    "viewEvaluation": "View supervisory evaluation",
+    "submittedOn": "Submitted {date}",
+    "recordAttendance": "Record attendance",
+    "continueAttendance": "Continue attendance",
+    "viewAttendance": "View attendance",
+    "actionAvailabilityLabel": "Evaluation Status",
+    "actionAvailabilityHint": "Whether this action can be submitted right now -- separate from the training day's own status, which can be Open while the evaluation window hasn't started yet or has already closed.",
+    "actionAvailability": {
+      "upcoming": "Upcoming",
+      "openForEvaluation": "Open for Evaluation",
+      "closed": "Closed"
+    },
     "welcomeBack": "Welcome back, {name}",
     "welcomeSubtitleTrainee": "On your journey toward excellence in leading Qur'an memorization schools",
     "welcomeSubtitleSupervisor": "On your journey toward supporting excellence in Qur'an memorization schools",
@@ -198,6 +216,7 @@
     "quickStatReports": "Reports",
     "quickStatDays": "Completed days",
     "quickStatCourses": "Courses",
+    "programSwitcherLabel": "Choose a program",
     "programCurrentLabel": "Current program",
     "programMessageTitle": "A message from the program administration",
     "programMessageUnavailable": "No messages or announcements from the program administration are available through this system yet.",
@@ -240,7 +259,19 @@
       "not_started": "Not recorded",
       "partial": "Partially recorded",
       "complete": "Complete"
-    }
+    },
+    "daysStatsRegionLabel": "Training days summary",
+    "programStatsHeading": "Program Statistics",
+    "statTotalDays": "Total days",
+    "statCompletedDays": "Ended days",
+    "daysIntroTrainee": "Follow your training journey and review the days completed and still ahead.",
+    "daysIntroTrainer": "Review your assigned training days and complete each day's impression report.",
+    "daysIntroSupervisor": "Track attendance and supervisory evaluations across your assigned training days.",
+    "statTotalDaysSupport": "All training days in the program",
+    "statCompletedDaysSupport": "Training days already completed",
+    "statUpcomingDaysSupport": "Days remaining in the program",
+    "statUpcomingDays": "Upcoming days",
+    "daysSubtitleCount": "{count, plural, one {# training day} other {# training days}} in your current program"
   },
   "Survey": {
     "loadingSurvey": "Loading survey...",
@@ -254,6 +285,8 @@
     "missingRequiredTitle": "Please answer the required questions",
     "questionRequiredError": "This question is required.",
     "requiredLabel": "(required)",
+    "scaleRange": "Enter a whole number from {min} to {max}.",
+    "noAnswer": "No answer was given for this question.",
     "readOnlyNotice": "This response has been submitted and is read-only.",
     "confirmTitle": "Submit your response?",
     "confirmMessage": "Once submitted, this response cannot be changed. Do you want to continue?",
@@ -278,6 +311,7 @@
     "emptyMessage": "There are no active enrollments for this training day's program.",
     "nameColumn": "Name",
     "statusColumn": "Status",
+    "minutesUnit": "min",
     "lateMinutesColumn": "Late minutes",
     "notApplicable": "N/A",
     "status": {
@@ -294,12 +328,19 @@
     "filterAll": "All",
     "notRecorded": "Not recorded",
     "notYetSaved": "Not yet saved",
-    "notYetSavedHint": "Trainees with no saved attendance record are shown as Present and will be saved that way unless you change them.",
+    "markRemainingPresent": "Mark remaining as Present",
+    "notYetSavedHint": "Nothing is pre-selected: choose a status for each trainee. Only trainees you select are saved; the others stay not recorded.",
     "summaryLabel": "Attendance summary",
     "summaryCount": "{label}: {count}",
     "shownOf": "Showing {shown} of {total} trainees",
     "statusFor": "Status for {name}",
-    "unsavedChanges": "Unsaved changes"
+    "unsavedChanges": "Unsaved changes",
+    "readOnlyNotice": "This training day is closed, so attendance is shown as recorded and can no longer be changed.",
+    "notOpenNotice": "This training day has not been opened yet, so attendance cannot be recorded until the General Supervisor opens it.",
+    "leaveTitle": "Leave without saving?",
+    "leaveMessage": "You have unsaved attendance changes. If you leave now, they will be lost.",
+    "leaveConfirm": "Leave without saving",
+    "leaveStay": "Stay on page"
   },
   "Profile": {
     "title": "My Profile",
@@ -311,40 +352,11 @@
     "logout": "Log out",
     "timezoneLabel": "Time zone"
   },
-  "Pages": {
-    "programTitle": "Training Program",
-    "programSubtitle": "Your current program and its courses.",
-    "programEmptyTitle": "No program yet",
-    "programEmptyMessage": "You are not linked to a training program right now.",
-    "programState": {
-      "draft": "Draft",
-      "active": "Active",
-      "completed": "Completed",
-      "cancelled": "Cancelled"
-    },
-    "programCoursesTitle": "Courses",
-    "programCoursesEmpty": "No courses to show for this program yet.",
-    "courseDays": "Training days: {count}",
-    "courseClosedDays": "Completed days: {count}",
-    "courseHours": "Hours: {count}",
-    "evaluationsTitle": "Attendance & Evaluation",
-    "evaluationsSubtitle": "Record attendance and complete the supervisor survey for each training day.",
-    "evaluationsPending": "Needs action",
-    "evaluationsDone": "Complete",
-    "reportsTitle": "My Reports",
-    "reportsSubtitle": "Complete the report for each of your training days.",
-    "reportsPending": "To complete",
-    "reportsSubmitted": "Submitted",
-    "reportsUnavailable": "Not available",
-    "sectionEmpty": "Nothing to show here.",
-    "supervisorSurveyLabel": "Supervisor survey",
-    "programStatusLabel": "Program Status",
-    "programCoursesEmptyTitle": "No courses yet"
-  },
   "Ui": {
     "searchLabel": "Search",
     "searchPlaceholder": "Search...",
     "clearSearch": "Clear search",
+    "close": "Close",
     "filters": "Filters",
     "clearFilters": "Clear filters",
     "activeFilters": "{count, plural, one {# active filter} other {# active filters}}",
@@ -363,17 +375,20 @@
     "noResultsHint": "Check the spelling or try a different search.",
     "noFilterMatch": "No items match the selected filters",
     "noFilterMatchHint": "Try removing a filter to see more items.",
-    "resultsOf": "{shown} of {total} training days",
+    "resultsOf": "Showing {shown} of {total} days",
     "daysCount": "{count, plural, one {# training day} other {# training days}}"
   },
   "Lists": {
     "searchLabel": "Search training days",
-    "searchPlaceholder": "Search course, program or date",
+    "searchPlaceholder": "Search by training day or topic",
+    "searchPlaceholderCourse": "Search by course name...",
     "all": "All",
     "course": "Course",
     "program": "Program",
     "from": "From",
     "to": "To",
+    "dateRangeLabel": "Date range",
+    "chooseDate": "Choose date",
     "attendance": "Attendance",
     "attendanceState": {
       "complete": "Complete",
@@ -386,10 +401,87 @@
       "course": "Course name (A-Z)"
     },
     "chipSearch": "Search: “{value}”",
-    "chipFilter": "{name}: {value}"
+    "chipFilter": "{name}: {value}",
+    "viewToggleLabel": "View",
+    "viewCard": "Cards",
+    "viewCalendar": "Calendar",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "clearDate": "Clear",
+    "today": "Today",
+    "monthSelectLabel": "Month",
+    "yearSelectLabel": "Year",
+    "calendarDayWithCountAndWeekday": "{weekday}, {day}, {count, plural, one {# training day} other {# training days}}",
+    "calendarNoSelectionTitle": "No training day selected",
+    "calendarNoSelectionMessage": "Pick a highlighted day on the calendar to see its training day, or try another month."
   },
   "Forms": {
     "required": "This field is required.",
     "requiredLabel": "(required)"
+  },
+  "Info": {
+    "help": {
+      "title": "Help",
+      "subtitle": "Answers to common questions and how to reach us.",
+      "blocks": [
+        {
+          "heading": "Cannot sign in",
+          "text": "Use \"Forgot password\" on the sign-in page, or write to {email}."
+        },
+        {
+          "heading": "A day's survey or attendance is not available",
+          "text": "It opens only while the training day is open and its form window is active; ask the supervisor."
+        },
+        {
+          "heading": "A mistake in a submitted form",
+          "text": "A submitted form is final and cannot be edited; write to {email}."
+        },
+        {
+          "heading": "Contact",
+          "text": "For help, or to access, correct or delete your data, write to {email}."
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terms of use",
+      "subtitle": "Please read before using the system.",
+      "blocks": [
+        {
+          "text": "Use your own account only and do not share your password."
+        },
+        {
+          "text": "Answer the daily forms honestly."
+        },
+        {
+          "text": "A submitted form is final and cannot be edited."
+        },
+        {
+          "text": "Do not try to access data that is not yours."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy notice",
+      "subtitle": "How your data is used and kept.",
+      "blocks": [
+        {
+          "heading": "What we record",
+          "text": "This system records your name and contact details, your attendance, and the answers you submit in the daily forms, to run and evaluate the training program."
+        },
+        {
+          "heading": "Who sees it",
+          "text": "Only the General Supervisor can see which answers are yours. Supervisors and trainers see no individual answers. Reports show combined results and never your name."
+        },
+        {
+          "heading": "How long we keep it",
+          "text": "We keep your data until you ask us to delete it. On request, the General Supervisor removes your identity from the system: your name and contact details are erased and your login is disabled. Combined results and approved reports remain, because they do not identify you."
+        },
+        {
+          "heading": "Your requests",
+          "text": "To access, correct or delete your data, write to {email}."
+        }
+      ]
+    },
+    "contactLabel": "Contact:"
   }
 }

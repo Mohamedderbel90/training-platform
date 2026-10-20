@@ -35,11 +35,7 @@ describe("EmptyState", () => {
 });
 
 describe("ErrorState", () => {
-  it("shows a Reference line with the request id only when present", () => {
-    const { unmount } = renderWithIntl(<ErrorState title="T" message="M" requestId="req_9" />);
-    expect(screen.getByText(/Reference/)).toBeInTheDocument();
-    expect(screen.getByText("req_9")).toBeInTheDocument();
-    unmount();
+  it("has no Reference line (request ids are logged, not shown)", () => {
     renderWithIntl(<ErrorState title="T" message="M" />);
     expect(screen.queryByText(/Reference/)).toBeNull();
   });

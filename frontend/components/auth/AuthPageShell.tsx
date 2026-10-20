@@ -10,7 +10,7 @@ import { GlobeIcon } from "@/components/icons";
 /**
  * Shared visual chrome for every unauthenticated/public auth screen
  * (login, forgot-password, reset-password): approved design -- see
- * noor-login/README.md and approved-login-reference.png.
+ * docs/README.md (noor-login/ row) and approved-login-reference.png.
  * `background-login.png` is a single pre-composed background asset
  * (photo + emerald panel + subtle gold pattern, no baked-in text)
  * applied once via CSS on `.auth-page` -- see `.auth-page` in

@@ -56,6 +56,30 @@ describe("ForgotPasswordPage", () => {
     expect(await screen.findByText("Something went wrong on our side. Please try again in a moment.")).toBeInTheDocument();
   });
 
+  it("tells the user when password-reset email is unavailable instead of claiming it was sent", async () => {
+    vi.mocked(authApi.forgotPassword).mockRejectedValue(
+      new ApiError(
+        {
+          code: "SERVICE_UNAVAILABLE",
+          message: "Password reset by email is currently unavailable. Please contact your administrator.",
+          fields: null,
+        },
+        503,
+        "req_2",
+      ),
+    );
+    renderWithIntl(<ForgotPasswordPage />);
+
+    await userEvent.type(screen.getByLabelText("Username"), "dev_trainee");
+    fireEvent.click(screen.getByRole("button", { name: "Send reset link" }));
+
+    expect(await screen.findByText("Service unavailable")).toBeInTheDocument();
+    expect(
+      screen.getByText(/currently unavailable\. Please contact your administrator/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/reset email has been sent/)).not.toBeInTheDocument();
+  });
+
   it("validates the username on submit without calling the server", async () => {
     vi.mocked(authApi.forgotPassword).mockClear();
     renderWithIntl(<ForgotPasswordPage />);

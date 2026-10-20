@@ -72,6 +72,8 @@ function TraineeDashboardContent() {
                   <SurveyStatusGroup
                     availability={nextEntry.survey}
                     dayStatus={nextEntry.state}
+                    dateFields={nextEntry}
+                    timeZone={profile?.tz}
                     href={`/trainee/${nextEntry.training_day_id}`}
                   />
                 ) : null

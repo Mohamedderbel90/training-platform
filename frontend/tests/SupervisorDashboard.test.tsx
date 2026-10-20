@@ -89,17 +89,21 @@ describe("Supervisor dashboard homepage", () => {
     expect(screen.getByText("Loading your training days...")).toBeInTheDocument();
 
     await waitFor(() => expect(screen.getByText("Welcome back, Dev Supervisor")).toBeInTheDocument());
-    expect(dashboardApi.get).toHaveBeenCalledWith("supervisor", "en");
+    expect(dashboardApi.get).toHaveBeenCalledWith("supervisor", "en", null);
 
     expect(screen.getByText("24")).toBeInTheDocument();
     expect(screen.getByText("40%")).toBeInTheDocument();
 
     expect(screen.getByText("Upcoming Course")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Manage attendance" })).toHaveAttribute(
-      "href",
-      "/supervisor/9/attendance",
-    );
-    expect(screen.getByRole("link", { name: "Open survey" })).toHaveAttribute(
+    // nextEntry is `planned` (not yet `open`): attendance is now a
+    // disabled-look button, not a link -- the project-owner-confirmed
+    // "not open yet" gate (see AttendanceStatusGroup in DayCard.tsx).
+    expect(screen.getByRole("button", { name: "Record attendance" })).toHaveAttribute("aria-disabled", "true");
+    expect(screen.queryByRole("link", { name: "Record attendance" })).not.toBeInTheDocument();
+    // The supervisor's own evaluation survey has its own window
+    // (`can_submit`) independent of the day's planned/open state, so it
+    // stays a real, actionable link even while the day itself is planned.
+    expect(screen.getByRole("link", { name: "Fill out supervisory evaluation" })).toHaveAttribute(
       "href",
       "/supervisor/9/survey",
     );

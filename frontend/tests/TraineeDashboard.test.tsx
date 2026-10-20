@@ -73,7 +73,7 @@ describe("Trainee dashboard homepage", () => {
     expect(screen.getByText("Loading your training days...")).toBeInTheDocument();
 
     await waitFor(() => expect(screen.getByText("Welcome back, Dev Trainee")).toBeInTheDocument());
-    expect(dashboardApi.get).toHaveBeenCalledWith("trainee", "en");
+    expect(dashboardApi.get).toHaveBeenCalledWith("trainee", "en", null);
 
     expect(screen.getByText("24")).toBeInTheDocument();
     expect(screen.getByText("10")).toBeInTheDocument();
@@ -82,7 +82,7 @@ describe("Trainee dashboard homepage", () => {
 
     expect(screen.getByText("Upcoming Course")).toBeInTheDocument();
     expect(screen.getByText("Trainer One")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open survey" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Fill out survey" })).toHaveAttribute(
       "href",
       "/trainee/5",
     );

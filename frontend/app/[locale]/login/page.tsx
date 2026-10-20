@@ -1,13 +1,14 @@
 "use client";
 
 import { Suspense, useEffect, useState, type SubmitEvent } from "react";
-import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import type { AppLocale } from "@/i18n/routing";
 import { DIRECTION_BY_LOCALE } from "@/i18n/direction";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { getRoleHome } from "@/lib/auth/roleHome";
+import { safeReturnTo } from "@/lib/auth/returnTo";
 import { ApiError } from "@/lib/api/client";
 import { FormError } from "@/components/FormError";
 import { FormField } from "@/components/FormField";
@@ -19,10 +20,6 @@ import { AuthPageShell } from "@/components/auth/AuthPageShell";
 import { ArrowIcon, MailIcon } from "@/components/icons";
 
 const REMEMBERED_LOGIN_KEY = "noor.rememberedLogin";
-
-function isSafeReturnPath(path: string | null): path is string {
-  return Boolean(path) && path!.startsWith("/") && !path!.startsWith("//");
-}
 
 // useSearchParams() opts a component into client-side rendering during
 // static generation and must sit under its own <Suspense> boundary
@@ -47,8 +44,7 @@ function LoginForm() {
   const dir = DIRECTION_BY_LOCALE[locale];
   const { status, roles, login } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const returnTo = searchParams.get("returnTo");
+  const returnTo = safeReturnTo(useSearchParams()?.get("returnTo"));
   const [loginValue, setLoginValue] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -80,9 +76,9 @@ function LoginForm() {
   // straight to their dashboard instead of seeing the form again.
   useEffect(() => {
     if (status === "authenticated" && roles.length > 0) {
-      router.replace(isSafeReturnPath(returnTo) ? returnTo : getRoleHome(roles));
+      router.replace(returnTo ?? getRoleHome(roles));
     }
-  }, [status, roles, returnTo, router]);
+  }, [status, roles, router, returnTo]);
 
   if (status === "authenticated" && roles.length === 0) {
     return <NoRoleState />;
@@ -111,20 +107,30 @@ function LoginForm() {
     setError(null);
     setSubmitting(true);
     try {
-      const profile = await login(loginValue, password);
+      // Only the username is trimmed -- a password is sent exactly as typed.
+      const username = loginValue.trim();
+      const profile = await login(username, password);
       if (rememberMe) {
-        window.localStorage.setItem(REMEMBERED_LOGIN_KEY, loginValue);
+        window.localStorage.setItem(REMEMBERED_LOGIN_KEY, username);
       } else {
         window.localStorage.removeItem(REMEMBERED_LOGIN_KEY);
       }
-      // A role-less account has no home; the authenticated-state
-      // branch above renders NoRoleState instead of navigating.
+      // The page the visitor originally asked for (validated same-app
+      // path), else their own dashboard. A role-less account has no home;
+      // the authenticated-state branch above renders NoRoleState instead
+      // of navigating.
       if (profile.roles.length > 0) {
-        router.replace(isSafeReturnPath(returnTo) ? returnTo : getRoleHome(profile.roles));
+        router.replace(returnTo ?? getRoleHome(profile.roles));
       }
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err);
+        // Never keep a rejected password in the field (the username stays).
+        // Focus is left on the error summary (FormError) so the failure is
+        // announced.
+        setPassword("");
+        setAttempted(false);
+        setTouched({ login: false, password: false });
       }
     } finally {
       setSubmitting(false);

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   TOOLBAR_MIN_ENTRIES,
+  dayNumbersByProgram,
   deriveFilterOptions,
   filterEntries,
   normalizeSearchText,
@@ -63,6 +64,16 @@ describe("filterEntries", () => {
     expect(filterEntries(ar, { q: "ادارة المدرسه" }, { locale: "ar" })).toHaveLength(1);
     expect(filterEntries(ar, { q: "  إدارَة " }, { locale: "ar" })).toHaveLength(1);
   });
+  it("also matches the day's own topic, and tolerates a null/unset topic", () => {
+    const withTopic = [
+      makeEntry({ training_day_id: 10, course_name: "Course X", topic: "Strategic Leadership" }),
+      makeEntry({ training_day_id: 11, course_name: "Course Y", topic: null }),
+      makeEntry({ training_day_id: 12, course_name: "Course Z" }),
+    ];
+    expect(ids(filterEntries(withTopic, { q: "strategic" }, en))).toEqual([10]);
+    // A null/unset topic must never throw or otherwise break the search.
+    expect(ids(filterEntries(withTopic, { q: "course" }, en))).toEqual([10, 11, 12]);
+  });
   it("filters by day status, survey status, course, program", () => {
     expect(ids(filterEntries(all, { dayStatus: "planned" }, en))).toEqual([2]);
     expect(ids(filterEntries(all, { responseStatus: "submitted" }, en))).toEqual([1]);
@@ -79,6 +90,15 @@ describe("filterEntries", () => {
     expect(ids(filterEntries(all, { dateFrom: "2026-09-15" }, en))).toEqual([1, 2]);
     expect(ids(filterEntries(all, { dateTo: "2026-09-15" }, en))).toEqual([1]);
     expect(ids(filterEntries(all, { dateFrom: "2026-09-16", dateTo: "2026-10-01" }, en))).toEqual([2]);
+  });
+  it("skips the date range entirely when skipDateRange is set (calendar view, point 8)", () => {
+    expect(ids(filterEntries(all, { dateFrom: "2026-09-16", dateTo: "2026-10-01" }, { ...en, skipDateRange: true }))).toEqual([
+      1, 2, 3,
+    ]);
+    // Every other filter still applies normally alongside it.
+    expect(
+      ids(filterEntries(all, { dateFrom: "2026-09-16", course: "2" }, { ...en, skipDateRange: true })),
+    ).toEqual([2, 3]);
   });
   it("filters by attendance completeness", () => {
     expect(ids(filterEntries(all, { attendance: "complete" }, en))).toEqual([2]);
@@ -151,5 +171,70 @@ describe("toolbar threshold", () => {
     expect(TOOLBAR_MIN_ENTRIES).toBe(6);
     expect(shouldShowToolbar(5)).toBe(false);
     expect(shouldShowToolbar(6)).toBe(true);
+  });
+});
+
+describe("dayNumbersByProgram", () => {
+  it("numbers each program's own days 1..N by date ascending, independently per program -- spanning multiple courses within one program", () => {
+    const days = [
+      makeEntry({ training_day_id: 10, program_id: 1, course_id: 1, date: "2026-09-20" }),
+      // Different course, same program, earliest date: must still land at
+      // program-position 1, even though it is the ONLY day of course 2 (so
+      // a course-scoped ordinal would also call it "1 of 1" -- the real
+      // proof is the next case below).
+      makeEntry({ training_day_id: 11, program_id: 1, course_id: 2, date: "2026-09-10" }),
+      makeEntry({ training_day_id: 12, program_id: 1, course_id: 1, date: "2026-09-15" }),
+      // A different program entirely numbers independently, starting back at 1.
+      makeEntry({ training_day_id: 20, program_id: 2, course_id: 3, date: "2026-10-01" }),
+      makeEntry({ training_day_id: 21, program_id: 2, course_id: 3, date: "2026-10-02" }),
+    ];
+    const numbers = dayNumbersByProgram(days);
+    // Program 1, across both of its courses: 11 (course 2, 09-10) -> 1,
+    // 12 (course 1, 09-15) -> 2, 10 (course 1, 09-20) -> 3.
+    expect(numbers.get(11)).toBe(1);
+    expect(numbers.get(12)).toBe(2);
+    expect(numbers.get(10)).toBe(3);
+    expect(numbers.get(20)).toBe(1);
+    expect(numbers.get(21)).toBe(2);
+  });
+
+  it("gives a different ordinal than a course-scoped count would -- proving the number is program-wide, not per-course", () => {
+    // Course A has two days; Course B (same program) has one day that
+    // falls chronologically BETWEEN them. A course-scoped ordinal would
+    // call the Course A days "1 of 2" and "2 of 2" and the Course B day
+    // "1 of 1". The program-wide ordinal must instead read 1, 2, 3 across
+    // all three in date order, regardless of which course each belongs to.
+    const days = [
+      makeEntry({ training_day_id: 1, program_id: 1, course_id: 100, date: "2026-09-01" }), // Course A, day 1
+      makeEntry({ training_day_id: 2, program_id: 1, course_id: 200, date: "2026-09-15" }), // Course B, day 1 (would be "1 of 1" per-course)
+      makeEntry({ training_day_id: 3, program_id: 1, course_id: 100, date: "2026-09-30" }), // Course A, day 2
+    ];
+    const numbers = dayNumbersByProgram(days);
+    expect(numbers.get(1)).toBe(1);
+    // Course B's only day is first (and only) within its own course, but
+    // is program-position 2, not 1 -- this is exactly what a course-scoped
+    // ordinal would get wrong.
+    expect(numbers.get(2)).toBe(2);
+    expect(numbers.get(3)).toBe(3);
+  });
+
+  it("breaks ties on the same date by training_day_id ascending, for determinism", () => {
+    const days = [
+      makeEntry({ training_day_id: 5, program_id: 1, date: "2026-09-10" }),
+      makeEntry({ training_day_id: 3, program_id: 1, date: "2026-09-10" }),
+    ];
+    const numbers = dayNumbersByProgram(days);
+    expect(numbers.get(3)).toBe(1);
+    expect(numbers.get(5)).toBe(2);
+  });
+
+  it("sorts a day with no date after every dated day of its program", () => {
+    const days = [
+      makeEntry({ training_day_id: 1, program_id: 1, date: null }),
+      makeEntry({ training_day_id: 2, program_id: 1, date: "2026-09-10" }),
+    ];
+    const numbers = dayNumbersByProgram(days);
+    expect(numbers.get(2)).toBe(1);
+    expect(numbers.get(1)).toBe(2);
   });
 });

@@ -7,21 +7,15 @@
  * flashing a role's screen at a user who will get a 403 the instant
  * they call the API, and sends them somewhere useful instead.
  */
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { useAuth } from "./AuthContext";
 import { getRoleHome } from "./roleHome";
+import { loginHrefFor } from "./returnTo";
 import type { OperationalRole } from "@/lib/api/types";
 import { LoadingState, ErrorState } from "@/components/StateViews";
 import { NoRoleState } from "@/components/NoRoleState";
-
-function isSafeReturnPath(path: string): boolean {
-  // Only ever redirect back to a path inside this same app, never an
-  // absolute/external URL (open-redirect hardening for a value that
-  // ultimately comes from a query string).
-  return path.startsWith("/") && !path.startsWith("//");
-}
 
 export function ProtectedRoute({
   role,
@@ -38,17 +32,22 @@ export function ProtectedRoute({
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations("Common");
+  // A visitor who arrives already logged out is sent back to the page
+  // they asked for after signing in. A session that ends while this
+  // page is open (logout, expiry) goes to a plain /login so the next
+  // person to sign in on the device isn't taken to this user's page.
+  const wasAuthenticated = useRef(false);
 
   const hasRole = role ? roles.includes(role) : true;
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      const returnTo = isSafeReturnPath(pathname) ? pathname : undefined;
-      router.replace(
-        returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : "/login",
-      );
+    if (status === "authenticated") {
+      wasAuthenticated.current = true;
     }
-  }, [status, pathname, router]);
+    if (status === "unauthenticated") {
+      router.replace(wasAuthenticated.current ? "/login" : loginHrefFor(pathname));
+    }
+  }, [status, router, pathname]);
 
   if (status === "loading") {
     return <LoadingState label={t("loadingSession")} />;
@@ -67,6 +66,7 @@ export function ProtectedRoute({
     const home = getRoleHome(roles);
     return (
       <ErrorState
+        headingLevel={1}
         title={t("forbiddenTitle")}
         message={t("forbiddenMessage")}
         actionLabel={t("goToMyDashboard")}

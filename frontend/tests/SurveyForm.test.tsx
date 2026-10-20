@@ -231,4 +231,37 @@ describe("SurveyForm", () => {
     expect(busy).toHaveAttribute("aria-busy", "true");
     await act(async () => resolve());
   });
+
+  it("read-only shows the saved choice as selected and says so for unanswered questions", () => {
+    renderWithIntl(
+      <SurveyForm
+        definition={definition}
+        initialAnswers={[{ question_id: 1, answer_option_id: 2 }]}
+        readOnly
+        onSubmit={() => undefined}
+      />,
+    );
+    expect(screen.getByLabelText("Excellent")).toBeChecked();
+    expect(screen.getByLabelText("Poor")).not.toBeChecked();
+    // Only the unanswered "Comments" question carries the note.
+    expect(screen.getAllByText("No answer was given for this question.")).toHaveLength(1);
+    expect(screen.queryByText("(required)")).not.toBeInTheDocument();
+  });
+
+  it("explains the allowed range of a scale question while answering", () => {
+    const scale: SurveyDefinitionDto = {
+      ...definition,
+      sections: [
+        {
+          id: 0,
+          title: null,
+          questions: [
+            { question_id: 9, title: "Score", question_type: "scale", required: false, kpi_category: null, options: null, scale_min: 1, scale_max: 10 },
+          ],
+        },
+      ],
+    };
+    renderWithIntl(<SurveyForm definition={scale} readOnly={false} onSubmit={() => undefined} />);
+    expect(screen.getByText("Enter a whole number from 1 to 10.")).toBeInTheDocument();
+  });
 });

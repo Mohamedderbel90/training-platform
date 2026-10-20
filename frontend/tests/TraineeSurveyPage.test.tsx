@@ -1,3 +1,4 @@
+import { ApiError } from "@/lib/api/client";
 import { describe, it, expect, vi } from "vitest";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import { renderWithIntl } from "./testUtils";
@@ -9,7 +10,7 @@ import type { SurveyDefinitionDto } from "@/lib/api/types";
 vi.mock("@/i18n/navigation", () => import("./mocks/i18nNavigation"));
 vi.mock("@/lib/auth/AuthContext", () => ({ useAuth: vi.fn() }));
 vi.mock("@/lib/api/endpoints", () => ({
-  traineeApi: { getSurvey: vi.fn(), getSurveyStatus: vi.fn(), submitSurvey: vi.fn() },
+  traineeApi: { getSurvey: vi.fn(), getSurveyStatus: vi.fn(), getMyResponse: vi.fn(), submitSurvey: vi.fn() },
 }));
 
 function mockAuthenticated() {
@@ -97,7 +98,7 @@ describe("Trainee survey page", () => {
     expect(screen.queryByLabelText("Excellent")).not.toBeInTheDocument();
   });
 
-  it("shows the already-submitted read-only state directly when the status endpoint reports it, without re-rendering the form", async () => {
+  it("opens an already-submitted survey read-only with the saved answers and no save/submit actions", async () => {
     mockAuthenticated();
     vi.mocked(traineeApi.getSurveyStatus).mockResolvedValue({
       configured: true,
@@ -105,11 +106,38 @@ describe("Trainee survey page", () => {
       can_submit: false,
       reason: "already_submitted",
     });
+    vi.mocked(traineeApi.getMyResponse).mockResolvedValue({
+      definition,
+      status: { response_id: 1, state: "submitted", submitted_at: "2026-09-15 10:00:00", editable: false },
+      answers: [{ question_id: 1, answer_option_id: 5 }],
+    });
 
     renderWithIntl(<TraineeSurveyContent dayId={1} />);
 
-    await waitFor(() => expect(screen.getByText("Thank you")).toBeInTheDocument());
+    expect(await screen.findByRole("heading", { name: "Demo Trainee Survey" })).toBeInTheDocument();
+    expect(screen.getByText("This response has been submitted and is read-only.")).toBeInTheDocument();
+    const choice = screen.getByLabelText("Excellent");
+    expect(choice).toBeChecked();
+    expect(choice).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Submit" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /save/i })).not.toBeInTheDocument();
+    // The editable definition endpoint is never used for a submitted survey.
     expect(traineeApi.getSurvey).not.toHaveBeenCalled();
+  });
+
+  it("shows a retryable error when the submitted answers cannot be loaded", async () => {
+    mockAuthenticated();
+    vi.mocked(traineeApi.getSurveyStatus).mockResolvedValue({
+      configured: true,
+      response: { response_id: 1, state: "submitted", submitted_at: "2026-09-15 10:00:00", editable: false },
+      can_submit: false,
+      reason: "already_submitted",
+    });
+    vi.mocked(traineeApi.getMyResponse).mockRejectedValue(new ApiError({ code: "SERVER_ERROR", message: "boom", fields: null }, 500, null));
+
+    renderWithIntl(<TraineeSurveyContent dayId={1} />);
+
+    expect(await screen.findByRole("button", { name: /retry|try again/i })).toBeInTheDocument();
   });
 
   it("shows the unavailable state with the server's reason when the survey window isn't open", async () => {
@@ -124,5 +152,7 @@ describe("Trainee survey page", () => {
     renderWithIntl(<TraineeSurveyContent dayId={1} />);
 
     expect(await screen.findByText("The survey window has not opened yet.")).toBeInTheDocument();
+    // planned/postponed days: the unavailable state is the page's h1
+    expect(screen.getByRole("heading", { level: 1, name: "Survey unavailable" })).toBeInTheDocument();
   });
 });

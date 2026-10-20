@@ -95,6 +95,14 @@ export interface TrainerReportDto {
   answers: SurveyAnswerDto[] | null;
 }
 
+/** `GET .../my-survey/response` (OPD-01, approved): the caller's own
+ * submitted trainee response -- definition + saved answers -- read-only. */
+export interface TraineeSubmittedResponseDto {
+  definition: SurveyDefinitionDto;
+  status: SurveyStatusDto;
+  answers: SurveyAnswerDto[];
+}
+
 export type AttendanceStatus = "present" | "absent" | "late";
 
 export interface AttendanceItemDto {
@@ -129,6 +137,11 @@ export interface DashboardEntryDto {
   date: string | null;
   course_name: string;
   program_name: string;
+  /** Optional per-day topic (`training.day.topic`, Odoo Back-office
+   * Char field), null/unset for days an admin hasn't filled in yet --
+   * the card title falls back to just the computed "Day N" ordinal in
+   * that case (see `dayNumbersByProgram` in lib/dashboard/listControls.ts). */
+  topic?: string | null;
   start_datetime: string | null;
   end_datetime: string | null;
   state: TrainingDayStatus;
@@ -179,9 +192,22 @@ export interface DashboardStatsDto {
   progress_percent: number | null;
 }
 
+/** A program the user has assigned training days in (the header selector's
+ * options). */
+export interface DashboardProgramOptionDto {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+  state?: ProgramState;
+}
+
 export interface DashboardResponseDto {
   days: DashboardEntryDto[];
   program: DashboardProgramDto | null;
+  /** Every program the user is assigned in; `days`, `program`, `stats` and
+   * `next_session` are scoped to the selected one. */
+  programs?: DashboardProgramOptionDto[];
   stats: DashboardStatsDto | null;
   next_session: DashboardEntryDto | null;
 }

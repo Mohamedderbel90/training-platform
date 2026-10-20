@@ -12,6 +12,7 @@ import { ApiErrorView } from "@/components/ApiErrorView";
 import { SurveyForm } from "@/components/SurveyForm";
 import { PageHeader } from "@/components/PageHeader";
 import { SubmittedState } from "@/components/SubmittedState";
+import { DayContextHeader } from "@/components/dashboard/DayContextHeader";
 import { useSurveyDefinition } from "@/lib/api/useSurveyDefinition";
 import type { SurveyAnswerDto } from "@/lib/api/types";
 
@@ -52,37 +53,70 @@ export function SupervisorSurveyContent({ dayId }: { dayId: number }) {
     Boolean(needsDefinition),
   );
 
+  const context = <DayContextHeader role="supervisor" dayId={dayId} trainingDaysHref="/supervisor/days" />;
+
   if (status === "loading") {
-    return <LoadingState label={t("loadingSurvey")} variant="skeleton" count={2} />;
+    return (
+      <div>
+        {context}
+        <LoadingState label={t("loadingSurvey")} variant="skeleton" count={2} />
+      </div>
+    );
   }
   if (status === "error" && error) {
-    return <ApiErrorView error={error} onRetry={reload} />;
+    return (
+      <div>
+        {context}
+        <ApiErrorView headingLevel={1} error={error} onRetry={reload} />
+      </div>
+    );
   }
   if (!availability?.configured) {
-    return <EmptyState title={t("notConfiguredTitle")} message={t("notConfiguredMessage")} />;
+    return (
+      <div>
+        {context}
+        <EmptyState title={t("notConfiguredTitle")} message={t("notConfiguredMessage")} />
+      </div>
+    );
   }
   if (alreadySubmitted || justSubmitted) {
     return (
-      <SubmittedState headingLevel={1} submittedAt={justSubmitted ?? availability?.response?.submitted_at} />
+      <div>
+        {context}
+        <SubmittedState headingLevel={1} submittedAt={justSubmitted ?? availability?.response?.submitted_at} />
+      </div>
     );
   }
   if (!availability.can_submit) {
     return (
-      <EmptyState
-        title={t("unavailableTitle")}
-        message={
-          availability.reason === "not_configured"
-            ? t("notConfiguredMessage")
-            : (availability.reason ?? t("unavailableMessage"))
-        }
-      />
+      <div>
+        {context}
+        <EmptyState
+          title={t("unavailableTitle")}
+          message={
+            availability.reason === "not_configured"
+              ? t("notConfiguredMessage")
+              : (availability.reason ?? t("unavailableMessage"))
+          }
+        />
+      </div>
     );
   }
   if (definitionError) {
-    return <ApiErrorView error={definitionError} onRetry={retryDefinition} />;
+    return (
+      <div>
+        {context}
+        <ApiErrorView headingLevel={1} error={definitionError} onRetry={retryDefinition} />
+      </div>
+    );
   }
   if (!definition) {
-    return <LoadingState label={t("loadingSurvey")} variant="skeleton" count={2} />;
+    return (
+      <div>
+        {context}
+        <LoadingState label={t("loadingSurvey")} variant="skeleton" count={2} />
+      </div>
+    );
   }
 
   const handleSubmit = async (answers: SurveyAnswerDto[]) => {
@@ -103,6 +137,7 @@ export function SupervisorSurveyContent({ dayId }: { dayId: number }) {
 
   return (
     <div>
+      {context}
       <PageHeader title={<h1>{definition.title}</h1>} />
       <SurveyForm
         definition={definition}

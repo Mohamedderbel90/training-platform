@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { renderWithIntl } from "./testUtils";
 import { FilterBar } from "@/components/FilterBar";
 
@@ -67,6 +68,66 @@ describe("FilterBar", () => {
     const toggle = screen.getByRole("button", { name: /Filters/ });
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(toggle).toHaveTextContent("2");
+  });
+
+  describe("narrow viewport (mobile filter sheet, point 11)", () => {
+    const originalMatchMedia = window.matchMedia;
+
+    function mockNarrowViewport() {
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: true,
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })) as unknown as typeof window.matchMedia;
+    }
+
+    afterEach(() => {
+      window.matchMedia = originalMatchMedia;
+    });
+
+    it("opens the panel as a dialog overlay instead of the inline accordion", () => {
+      mockNarrowViewport();
+      const { container } = renderWithIntl(
+        <FilterBar activeFilters={filters()} panelActiveCount={2}>
+          <select aria-label="Status" />
+        </FilterBar>,
+      );
+      // No inline panel in the toolbar itself...
+      expect(container.querySelector(".filter-bar__panel")).toBeNull();
+      // ...the controls are portalled into a labelled, modal dialog instead.
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toHaveAttribute("aria-modal", "true");
+      expect(dialog).toContainElement(screen.getByLabelText("Status"));
+      expect(screen.getByRole("heading", { name: /Filters/ })).toBeInTheDocument();
+    });
+
+    it("closes via the sheet's own close button, not by picking a filter", async () => {
+      const user = userEvent.setup();
+      mockNarrowViewport();
+      renderWithIntl(
+        <FilterBar activeFilters={filters()} panelActiveCount={2}>
+          <select aria-label="Status" />
+        </FilterBar>,
+      );
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      await user.selectOptions(screen.getByLabelText("Status"), []);
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "Close" }));
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("closes on Escape", async () => {
+      const user = userEvent.setup();
+      mockNarrowViewport();
+      renderWithIntl(
+        <FilterBar activeFilters={filters()} panelActiveCount={2}>
+          <select aria-label="Status" />
+        </FilterBar>,
+      );
+      await user.keyboard("{Escape}");
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
   });
 
   it("keeps primary controls outside the panel and the chips/results visible outside it", () => {

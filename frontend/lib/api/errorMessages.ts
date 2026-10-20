@@ -15,11 +15,16 @@ export function isClientOnlyError(error: ApiError): boolean {
 
 /** Translation key (under the "Errors" namespace) for a given error's
  * *title*. The body text is the server's own (already localized)
- * message, except for the two client-only codes above. */
-export function errorTitleKey(error: ApiError): string {
+ * message, except for the two client-only codes above.
+ *
+ * `variant` mirrors `friendlyMessageKey`: on a credential/form surface
+ * (login, password reset, survey submit) a 401 is a fresh, never-
+ * authenticated attempt -- "session expired" would be meaningless -- so
+ * it gets a neutral sign-in-failed title instead. */
+export function errorTitleKey(error: ApiError, variant: "page" | "form" = "page"): string {
   switch (error.code) {
     case "UNAUTHENTICATED":
-      return "titleUnauthenticated";
+      return variant === "form" ? "titleSignInFailed" : "titleUnauthenticated";
     case "FORBIDDEN":
       return "titleForbidden";
     case "NOT_FOUND":
@@ -32,6 +37,8 @@ export function errorTitleKey(error: ApiError): string {
       return "titleRateLimited";
     case "NETWORK_ERROR":
       return "titleNetwork";
+    case "SERVICE_UNAVAILABLE":
+      return "titleUnavailable";
     case "BAD_RESPONSE":
     case "INTERNAL_ERROR":
       return "titleInternal";
@@ -51,7 +58,8 @@ export function clientOnlyMessageKey(error: ApiError): string {
  * the server's own message must not be shown verbatim: session expiry,
  * server-side failures and unknown codes. Returns null when the
  * server's already-localized message is appropriate (403/404/validation/
- * conflict/rate limit -- those are deliberate, user-facing messages). */
+ * conflict/rate limit/service unavailable -- those are deliberate,
+ * user-facing messages). */
 export function friendlyMessageKey(error: ApiError, variant: "page" | "form" = "page"): string | null {
   switch (error.code) {
     case "UNAUTHENTICATED":
@@ -63,6 +71,7 @@ export function friendlyMessageKey(error: ApiError, variant: "page" | "form" = "
     case "VALIDATION_ERROR":
     case "CONFLICT":
     case "RATE_LIMITED":
+    case "SERVICE_UNAVAILABLE":
       return null;
     case "NETWORK_ERROR":
     case "BAD_RESPONSE":

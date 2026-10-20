@@ -60,7 +60,7 @@ export function TaskList({
       ) : (
         <ul className="task-list__items">
           {tasks.map((task) => {
-            const time = formatTimeRange(task.startDatetime, task.endDatetime, locale, profile?.tz);
+            const time = formatTimeRange(task.startDatetime, task.endDatetime, locale, profile?.tz, t);
             const when = [task.date ? formatDate(task.date, locale) : null, time]
               .filter(Boolean)
               .join(" · ");

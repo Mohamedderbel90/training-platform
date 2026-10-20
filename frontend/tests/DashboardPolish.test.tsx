@@ -82,50 +82,120 @@ describe("ProgressBar", () => {
 });
 
 describe("AttendanceStatusGroup", () => {
-  it("shows a labelled partial status with the recorded count and the manage action", () => {
+  it("shows only the continue action, with no status badge, count text or progress bar, once some attendance is recorded", () => {
     renderWithIntl(
-      <AttendanceStatusGroup attendance={{ recorded_count: 12, total_enrolled: 30, complete: false }} href="/s/1/attendance" />,
+      <AttendanceStatusGroup attendance={{ recorded_count: 12, total_enrolled: 30, complete: false }} dayStatus="open" href="/s/1/attendance" />,
     );
     const group = screen.getByRole("group", { name: "Attendance" });
-    expect(within(group).getByText("Attendance Status")).toBeInTheDocument();
-    expect(within(group).getByText("Partially recorded")).toBeInTheDocument();
-    expect(within(group).getByText("12 of 30 recorded")).toBeInTheDocument();
-    expect(within(group).getByRole("progressbar")).toHaveAttribute("aria-valuenow", "12");
-    expect(within(group).getByRole("link", { name: "Manage attendance" })).toHaveAttribute("href", "/s/1/attendance");
+    // The visible "Attendance Status" caption, and the status badge that
+    // used to carry it as an accessible name, were both dropped: the
+    // action button's own label already communicates the state.
+    expect(within(group).queryByText("Attendance Status")).not.toBeInTheDocument();
+    expect(within(group).queryByText("Partially recorded")).not.toBeInTheDocument();
+    expect(within(group).queryByText("12 of 30 recorded")).not.toBeInTheDocument();
+    expect(within(group).queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(within(group).getByRole("link", { name: "Continue attendance" })).toHaveAttribute("href", "/s/1/attendance");
   });
 
-  it("shows Complete when the server says attendance is complete", () => {
+  it("still uses Complete-day wording on the action even though the badge is gone", () => {
     renderWithIntl(
-      <AttendanceStatusGroup attendance={{ recorded_count: 30, total_enrolled: 30, complete: true }} href="/x" />,
+      <AttendanceStatusGroup attendance={{ recorded_count: 30, total_enrolled: 30, complete: true }} dayStatus="open" href="/x" />,
     );
-    expect(screen.getByText("Complete")).toBeInTheDocument();
-    expect(screen.getByText("30 of 30 recorded")).toBeInTheDocument();
+    expect(screen.queryByText("Complete")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "View attendance" })).toBeInTheDocument();
   });
 
-  it("shows Not recorded when nothing is recorded, and no count when nobody is enrolled", () => {
-    const { unmount } = renderWithIntl(
-      <AttendanceStatusGroup attendance={{ recorded_count: 0, total_enrolled: 5, complete: false }} href="/x" />,
-    );
-    expect(screen.getByText("Not recorded")).toBeInTheDocument();
-    unmount();
+  it("offers Record attendance when nothing is recorded yet on an open day", () => {
     renderWithIntl(
-      <AttendanceStatusGroup attendance={{ recorded_count: 0, total_enrolled: 0, complete: false }} href="/x" />,
+      <AttendanceStatusGroup attendance={{ recorded_count: 0, total_enrolled: 5, complete: false }} dayStatus="open" href="/x" />,
     );
-    expect(screen.getByText("No trainees enrolled")).toBeInTheDocument();
+    expect(screen.queryByText("Not recorded")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Record attendance" })).toBeInTheDocument();
+  });
+
+  it("offers Record attendance (not a disabled state) when nobody is enrolled", () => {
+    renderWithIntl(
+      <AttendanceStatusGroup attendance={{ recorded_count: 0, total_enrolled: 0, complete: false }} dayStatus="open" href="/x" />,
+    );
+    expect(screen.queryByText("No trainees enrolled")).not.toBeInTheDocument();
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Record attendance" })).toBeInTheDocument();
   });
 
-  it("renders Arabic labels and renders nothing without attendance data", () => {
+  it("renders the Arabic Continue-attendance label for a partially recorded open day, and renders nothing without attendance data", () => {
     const { container, unmount } = renderWithIntl(
-      <AttendanceStatusGroup attendance={{ recorded_count: 1, total_enrolled: 4, complete: false }} href="/x" />,
+      <AttendanceStatusGroup attendance={{ recorded_count: 1, total_enrolled: 4, complete: false }} dayStatus="open" href="/x" />,
       { locale: "ar" },
     );
-    expect(screen.getByText("حالة الحضور")).toBeInTheDocument();
-    expect(screen.getByText("تم تسجيل 1 من 4")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "استكمال الحضور" })).toBeInTheDocument();
     unmount();
-    const empty = renderWithIntl(<AttendanceStatusGroup href="/x" />);
+    const empty = renderWithIntl(<AttendanceStatusGroup dayStatus="open" href="/x" />);
     expect(empty.container).toBeEmptyDOMElement();
     expect(container).toBeDefined();
+  });
+
+  it.each(["closed", "postponed", "cancelled"] as const)(
+    "a %s day always offers a real, enabled 'View attendance' link -- never a disabled/missed state -- even when nothing was recorded",
+    (dayStatus) => {
+      renderWithIntl(
+        <AttendanceStatusGroup
+          attendance={{ recorded_count: 0, total_enrolled: 10, complete: false }}
+          dayStatus={dayStatus}
+          href="/s/1/attendance"
+        />,
+      );
+      expect(screen.queryByRole("button")).not.toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "View attendance" })).toHaveAttribute("href", "/s/1/attendance");
+    },
+  );
+
+  it("a closed day with partially recorded attendance also links to View attendance, not Record/Continue attendance", () => {
+    renderWithIntl(
+      <AttendanceStatusGroup
+        attendance={{ recorded_count: 4, total_enrolled: 10, complete: false }}
+        dayStatus="closed"
+        href="/x"
+      />,
+    );
+    expect(screen.getByRole("link", { name: "View attendance" })).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("an open day with nothing recorded yet still offers the editable Record attendance action", () => {
+    renderWithIntl(
+      <AttendanceStatusGroup
+        attendance={{ recorded_count: 0, total_enrolled: 10, complete: false }}
+        dayStatus="open"
+        href="/x"
+      />,
+    );
+    expect(screen.getByRole("link", { name: "Record attendance" })).toBeInTheDocument();
+  });
+
+  it("an open day with some but not all attendance recorded offers Continue attendance, filled as the primary action", () => {
+    renderWithIntl(
+      <AttendanceStatusGroup
+        attendance={{ recorded_count: 3, total_enrolled: 10, complete: false }}
+        dayStatus="open"
+        href="/x"
+      />,
+    );
+    const link = screen.getByRole("link", { name: "Continue attendance" });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveClass("button");
+    expect(link).not.toHaveClass("button--secondary");
+  });
+
+  it("renders the view action outlined (button--secondary), not filled", () => {
+    renderWithIntl(
+      <AttendanceStatusGroup
+        attendance={{ recorded_count: 10, total_enrolled: 10, complete: true }}
+        dayStatus="open"
+        href="/x"
+      />,
+    );
+    const link = screen.getByRole("link", { name: "View attendance" });
+    expect(link).toHaveClass("button", "button--secondary");
   });
 });
 

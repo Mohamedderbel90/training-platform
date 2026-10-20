@@ -5,8 +5,9 @@ import { useAuth } from "@/lib/auth/AuthContext";
 import { formatDateTime } from "@/lib/dashboard/format";
 import { CheckIcon } from "@/components/icons";
 
-/** Status-only confirmation shown after a final submit (AC-ALN-03 /
- * OPD-01: no answer content is ever rendered back). `submittedAt` is
+/** Confirmation shown right after a final submit. Answer read-back lives
+ * on the day page's read-only view (OPD-01, approved), not here.
+ * `submittedAt` is
  * the server's UTC datetime string; shown in the user's own zone. */
 export function SubmittedState({
   submittedAt,

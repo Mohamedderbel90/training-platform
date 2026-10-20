@@ -81,12 +81,16 @@ function SupervisorDashboardContent() {
                   <>
                     <AttendanceStatusGroup
                       attendance={nextEntry.attendance}
+                      dayStatus={nextEntry.state}
                       href={`/supervisor/${nextEntry.training_day_id}/attendance`}
                       primary={nextEntry.state === "open" && !nextEntry.attendance?.complete}
                     />
                     <SurveyStatusGroup
                       availability={nextEntry.survey}
                       dayStatus={nextEntry.state}
+                      dateFields={nextEntry}
+                      timeZone={profile?.tz}
+                      kind="evaluation"
                       href={`/supervisor/${nextEntry.training_day_id}/survey`}
                     />
                   </>

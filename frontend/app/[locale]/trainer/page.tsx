@@ -73,6 +73,8 @@ function TrainerDashboardContent() {
                     kind="report"
                     availability={nextEntry.trainer_report}
                     dayStatus={nextEntry.state}
+                    dateFields={nextEntry}
+                    timeZone={profile?.tz}
                     href={`/trainer/${nextEntry.training_day_id}`}
                   />
                 ) : null

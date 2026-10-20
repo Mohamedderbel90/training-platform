@@ -1,15 +1,20 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import { renderWithIntl } from "./testUtils";
 import TrainerDashboardPage from "@/app/[locale]/trainer/days/page";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { dashboardApi } from "@/lib/api/endpoints";
 import { ApiError } from "@/lib/api/client";
+import { __setMockPathname } from "./mocks/i18nNavigation";
 import type { DashboardEntryDto, DashboardResponseDto } from "@/lib/api/types";
 
 vi.mock("@/i18n/navigation", () => import("./mocks/i18nNavigation"));
 vi.mock("@/lib/auth/AuthContext", () => ({ useAuth: vi.fn() }));
 vi.mock("@/lib/api/endpoints", () => ({ dashboardApi: { get: vi.fn() } }));
+
+beforeEach(() => {
+  __setMockPathname("/trainer/days");
+});
 
 function mockAuthenticated() {
   vi.mocked(useAuth).mockReturnValue({
@@ -45,7 +50,7 @@ function makeSummary(days: DashboardEntryDto[]): DashboardResponseDto {
 }
 
 describe("Trainer dashboard", () => {
-  it("shows a loading state, then renders assigned training days with an Open report link", async () => {
+  it("shows a loading state, then renders assigned training days with a Fill out impression report link", async () => {
     mockAuthenticated();
     vi.mocked(dashboardApi.get).mockResolvedValue(makeSummary([makeEntry()]));
 
@@ -53,15 +58,19 @@ describe("Trainer dashboard", () => {
     expect(screen.getByText("Loading your training days...")).toBeInTheDocument();
 
     await waitFor(() => expect(screen.getByText("Demo Course")).toBeInTheDocument());
-    expect(screen.getByText("Demo Program")).toBeInTheDocument();
-    expect(dashboardApi.get).toHaveBeenCalledWith("trainer", "en");
-    expect(screen.getByRole("link", { name: "Open report" })).toHaveAttribute(
+    // The program name is shown once at the page level (current-program
+    // box), not repeated on every card.
+    expect(screen.queryByText("Demo Program")).not.toBeInTheDocument();
+    expect(dashboardApi.get).toHaveBeenCalledWith("trainer", "en", null);
+    // The link carries the current Training Days URL as `?from=` so
+    // "Back to Training Days" on the report page can restore it.
+    expect(screen.getByRole("link", { name: "Fill out impression report" })).toHaveAttribute(
       "href",
-      "/trainer/1",
+      "/trainer/1?from=%2Ftrainer%2Fdays",
     );
   });
 
-  it("shows a View report link and the Submitted badge once the trainer's own report is final", async () => {
+  it("shows a View impression report link and the Submitted badge once the trainer's own report is final", async () => {
     mockAuthenticated();
     vi.mocked(dashboardApi.get).mockResolvedValue(
       makeSummary([
@@ -78,8 +87,10 @@ describe("Trainer dashboard", () => {
 
     renderWithIntl(<TrainerDashboardPage />);
 
-    await waitFor(() => expect(screen.getByRole("link", { name: "View report" })).toBeInTheDocument());
-    expect(screen.getByText("Submitted")).toBeInTheDocument();
+    // The response-state badge was dropped from the compact action --
+    // "View impression report" itself already communicates that it was submitted.
+    await waitFor(() => expect(screen.getByRole("link", { name: "View impression report" })).toBeInTheDocument());
+    expect(screen.queryByRole("button")).toBeNull();
   });
 
   it("shows the empty-dashboard state when there are no assigned training days", async () => {

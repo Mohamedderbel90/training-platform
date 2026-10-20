@@ -50,8 +50,10 @@ describe("Trainee dashboard", () => {
     expect(screen.getByText("Loading your training days...")).toBeInTheDocument();
 
     await waitFor(() => expect(screen.getByText("Demo Course")).toBeInTheDocument());
-    expect(screen.getByText("Demo Program")).toBeInTheDocument();
-    expect(screen.getByText("Open survey")).toBeInTheDocument();
+    // The program name is shown once at the page level (current-program
+    // box), not repeated on every card.
+    expect(screen.queryByText("Demo Program")).not.toBeInTheDocument();
+    expect(screen.getByText("Fill out survey")).toBeInTheDocument();
   });
 
   it("shows the empty-dashboard state when there are no training days", async () => {

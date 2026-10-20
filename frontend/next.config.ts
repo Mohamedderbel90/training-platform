@@ -35,13 +35,30 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // The trainee "My Surveys" page was retired: survey access lives on
-  // Training Days. Keep old bookmarks working.
+  // The trainee "My Surveys" page, and later the per-role "Training
+  // Program" / "Attendance & Evaluation" / "My Reports" pages, were all
+  // retired: their functionality folded into Training Days' own unified
+  // toolbar (see lib/auth/roleNav.ts). Keep old bookmarks working.
   async redirects() {
     return [
       {
         source: "/:locale(ar|en)/trainee/surveys",
         destination: "/:locale/trainee/days",
+        permanent: false,
+      },
+      {
+        source: "/:locale(ar|en)/trainee/program",
+        destination: "/:locale/trainee/days",
+        permanent: false,
+      },
+      {
+        source: "/:locale(ar|en)/supervisor/evaluations",
+        destination: "/:locale/supervisor/days",
+        permanent: false,
+      },
+      {
+        source: "/:locale(ar|en)/trainer/reports",
+        destination: "/:locale/trainer/days",
         permanent: false,
       },
     ];

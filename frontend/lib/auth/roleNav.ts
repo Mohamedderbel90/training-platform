@@ -6,25 +6,29 @@ import { ROLE_HOME } from "@/lib/auth/roleHome";
  * the approved sidebar's visual design stays exactly as it is and only
  * its item list comes from here.
  *
- * - Trainee: Dashboard, Training Days, Training Program
- * - Supervisor: Dashboard, Training Days, Attendance & Evaluation
- * - Trainer: Dashboard, Training Days, My Reports
- * - Everyone: Profile (ACCOUNT_NAV), then Logout (rendered by AppShell)
+ * Every role gets exactly two items: Dashboard, Training Days. The
+ * earlier per-role third item (Training Program / Attendance &
+ * Evaluation / My Reports) is gone -- each page's unique functionality
+ * was folded into Training Days' own unified toolbar (the 3-way
+ * actionability filter subsumes the old grouped "pending/done" and
+ * "to complete/submitted" lists) and the old routes now redirect there
+ * (see next.config.ts), the same precedent set when "My Surveys" was
+ * retired the same way.
  *
- * Help / Contact / Terms / Privacy are intentionally absent until their
- * content and channels are approved (plan blocker B3).
+ * - Trainee: Dashboard, Training Days
+ * - Supervisor: Dashboard, Training Days
+ * - Trainer: Dashboard, Training Days
+ * - Everyone: Profile (ACCOUNT_NAV), then Logout; Help / Terms / Privacy live in the footer (FOOTER_NAV) (rendered by AppShell)
+ *
+ * Help (which carries the contact address), Terms and Privacy follow
+ * Profile; their texts and the contact were approved on 2026-10-03
+ * (DEC-50, DEC-51).
  *
  * This is presentation only: every destination route enforces its own
  * role through ProtectedRoute, and the Operational API enforces the
  * real permissions server-side.
  */
-export type RoleNavKey =
-  | "dashboard"
-  | "trainingDays"
-  | "program"
-  | "attendanceEvaluation"
-  | "myReports"
-  | "profile";
+export type RoleNavKey = "dashboard" | "trainingDays" | "profile" | "help" | "terms" | "privacy";
 
 export interface RoleNavItem {
   key: RoleNavKey;
@@ -46,23 +50,20 @@ export const ROLE_NAV: Record<OperationalRole, RoleNavItem[]> = {
       href: `${ROLE_HOME.trainee}/days`,
       alsoActiveOn: [/^\/trainee\/\d+\/?$/],
     },
-    { key: "program", href: `${ROLE_HOME.trainee}/program` },
   ],
   supervisor: [
     { key: "dashboard", href: ROLE_HOME.supervisor, exact: true },
-    { key: "trainingDays", href: `${ROLE_HOME.supervisor}/days` },
     {
-      key: "attendanceEvaluation",
-      href: `${ROLE_HOME.supervisor}/evaluations`,
+      key: "trainingDays",
+      href: `${ROLE_HOME.supervisor}/days`,
       alsoActiveOn: [/^\/supervisor\/\d+(\/.*)?$/],
     },
   ],
   trainer: [
     { key: "dashboard", href: ROLE_HOME.trainer, exact: true },
-    { key: "trainingDays", href: `${ROLE_HOME.trainer}/days` },
     {
-      key: "myReports",
-      href: `${ROLE_HOME.trainer}/reports`,
+      key: "trainingDays",
+      href: `${ROLE_HOME.trainer}/days`,
       alsoActiveOn: [/^\/trainer\/\d+\/?$/],
     },
   ],
@@ -71,6 +72,14 @@ export const ROLE_NAV: Record<OperationalRole, RoleNavItem[]> = {
 /** Shared account items shown once, below the role groups, for every
  * authenticated user regardless of role. */
 export const ACCOUNT_NAV: RoleNavItem[] = [{ key: "profile", href: "/profile" }];
+
+/** Information pages shown in the page footer (not the sidebar) for every
+ * authenticated user. */
+export const FOOTER_NAV: RoleNavItem[] = [
+  { key: "help", href: "/help" },
+  { key: "terms", href: "/terms" },
+  { key: "privacy", href: "/privacy" },
+];
 
 /** Whether `item` should carry aria-current="page" for the current
  * (locale-agnostic) pathname -- its own route, any route nested under

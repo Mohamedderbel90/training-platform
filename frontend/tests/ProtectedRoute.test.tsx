@@ -13,7 +13,7 @@ describe("ProtectedRoute", () => {
     __setMockPathname("/supervisor/1/attendance");
   });
 
-  it("redirects to /login with a safe returnTo while the session is unauthenticated", async () => {
+  it("sends a visitor who arrives logged out to /login with the requested page as returnTo", async () => {
     vi.mocked(useAuth).mockReturnValue({
       status: "unauthenticated",
       profile: null,
@@ -30,11 +30,33 @@ describe("ProtectedRoute", () => {
     );
 
     await waitFor(() =>
-      expect(replace).toHaveBeenCalledWith(
-        "/login?returnTo=%2Fsupervisor%2F1%2Fattendance",
-      ),
+      expect(replace).toHaveBeenCalledWith("/login?returnTo=%2Fsupervisor%2F1%2Fattendance"),
     );
     expect(screen.queryByText("secret content")).not.toBeInTheDocument();
+  });
+
+  it("goes to a plain /login when the session ends while the page is open (logout/expiry)", async () => {
+    const base = { profile: null, login: vi.fn(), logout: vi.fn(), refresh: vi.fn() };
+    vi.mocked(useAuth).mockReturnValue({
+      ...base,
+      status: "authenticated",
+      profile: { id: 1, partner_id: 1, name: "X", locale: "en_US", roles: ["supervisor"], capabilities: [] },
+      roles: ["supervisor"],
+    });
+    const view = renderWithIntl(
+      <ProtectedRoute role="supervisor">
+        <div>secret content</div>
+      </ProtectedRoute>,
+    );
+    vi.mocked(useAuth).mockReturnValue({ ...base, status: "unauthenticated", roles: [] });
+    view.rerender(
+      <ProtectedRoute role="supervisor">
+        <div>secret content</div>
+      </ProtectedRoute>,
+    );
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/login"));
+    expect(replace).not.toHaveBeenCalledWith(expect.stringContaining("returnTo"));
   });
 
   it("shows a forbidden state (not the page content) when the role doesn't match", () => {
@@ -53,7 +75,7 @@ describe("ProtectedRoute", () => {
       </ProtectedRoute>,
     );
 
-    expect(screen.getByText("You don't have access to this page")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "You don't have access to this page" })).toBeInTheDocument();
     expect(screen.queryByText("secret content")).not.toBeInTheDocument();
   });
 

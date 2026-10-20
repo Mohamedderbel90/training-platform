@@ -55,6 +55,11 @@
   --color-warning-bg: #f8efd9;
   --color-info-text: #2b5f8a;
   --color-info-bg: #e7f0f8;
+  /* Matching --color-primary-soft/-soft-strong and --color-accent-soft/
+   * -soft-strong: a stat-card tint (info-soft) and a slightly stronger
+   * icon-circle fill (info-soft-strong) for the "upcoming" summary tile. */
+  --color-info-soft: #e7f0f8;
+  --color-info-soft-strong: #cfe3f2;
   --focus-ring: #153f38;
 
   /* ---- elevation (kept deliberately subtle -- no oversized shadows) ---- */
@@ -80,9 +85,17 @@
   --topbar-height: 4.25rem;
   --content-max-width: 52rem;
 
-  /* ---- type: Inter (Latin) + IBM Plex Sans Arabic (Arabic) ---- */
-  --font-latin: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
-  --font-arabic: var(--font-latin);
+  /* ---- type: Inter (Latin) + Tajawal (Arabic) ----
+   * --font-latin/--font-arabic themselves are NOT defined here: they
+   * come from next/font's generated `.variable` classes applied to
+   * <html> in app/[locale]/layout.tsx (both fonts, every request,
+   * server-rendered -- never client-only). Declaring hardcoded
+   * fallback values for them on :root used to silently win the
+   * cascade over those `.variable` classes (equal specificity, later
+   * source position), which made the whole app render in the
+   * system-ui fallback stack instead of Inter/Tajawal.
+   * Do not re-add a :root fallback here -- see body{}/html[dir]
+   * rules below for how the two fonts are switched per direction. */
   --transition-base: 140ms ease-out;
   /* ---- motion ---- */
   --motion-fast: 120ms;
@@ -124,6 +137,8 @@
     --color-warning-bg: #362b10;
     --color-info-text: #8fc1e8;
     --color-info-bg: #16283a;
+    --color-info-soft: #16283a;
+    --color-info-soft-strong: #1f3a52;
     --focus-ring: #5fbba0;
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
@@ -136,6 +151,14 @@
 
 * {
   box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 100%;
 }
 
 html,
@@ -426,21 +449,27 @@ p {
   box-shadow: var(--shadow-lg);
   transform: translateX(-100%);
   transition: transform var(--transition-base);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* Scrolls by wheel/touch/keyboard; no scrollbar track, so the nav and the
+   * picture keep the full sidebar width. */
+  scrollbar-width: none;
+}
+
+.app-sidebar::-webkit-scrollbar {
+  display: none;
 }
 
 /* Content sits in its own stacking context above `.app-sidebar__decor`
- * (see below) regardless of DOM/paint order, and scrolls independently
- * if the nav list ever grows taller than the viewport. */
+ * (see below). It never scrolls on its own: the whole sidebar (nav +
+ * picture) scrolls as one, so the nav can't run under the picture. */
 .app-sidebar__content {
   position: relative;
   z-index: 1;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   padding: var(--space-6) var(--space-4) var(--space-5);
-  overflow-y: auto;
 }
 
 html[dir="rtl"] .app-sidebar {
@@ -599,22 +628,20 @@ button.nav-link {
 }
 
 /* ---- sidebar decorative illustration (M5 point 4) ----
- * `bg-sidebar.png` is a tall poster-style asset whose usable art (the
- * mosque/garden scene) sits in its lower ~2/3; the upper third is an
- * unrelated generation artifact. Anchoring the image to the bottom of
- * a shorter, `overflow: hidden` box crops that artifact off without
- * stretching, mirroring, or flipping the asset itself -- the aspect
- * ratio is preserved exactly via `aspect-ratio` on the inner layer. */
+ * `bg-sidebar.png` is a tall poster (1024x1536). It spans the full width
+ * of the sidebar (no horizontal padding: it is a sibling of the padded
+ * nav content, not inside it) at its own 2:3 ratio, so it is never
+ * cropped or stretched. That makes it taller than the room left under the
+ * nav on most screens, so the sidebar itself scrolls (the nav keeps the
+ * exact height/positions it had) and the picture sits below it. */
 .app-sidebar__decor {
   position: relative;
-  /* In flow below the nav (not behind it): on short viewports the art is
-   * the first thing to shrink (huge shrink factor, cropped from the top
-   * because the image is bottom-anchored), so it can never sit under the
-   * Profile / Log out links. */
-  flex: 0 100000 17rem;
-  min-block-size: 0;
+  flex: 0 0 auto;
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 1024 / 1536;
   z-index: 0;
-  max-height: 42%;
+  opacity: 0.7;
   overflow: hidden;
   pointer-events: none;
   container-type: size;
@@ -674,13 +701,11 @@ html[dir="ltr"] .app-sidebar__decor-text {
 .app-sidebar__decor::after {
   content: "";
   position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  width: 100%;
-  aspect-ratio: 1024 / 1536;
+  inset: 0;
   background-image: url("/noor-login/bg-sidebar.png");
   background-repeat: no-repeat;
-  background-size: 100% 100%;
+  background-size: 100% auto;
+  background-position: center top;
 }
 
 /* ---- mobile nav toggle ---- */
@@ -718,6 +743,20 @@ html[dir="ltr"] .app-sidebar__decor-text {
   max-width: 72rem;
 }
 
+/* Training Days (trainee/supervisor/trainer, `.training-days-page` --
+ * see the three role "days" page.tsx files): a precise,
+ * owner-specified 1100px column, wider than the default prose column
+ * (`--content-max-width`, 52rem/832px) but narrower than the dashboard's
+ * 72rem card grid -- scoped to this page alone so every other
+ * text-column page (profile, day detail, survey, ...) keeps the shared
+ * `--content-max-width`. Desktop inline padding stays the existing
+ * `--space-6`/`--space-7` (32px) `.app-main`/`.app-shell--with-sidebar
+ * .app-main` already use -- already exactly the owner's spec, so no
+ * separate override is needed here. */
+.app-main:has(> .page-enter > .training-days-page) {
+  max-width: 1100px;
+}
+
 /* The login page (see AppShell.tsx's bare branch) is full-bleed --
    no max-width/padding constraint like the normal `.app-main`. */
 .app-main--bare {
@@ -726,10 +765,83 @@ html[dir="ltr"] .app-sidebar__decor-text {
 }
 
 .app-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
   padding: var(--space-4);
   text-align: center;
   color: var(--color-text-subtle);
   font-size: 0.78rem;
+}
+
+.app-footer__note {
+  margin: 0;
+}
+
+/* Wide footer (container query on the footer itself, so the sidebar's width
+ * is accounted for): the link group sits on the physical right edge, on the
+ * same line as the copyright note, which stays centred where it was. The
+ * links are taken out of flow so they can't shift the note. Narrower footers
+ * keep the stacked, centred layout above. */
+.app-footer {
+  position: relative;
+  container-type: inline-size;
+}
+
+@container (min-width: 760px) {
+  .app-footer {
+    justify-content: center;
+    min-block-size: 4.25rem;
+  }
+
+  .app-footer__nav {
+    position: absolute;
+    right: var(--space-4);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .app-footer__links {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+  }
+}
+
+/* Help / Terms / Privacy: a single wrapping row, centred. Order follows the
+ * DOM, so it reads right-to-left in Arabic and left-to-right in English
+ * without any direction-specific rule. */
+.app-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.app-footer__link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  padding-inline: var(--space-2);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.app-footer__link:hover,
+.app-footer__link:focus-visible {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.app-footer__link[aria-current="page"] {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
 }
 
 @media (min-width: 960px) {
@@ -930,9 +1042,46 @@ html[dir="rtl"] .program-info-box__label {
   }
 }
 
+/* Phones: the header box is hidden; the same box shows as a slim strip
+ * under the header instead (AppShell renders it as .program-strip). */
+.program-strip {
+  display: none;
+}
+
 @media (max-width: 560px) {
-  .program-info-box {
+  .app-topbar .program-info-box {
     display: none;
+  }
+
+  .program-strip {
+    display: block;
+    padding: var(--space-2) var(--space-4) 0;
+  }
+
+  .program-strip .program-info-box,
+  html[dir="rtl"] .program-strip .program-info-box--topbar,
+  .program-strip .program-info-box.program-info-box--topbar {
+    display: flex;
+    max-width: none;
+    inline-size: 100%;
+    padding: 0.4rem var(--space-3);
+  }
+
+  .program-strip .program-info-box__name {
+    white-space: normal;
+  }
+
+  .program-strip .program-info-box__text {
+    flex: 1;
+  }
+
+  .program-strip .program-info-box__dates {
+    display: block;
+  }
+
+  .program-strip .program-switcher,
+  .program-strip .program-switcher__trigger {
+    inline-size: 100%;
   }
 }
 
@@ -1007,6 +1156,23 @@ html[dir="rtl"] .program-info-box__label {
   padding: 0.5rem;
   min-height: 2.4rem;
   inline-size: 2.4rem;
+}
+
+/* A same-shaped action that is not currently available (see
+ * `DisabledAction` in components/DayCard.tsx). Visual-only: the element
+ * is a real, focusable `<button aria-disabled="true">`, never the
+ * native `disabled` attribute, so it keeps its hover/focus states and
+ * its `Tooltip` explanation stays reachable by keyboard. `:hover` is
+ * neutralised so it does not look interactive like a real secondary
+ * button; the focus ring (`.button:focus-visible`) still applies. */
+.button--disabled-look {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.button--disabled-look:hover {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
 }
 
 .button-row {
@@ -1127,6 +1293,14 @@ html[dir="rtl"] .program-info-box__label {
   transition: border-color var(--transition-base), background var(--transition-base);
 }
 
+/* `.field label` (display: block, specificity 0,1,1) used to win over the
+ * flex layout above, so `gap`/`align-items` never applied and the control
+ * sat on a text baseline; restated at the same specificity. */
+.field .option-item {
+  display: flex;
+  margin-bottom: 0;
+}
+
 .option-item:hover {
   border-color: var(--color-primary);
   background: var(--color-primary-soft);
@@ -1139,6 +1313,7 @@ html[dir="rtl"] .program-info-box__label {
 }
 
 .option-item input {
+  margin: 0;
   inline-size: 1.15rem;
   block-size: 1.15rem;
   accent-color: var(--color-primary);
@@ -1183,23 +1358,24 @@ html[dir="rtl"] .program-info-box__label {
 }
 
 .card-list {
+  scroll-margin-block-start: 5rem;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+/* `.card` carries its own `margin-bottom` for the (more common) case of
+ * cards stacked without a gap-based wrapper; inside `.card-list` that
+ * doubled up with the list's own `gap`, and left a stray trailing gap
+ * after the last card. Same fix `.dashboard-grid > .card` already uses. */
+.card-list > .card {
+  margin-bottom: 0;
 }
 
 .card--interactive:hover {
   box-shadow: var(--shadow-md);
   border-color: var(--color-border-strong);
   transform: translateY(-1px);
-}
-
-.card__title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--space-3);
-  flex-wrap: wrap;
 }
 
 .card__title {
@@ -1221,12 +1397,182 @@ html[dir="rtl"] .program-info-box__label {
   flex-wrap: wrap;
 }
 
+/* Action-button row: every action (survey/report/evaluation/attendance)
+ * becomes an equal-width lane filling the row, matching the approved
+ * Training Days reference -- one lane when a role has a single action
+ * (trainee/trainer), two when it has two (supervisor's attendance +
+ * evaluation), never a fixed count. `align-items: stretch` gives every
+ * lane the same block-size (height) regardless of whether it holds a
+ * bare button or a `.status-group` with an extra caption underneath;
+ * `.card__body > *`/`.card__body .button` below do the equal-width/
+ * full-width-button part. Supersedes an earlier "size each action to its
+ * own label" rule (removed) now that the reference shows same-size
+ * buttons. */
 .card__body {
   margin-top: var(--space-4);
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: stretch;
   gap: var(--space-3);
+}
+
+.card__body > * {
+  flex: 1 1 11rem;
+  max-inline-size: 18rem;
+  min-inline-size: 0;
+}
+
+/* The actual button fills its lane's full width -- whether it is a bare
+ * `.card__body` child, wrapped in `.tooltip` (disabled-look action) or in
+ * `.status-group` (attendance / a submitted survey's "View" + date). */
+.card__body .button {
+  inline-size: 100%;
+}
+
+/* ---- training-day card: bordered date block + trainer/time facts ----
+ * Matches the approved Training Days reference. A plain flex row (not
+ * row-reverse) puts the date block at the same logical position
+ * `.upcoming-session__left` already uses, so it lands on the correct
+ * physical side in both RTL and LTR automatically. */
+
+/* 20px internal padding (the owner's spec) -- between the `--space-4`
+ * (16px) and `--space-5` (24px) tokens, so a precise value replaces the
+ * shared `.card` padding here rather than rounding to either one.
+ * `position: relative` anchors nothing itself; it exists so a future
+ * absolutely-positioned corner element has `.day-card` (not the whole
+ * page) as its containing block -- the status badge below uses an
+ * in-flow placement instead (see `.day-card__status`). */
+.day-card {
+  padding: 20px;
+  position: relative;
+}
+
+.day-card__layout {
+  display: flex;
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+/* Title/topic/course/facts/actions column, beside the fixed-width date
+ * block. Text reads naturally start-aligned (the default for block text
+ * under the page's own `dir`) rather than centred, matching the approved
+ * reference -- not a page-shell change, just this card's own content. */
+.day-card__main {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Title/topic/course/facts share one row with the day-status badge, the
+ * badge pinned to the row's own end (opposite the date block) -- see
+ * `DayCard` in DayCard.tsx for why this replaced stacking the badge
+ * above the title as a separate line. Plain flex, no row-reverse: DOM
+ * order [text, badge] already puts the badge at the physically correct
+ * end in both RTL and LTR. Wraps on narrow cards instead of squeezing. */
+.day-card__top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.day-card__text {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.day-card__status {
+  flex-shrink: 0;
+}
+
+/* The reference's badge shows only its leading icon, not the generic
+ * `.badge::before` colour dot every other status pill in the app still
+ * uses -- suppressed here only (not a global `.badge` change) since the
+ * icon already carries the same at-a-glance meaning the dot would. */
+.day-card__status::before {
+  display: none;
+}
+
+.day-card__date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  min-inline-size: 6rem;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.day-card__date-weekday,
+.day-card__date-month {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.day-card__date-day {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.day-card__facts {
+  margin-top: var(--space-2);
+}
+
+.card__fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-text-muted);
+}
+
+.card__fact svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 639px) {
+  .day-card__layout {
+    flex-direction: column;
+  }
+
+  .day-card__date {
+    flex-direction: row;
+    justify-content: center;
+    gap: var(--space-2);
+    inline-size: 100%;
+  }
+
+  /* Equal-width side-by-side lanes (see `.card__body > *`) get too narrow
+   * to stay side by side once a 2-action card (supervisor) reaches this
+   * width -- stack them instead, each lane keeping the full-width button
+   * `.card__body .button` already gives it. */
+  .card__body {
+    flex-direction: column;
+  }
+
+  /* `.card__body`'s own `flex: 1 1 11rem` (base rule, above) sizes each
+   * lane along the *row* layout's main axis (inline/width) -- once this
+   * media query flips the container to `flex-direction: column`, that
+   * same `11rem` flex-basis is read along the new main axis (block/
+   * height) instead, stretching every action button to a fixed ~176px
+   * tall box with its label centred inside, on every Training Days card
+   * at this width. Reset to `flex: 0 1 auto` so each stacked lane sizes
+   * to its own content height again. */
+  .card__body > * {
+    max-inline-size: none;
+    flex: 0 1 auto;
+  }
 }
 
 .badge {
@@ -1279,7 +1625,7 @@ html[dir="rtl"] .program-info-box__label {
 /* ------------------------- page header ------------------------- */
 
 .page-header {
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -1299,6 +1645,68 @@ html[dir="rtl"] .program-info-box__label {
 .page-header h1 {
   margin: 0;
   font-size: 1.5rem;
+}
+
+/* Training Days only (`leadingActions`, see PageHeader.tsx): the
+ * Cards/Calendar toggle renders on its OWN row ABOVE the title, matching
+ * the approved reference -- a plain column stack (DOM order already puts
+ * `leadingActions` first), not beside the title as an earlier session had
+ * it. Sort-by now lives in the toolbar's results row instead (see
+ * `DayListToolbar`/`FilterBar`), not here at all. A precise 27px (within
+ * the owner's specified 26-28px range) replaces the shared 1.5rem/24px
+ * `h1` size above -- scoped to this page alone, every other `PageHeader`
+ * caller is unaffected. */
+.page-header--leading {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+/* Toggle shares the title's row, pinned to the row's end (the reference
+ * shows it opposite the title); it wraps below on narrow widths. */
+.page-header--leading .page-header__leading {
+  order: 2;
+}
+
+.page-header--leading h1 {
+  font-size: 27px;
+}
+
+.page-header__leading {
+  display: flex;
+  flex-shrink: 0;
+}
+
+/* Title + small icon chip, e.g. "[calendar] Training Days" (matching
+ * the approved Training Days reference). The chip comes first in DOM/
+ * reading order; a plain flex row (no row-reverse) then places it at
+ * the inline-start edge automatically -- left of the title in English
+ * (LTR) and, mirrored, right of the title in Arabic (RTL) -- so it is
+ * always encountered before the title without any direction-specific
+ * CSS. */
+.page-header__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.page-header__icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-soft-strong);
+  flex-shrink: 0;
+}
+
+.page-header__icon-chip svg {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 .page-header__subtitle {
@@ -1380,12 +1788,101 @@ table.data-table {
   color: var(--color-primary);
 }
 
-.status-radio-group input {
-  accent-color: var(--color-primary);
+.status-radio-group label[data-status="present"]:has(input:checked) {
+  border-color: var(--color-success);
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
-.late-minutes-input {
-  width: 6rem;
+.status-radio-group label[data-status="absent"]:has(input:checked) {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.status-radio-group label[data-status="late"]:has(input:checked) {
+  border-color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.status-radio-group label:hover {
+  border-color: var(--color-primary);
+}
+
+.status-radio-group label:has(input:focus-visible) {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.status-radio-group input {
+  accent-color: currentColor;
+}
+
+.attendance-na {
+  color: var(--color-text-subtle);
+}
+
+/* Late minutes: one bordered field (number + unit) so the unit reads as
+ * part of the value; focus is shown on the whole field, matching the
+ * app's other inputs. */
+.late-minutes {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 2.5rem;
+  padding-inline: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+.late-minutes:hover {
+  border-color: var(--color-warning-text);
+}
+
+.late-minutes:focus-within {
+  border-color: var(--color-warning-text);
+  box-shadow: 0 0 0 3px var(--color-warning-bg);
+}
+
+.late-minutes .late-minutes-input {
+  inline-size: 3.25rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.late-minutes .late-minutes-input::-webkit-inner-spin-button,
+.late-minutes .late-minutes-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* The field's own border carries focus; the bare input needs no second ring. */
+.late-minutes .late-minutes-input:focus,
+.late-minutes .late-minutes-input:focus-visible {
+  outline: none;
+}
+
+.late-minutes__unit {
+  color: var(--color-text-muted);
+  font-size: 0.83rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .late-minutes {
+    transition: none;
+  }
 }
 
 /* =========================== state views =============================== */
@@ -1509,8 +2006,8 @@ table.data-table {
 }
 
 /* =====================================================================
-   Dashboard home -- approved design (noor-login/README.md's dashboard
-   reference). `.dashboard` widens past the app's normal
+   Dashboard home -- approved design (dashboard reference: dashboard.png, see the
+   noor-login/ row in docs/README.md). `.dashboard` widens past the app's normal
    `--content-max-width` prose column since this page is a card grid,
    not text.
    ===================================================================== */
@@ -1666,10 +2163,21 @@ html[dir="rtl"] .welcome-banner__image::before {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 .stats-section .dashboard-note {
   margin: 0;
+}
+
+/* Section label above the program-wide summary tiles (point 12), kept
+ * visually distinct from the toolbar's own filtered "X of Y" result text
+ * below it so the two counts are never confused. */
+.stats-section__heading {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
 }
 
 .stat-grid {
@@ -1704,6 +2212,62 @@ html[dir="rtl"] .welcome-banner__image::before {
   }
 }
 
+/* Exactly three tiles (Total / Completed / Upcoming, e.g. the trainee
+ * Training Days summary). Unlike the dashboard home (`.dashboard`, max
+ * -width 72rem), a plain list page's content column tops out at
+ * `--content-max-width` (52rem) -- comfortably wide enough for three
+ * tiles, but short of the 820px the dashboard's four-tile grid needs.
+ * So this gets its own, lower three-column threshold; the third tile
+ * spans the full row below it instead of leaving an odd gap. */
+.stat-grid--three > .stat-card:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+@container (min-width: 640px) {
+  .stat-grid--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .stat-grid--three > .stat-card:nth-child(3) {
+    grid-column: auto;
+  }
+}
+
+/* Phones: the three summary tiles share one row with number + short label
+ * only (icon and long support text are dropped), instead of two cramped
+ * columns whose labels wrapped over 3-4 lines. */
+@container (max-width: 479.98px) {
+  .stat-grid--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .stat-grid--three > .stat-card:nth-child(3) {
+    grid-column: auto;
+  }
+
+  .stat-grid--three .stat-card {
+    padding: var(--space-3) var(--space-2);
+  }
+
+  .stat-grid--three .stat-card__icon,
+  .stat-grid--three .stat-card__support {
+    display: none;
+  }
+
+  .stat-grid--three .stat-card__row {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-1);
+  }
+
+  .stat-grid--three .stat-card__text {
+    align-items: center;
+    text-align: center;
+  }
+}
+
 .stat-card {
   position: relative;
   min-inline-size: 0;
@@ -1715,6 +2279,45 @@ html[dir="rtl"] .welcome-banner__image::before {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
+
+/* Training Days' "Program Statistics" tiles (DaySummaryCards.tsx) only --
+ * a denser variant of the shared `.stat-card` used elsewhere (e.g. the
+ * dashboard home's StatCards.tsx, which keeps the roomier default). 88px
+ * (the lower, denser end of the owner's 88-96px range -- the page's own
+ * goal is getting the first training-day card on screen sooner) with no
+ * exact `--space-*` match, so it's a precise literal value; the
+ * horizontal/vertical padding below it IS exactly `--space-3`/`--space-4`
+ * (12px/16px). The support/subtitle line is dropped in the component
+ * itself (not just hidden here), so label + number is really all that
+ * renders. */
+.stat-card--compact {
+  min-height: 7.25rem;
+  padding: var(--space-4) var(--space-5);
+  justify-content: center;
+}
+
+/* 36px icon circle (the owner's spec), with its glyph scaled down to
+ * match the existing ~1:2 glyph-to-circle ratio the default `.stat-card__icon`
+ * already uses (24px glyph in a 48px circle). */
+.stat-card--compact .stat-card__icon {
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  padding: 0.85rem;
+}
+
+.stat-card--compact .stat-card__icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.stat-card--compact .stat-card__label {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.stat-card--compact .stat-card__support {
+  font-size: 0.78rem;
 }
 
 /* Icon-start / number+label-end row (the widest possible gap between
@@ -1739,6 +2342,10 @@ html[dir="rtl"] .stat-card__row {
 
 .stat-card--tint-accent {
   background: var(--color-accent-soft);
+}
+
+.stat-card--tint-info {
+  background: var(--color-info-soft);
 }
 
 .stat-card--primary {
@@ -1786,6 +2393,11 @@ html[dir="rtl"] .stat-card__row {
 .stat-card__icon--accent {
   background: var(--color-accent-soft-strong);
   color: var(--color-accent-icon);
+}
+
+.stat-card__icon--info {
+  background: var(--color-info-soft-strong);
+  color: var(--color-info-text);
 }
 
 .stat-card__text {
@@ -2300,7 +2912,7 @@ html[dir="ltr"] .task-list__view-all svg {
 }
 
 /* =====================================================================
-   Login page -- approved design (noor-login/README.md +
+   Login page -- approved design (see the noor-login/ row in docs/README.md, and
    approved-login-reference.png). `background-login.png` is a single
    pre-composed background image (photo + emerald panel + subtle gold
    pattern baked in, no text) applied once on `.auth-page`; there are
@@ -2372,6 +2984,15 @@ html[dir="ltr"] .task-list__view-all svg {
 .auth-page__lang-switch a[aria-current="true"] {
   background: var(--color-primary-soft);
   color: var(--color-primary);
+}
+
+/* 44px touch target on phones (the chips are 30px high otherwise). */
+@media (max-width: 640px) {
+  .auth-page__lang-switch a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
 }
 
 /* Hidden below the desktop breakpoint: at narrow/tall mobile aspect
@@ -2914,24 +3535,23 @@ html[dir="ltr"] .task-list__view-all svg {
   margin: 0;
 }
 
-.status-line--day dt {
-  font-weight: 600;
-}
-
-/* A labelled panel per status concern (Survey / Attendance / Report):
- * title, "<Kind> Status: <badge>", optional count + progress, then its
- * one action. Panels sit side by side when there is room and stack on
- * narrow screens; nothing relies on colour alone. */
+/* A compact per-concern action (Survey / Attendance / Report): just its
+ * one action button, whose own label ("Record" / "View" / ...) already
+ * communicates the state -- no separate status badge, count/progress or
+ * bordered "panel" with a repeated title. Groups sit side by side when
+ * there is room and wrap on narrow screens; nothing relies on colour
+ * alone. */
+/* `align-items: stretch` (was `flex-start`): when this group is one of
+ * several equal-width `.card__body` lanes (see `.card__body > *` above),
+ * its own button should fill the full lane width the same way a bare
+ * `.card__body > .button` does, matching the approved reference's
+ * same-size buttons -- not just size to its own label. */
 .status-group {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
+  align-items: stretch;
+  gap: var(--space-2);
   min-inline-size: 0;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-muted);
 }
 
 .status-group .button {
@@ -2939,15 +3559,7 @@ html[dir="ltr"] .task-list__view-all svg {
 }
 
 .card__body > .status-group {
-  flex: 1 1 15rem;
   align-self: stretch;
-}
-
-.status-group__title {
-  margin: 0;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--color-text);
 }
 
 .status-group__count {
@@ -2957,10 +3569,334 @@ html[dir="ltr"] .task-list__view-all svg {
   font-variant-numeric: tabular-nums;
 }
 
-.status-group__hint {
-  margin: 0;
-  font-size: 0.82rem;
+/* The completion date shown under a submitted survey/report's "View"
+ * link (button-state-taxonomy state 4); `.status-group`'s own flex gap
+ * already provides spacing, so the inherited `.card__meta` margin-top
+ * would just double it up. */
+.status-group__completed-at {
+  margin-top: 0;
+}
+
+/* ---- "Back to Training Days" link (action subpages) ---- */
+.day-context-header {
+  margin-bottom: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.back-link:hover,
+.back-link:focus-visible {
+  color: var(--color-primary);
+}
+
+/* 44px touch target on phones (the link is ~22px high otherwise). */
+@media (max-width: 640px) {
+  .back-link {
+    min-height: 2.75rem;
+  }
+}
+
+.back-link__icon {
+  width: 1rem;
+  height: 1rem;
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .back-link__icon {
+  transform: none;
+}
+
+.day-context-header__title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.day-context-header__facts {
+  margin-top: 0;
+}
+
+/* ---- Training Days calendar view (components/dashboard/TrainingDaysCalendar.tsx) ---- */
+.training-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.training-calendar__nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Direct month/year jump (point 5), between the prev/next steppers: two
+ * plain native selects rather than one combined control, so each stays a
+ * normal, keyboard- and screen-reader-friendly `<select>` with no extra
+ * widget code. */
+.training-calendar__nav-center {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.training-calendar__month-select,
+.training-calendar__year-select {
+  display: inline-flex;
+}
+
+.training-calendar__month-select .control-select__field {
+  min-inline-size: 9rem;
+  font-weight: 700;
+}
+
+.training-calendar__year-select .control-select__field {
+  min-inline-size: 5.5rem;
+}
+
+/* Today sits at the row's far end, apart from the prev/month/year/next
+ * stepper, so it never reads as part of the month sequence. */
+.training-calendar__today-btn {
+  min-block-size: 2.5rem;
+  margin-inline-start: auto;
+}
+
+.training-calendar__nav-btn svg {
+  transform: scaleX(-1);
+}
+
+.training-calendar__nav-btn--next svg {
+  transform: none;
+}
+
+[dir="rtl"] .training-calendar__nav-btn svg {
+  transform: none;
+}
+
+[dir="rtl"] .training-calendar__nav-btn--next svg {
+  transform: scaleX(-1);
+}
+
+.training-calendar__weekdays,
+.training-calendar__week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+/* The grid is a stack of `role="row"` weeks (valid ARIA grid structure);
+ * the weekday header above shares the same 7 columns. Tighter than the
+ * old 1:1 squares, which made a month ~650px tall. */
+.training-calendar__grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-block-start: calc(var(--space-3) * -1);
+}
+
+.training-calendar__weekdays {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.training-calendar__cell {
+  min-block-size: 4.25rem;
+  display: flex;
+}
+
+.training-calendar__cell--blank {
+  visibility: hidden;
+}
+
+.training-calendar__day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  background: transparent;
+  font: inherit;
+  transition: border-color var(--motion-fast) var(--ease-standard),
+    background var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+span.training-calendar__day {
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+  opacity: 0.8;
+}
+
+.training-calendar__day--has-entries {
+  cursor: pointer;
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+  opacity: 1;
+}
+
+.training-calendar__day--has-entries:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  box-shadow: var(--shadow-sm);
+}
+
+.training-calendar__day--has-entries:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.training-calendar__day[data-selected="true"] {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+/* Today: a filled number chip, readable on every state (selected, entry,
+ * empty) rather than a colour change alone. */
+.training-calendar__day[data-today="true"] .training-calendar__day-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 1.7rem;
+  block-size: 1.7rem;
+  padding-inline: 0.2rem;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  font-weight: 700;
+}
+
+.training-calendar__day--has-entries .training-calendar__day-number {
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .training-calendar__day {
+    transition: none;
+  }
+}
+
+.training-calendar__day-number {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.92rem;
+}
+
+.training-calendar__day-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+.training-calendar__selection .state-view {
+  margin: 0;
+}
+
+.training-calendar__undated {
+  border-top: 1px dashed var(--color-border);
+  padding-top: var(--space-4);
+}
+
+@media (max-width: 639px) {
+  .training-calendar__day-number {
+    font-size: 0.8rem;
+  }
+
+  .training-calendar__cell {
+    min-block-size: 3rem;
+  }
+
+  .training-calendar__weekdays,
+  .training-calendar__week,
+  .training-calendar__grid {
+    gap: 2px;
+  }
+
+  .training-calendar__weekdays {
+    font-size: 0.68rem;
+  }
+
+  .training-calendar__nav-center {
+    flex: 1 1 auto;
+    order: 3;
+    inline-size: 100%;
+  }
+
+  .training-calendar__nav-center > span:not(.visually-hidden) {
+    flex: 1;
+  }
+}
+
+/* ---- tooltip (components/Tooltip.tsx) ---- */
+
+.tooltip {
+  position: relative;
+  display: inline-flex;
+  min-inline-size: 0;
+}
+
+.tooltip__bubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-bottom: 0.4rem;
+  transform: translateX(-50%);
+  z-index: 30;
+  inline-size: max-content;
+  max-inline-size: 16rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--motion-fast) var(--ease-standard);
+}
+
+.tooltip__bubble[data-visible] {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Opens downward instead of upward (see Tooltip's `placement` prop) for a
+ * trigger near the top of a clipped container, e.g. inside the Training
+ * Days filter panel (`.filter-bar__panel-inner` needs `overflow: hidden`
+ * for its open/close height animation, which would otherwise clip a
+ * bubble trying to open upward there). */
+.tooltip__bubble[data-placement="bottom"] {
+  bottom: auto;
+  top: 100%;
+  margin-bottom: 0;
+  margin-top: 0.4rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tooltip__bubble {
+    transition: none;
+  }
 }
 
 /* ---- dashboard polish: hero card, sections, motion, skeletons ---- */
@@ -3048,6 +3984,10 @@ html[dir="ltr"] .task-list__view-all svg {
     min-inline-size: 100%;
   }
 
+  /* `.card__body .button` (base rules, above) already makes every day-card
+   * action full width at every breakpoint; this covers the one place a
+   * `.status-group` action button renders outside a `.card__body`
+   * (`UpcomingSessionCard`'s own actions row). */
   .upcoming-session .button,
   .status-group .button {
     inline-size: 100%;
@@ -3255,9 +4195,47 @@ html[dir="ltr"] .task-list__view-all svg {
 }
 
 .control-select__label {
-  font-size: 0.78rem;
+  /* 13px floor (the owner's "labels >= 13px" spec) -- was 0.78rem/12.48px. */
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-text-muted);
+}
+
+/* Label + optional info-hint trigger (e.g. "Evaluation Status" -- see
+ * SortControl's `hint` prop / point 3 of the Training Days toolbar
+ * refinement). Plain row, not row-reverse: the label is always first in
+ * reading order in both languages, the icon follows it at the inline end. */
+.control-select__label-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.control-select__hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: help;
+  border-radius: 50%;
+}
+
+.control-select__hint:hover,
+.control-select__hint:focus-visible {
+  color: var(--color-primary);
+}
+
+.control-select__hint:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.control-select__hint svg {
+  width: 0.95em;
+  height: 0.95em;
 }
 
 .control-select__wrap {
@@ -3286,6 +4264,132 @@ html[dir="ltr"] .task-list__view-all svg {
   border-color: var(--color-primary);
 }
 
+/* ---- themed dropdown (SelectMenu.tsx) ----
+ * The trigger reuses `.control-select__field` for size/border/hover/focus;
+ * only the pieces a native <select> drew for free are added here. Logical
+ * properties throughout, so RTL needs no overrides. */
+.select-menu__trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  transition: border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+.select-menu__trigger[aria-expanded="true"] {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.select-menu__value {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select-menu__chevron {
+  position: absolute;
+  inset-inline-end: 0.7rem;
+  inset-block: 0;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  transition: transform var(--motion-base) var(--ease-standard);
+}
+
+.select-menu__trigger[aria-expanded="true"] .select-menu__chevron {
+  transform: rotate(180deg);
+  color: var(--color-primary);
+}
+
+.filter-bar__sort .select-menu__chevron {
+  inset-inline-end: 0.4rem;
+}
+
+.select-menu__list {
+  position: fixed;
+  z-index: 400;
+  inline-size: max-content;
+  max-inline-size: min(22rem, calc(100vw - 1.5rem));
+  max-block-size: 18rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  transform-origin: top center;
+  animation: select-menu-in var(--motion-base) var(--ease-standard);
+}
+
+.select-menu__list--up {
+  transform-origin: bottom center;
+}
+
+@keyframes select-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.select-menu__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-block-size: 2.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--ease-standard);
+}
+
+.select-menu__option[data-active="true"] {
+  background: var(--color-surface-muted);
+}
+
+.select-menu__option:active {
+  background: var(--color-primary-soft-strong);
+}
+
+.select-menu__option[aria-selected="true"] {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.select-menu__option[aria-selected="true"][data-active="true"] {
+  background: var(--color-primary-soft-strong);
+}
+
+.select-menu__check {
+  inline-size: 1rem;
+  block-size: 1rem;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .select-menu__list {
+    animation: none;
+  }
+  .select-menu__chevron,
+  .select-menu__trigger,
+  .select-menu__option {
+    transition: none;
+  }
+}
+
 .control-select__field:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -3310,24 +4414,36 @@ html[dir="ltr"] .task-list__view-all svg {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
 }
 
 .filter-bar__top {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
-  align-items: flex-end;
+  align-items: center;
 }
 
-/* Sort stays in the compact primary row next to the search. */
+/* Course stays in the compact primary row next to search, always visible
+ * (point 1 of the Training Days toolbar refinement) -- it is narrowed out
+ * of the collapsible panel since it's one of the most common ways to
+ * narrow a long list. (Sort-by now lives beside the Cards/Calendar toggle
+ * in the page header -- see `TrainingDaysViewActions` in
+ * DayListToolbar.tsx -- not in this toolbar at all.) A flex row of its
+ * own so any future primary control wraps on narrow widths rather than
+ * stacking awkwardly. */
 .filter-bar__primary {
-  flex: 0 1 13rem;
+  flex: 1 1 11rem;
   min-inline-size: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
 }
 
 .filter-bar__primary .control-select {
   display: flex;
+  inline-size: 100%;
 }
 
 .filter-bar__primary .control-select__wrap {
@@ -3338,7 +4454,14 @@ html[dir="ltr"] .task-list__view-all svg {
 .filter-bar__primary .control-select__field,
 .filter-bar .search-input__field,
 .filter-bar__clear {
-  min-block-size: 2.75rem;
+  min-block-size: 2.25rem;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.filter-bar__clear svg {
+  inline-size: 1.1rem;
+  block-size: 1.1rem;
 }
 
 /* Collapsible panel at every width: grid-rows 0fr -> 1fr, <=180ms
@@ -3352,6 +4475,14 @@ html[dir="ltr"] .task-list__view-all svg {
     visibility 0s linear var(--motion-base);
 }
 
+.filter-bar__panel[data-open="true"] .filter-bar__panel-inner {
+  padding-block: var(--space-4);
+}
+
+.filter-bar__panel:not([data-open="true"]) .filter-bar__panel-inner {
+  border-color: transparent;
+}
+
 .filter-bar__panel[data-open="true"] {
   grid-template-rows: 1fr;
   visibility: visible;
@@ -3361,6 +4492,10 @@ html[dir="ltr"] .task-list__view-all svg {
 .filter-bar__panel-inner {
   overflow: hidden;
   min-block-size: 0;
+  padding: 0 var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3371,9 +4506,12 @@ html[dir="ltr"] .task-list__view-all svg {
   }
 }
 
+/* Wider and visually the dominant control in the compact row (point 1 of
+ * the Training Days toolbar refinement) -- search is the most common way
+ * into a long list, so it gets first claim on the row's space; Course
+ * (`.filter-bar__primary`) and the Filters toggle share what's left. */
 .filter-bar__search {
-  flex: 1 1 14rem;
-  max-inline-size: 26rem;
+  flex: 3 1 18rem;
   min-inline-size: 0;
 }
 
@@ -3405,18 +4543,69 @@ html[dir="ltr"] .task-list__view-all svg {
   font-weight: 700;
 }
 
+/* A vertical stack of grouped sections (point 2 of the Training Days
+ * toolbar refinement): the equal-width Day/Evaluation/Survey (/Attendance)
+ * status row, an optional Program select, then the labeled date-range
+ * section -- see `.filter-bar__status-row`/`.filter-bar__date-section`
+ * below. Each section lays out its own controls; this is just the
+ * spacing between sections. */
 .filter-bar__controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Equal-width, consistent-height status selects in one row on wide
+ * enough panels; wraps to one per line on narrow ones (including inside
+ * the mobile filter sheet). */
+.filter-bar__status-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+  gap: var(--space-3);
+  align-items: end;
+}
+
+.filter-bar__status-row .control-select {
+  min-inline-size: 0;
+}
+
+.filter-bar__status-row .control-select__field {
+  inline-size: 100%;
+  block-size: 2.75rem;
+}
+
+.filter-bar__date-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.filter-bar__date-section-label {
+  margin: 0;
+  /* 13px floor (the owner's "labels >= 13px" spec) -- was 0.78rem/12.48px. */
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filter-bar__date-fields {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
-  align-items: flex-end;
 }
 
 .filter-bar__active {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
 }
 
 .filter-bar__chips {
@@ -3432,10 +4621,267 @@ html[dir="ltr"] .task-list__view-all svg {
   min-block-size: 2.75rem;
 }
 
+/* ---- filter sheet (narrow-viewport filter panel, see FilterBar.tsx) ----
+ * Same modal mechanics as `.confirm-dialog` (focus trap, inert
+ * background, scroll lock in JS) but presented as a bottom sheet rather
+ * than a centred card: full-width, docked to the viewport's block-end,
+ * rounded top corners, a sticky header (title + close) above a
+ * scrollable body so a tall filter set never pushes the close button
+ * off-screen. Only mounted below the `max-width: 767px` breakpoint (see
+ * `useIsNarrowViewport`) -- the desktop `.filter-bar__panel` inline
+ * accordion is untouched above it. */
+.filter-sheet__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(21, 30, 27, 0.45);
+  animation: confirm-fade var(--motion-base) var(--ease-standard) both;
+}
+
+.filter-sheet {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  max-block-size: min(85vh, 42rem);
+  background: var(--color-surface);
+  border-start-start-radius: var(--radius-lg);
+  border-start-end-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  animation: filter-sheet-up var(--motion-base) var(--ease-standard) both;
+}
+
+@keyframes filter-sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.filter-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.filter-sheet__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.filter-sheet__close {
+  flex-shrink: 0;
+  min-inline-size: 2.75rem;
+  min-block-size: 2.75rem;
+}
+
+.filter-sheet__body {
+  overflow-y: auto;
+  padding: var(--space-4);
+  padding-block-end: max(var(--space-4), env(safe-area-inset-bottom));
+}
+
+.filter-sheet__body .filter-bar__controls > * {
+  flex: 1 1 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-sheet,
+  .filter-sheet__backdrop {
+    animation: none;
+  }
+}
+
+/* ---- view-mode toggle (Cards / Calendar) ----
+ * Two separate, individually-rounded pill buttons rendered above the
+ * title (see ViewModeToggle in DayListToolbar.tsx, rendered via
+ * `PageHeader`'s `leadingActions`), not a single connected segmented
+ * control -- matching the approved reference. Reuses `.button`/
+ * `.button--secondary` as-is for the filled-active / outline-inactive
+ * look, hover, focus-visible and disabled states; only the pill radius
+ * and sizing below are specific to this toggle. */
+.view-toggle {
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+/* 40px tall (the owner's spec), which happens to be exactly `--space-7`
+ * (2.5rem) -- shorter than the shared `.button` 2.75rem/44px min-height,
+ * scoped to this toggle alone (`.view-toggle` is only ever the Training
+ * Days Cards/Calendar switch) so no other button shrinks. The active
+ * view keeps the plain `.button`'s brand-green fill (`--color-primary`);
+ * no separate colour token is introduced. Fully rounded (999px), unlike
+ * the shared `.button`'s default `--radius-sm` corners, matching the
+ * reference's pill-shaped toggle. */
+.view-toggle .button {
+  min-height: var(--space-7);
+  border-radius: 999px;
+  /* The shared `.button`'s own block padding (0.65rem/10.4px each side)
+   * makes the box taller than its `min-height` floor once text/border are
+   * accounted for (it renders ~42px, not 40px) -- a smaller block padding
+   * here keeps the natural content height under 40px so the `min-height`
+   * floor is what actually renders. */
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+}
+
+/* ---- training-days-view-actions (Cards/Calendar toggle) ----
+ * Thin wrapper around `ViewModeToggle`, rendered in `PageHeader`'s
+ * `leadingActions` slot above the title (see `.page-header--leading`
+ * above). Sort-by used to live here too; it now sits in the toolbar's
+ * results row instead (see `DayListToolbar`/`FilterBar`), matching the
+ * approved reference. */
+.training-days-view-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* ---- segmented control (e.g. All / Upcoming / Completed) ----
+ * Native radio inputs, visually hidden, drive a pill label -- keyboard
+ * and screen-reader behaviour come from the input itself, matching the
+ * `:has()` focus-visible technique already used for `.option-item`
+ * below. A plain flex row (not row-reverse) keeps DOM/reading order the
+ * same in both languages; the leading dot is a `::before` on the pill,
+ * so it renders at the correct physical side per direction without
+ * extra markup. */
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.segmented__input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.segmented__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--motion-base) var(--ease-standard),
+    color var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base) var(--ease-standard);
+}
+
+.segmented__pill::before {
+  content: "";
+  inline-size: 0.85rem;
+  block-size: 0.85rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border-strong);
+  transition: border-color var(--motion-base) var(--ease-standard),
+    background var(--motion-base) var(--ease-standard);
+}
+
+.segmented__input:checked + .segmented__pill {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.segmented__input:checked + .segmented__pill::before {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  box-shadow: inset 0 0 0 2px var(--color-surface);
+}
+
+.segmented__option:has(.segmented__input:focus-visible) .segmented__pill {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segmented__pill,
+  .segmented__pill::before {
+    transition: none;
+  }
+}
+
+/* Results count + (card-view-only) Sort-by share one row, the count at
+ * the row's start and Sort at its end -- matching the approved reference,
+ * where "Showing X of Y" and "Sort: ..." sit on the same line above the
+ * cards. `sort` is omitted entirely in calendar view (see
+ * DayListToolbar.tsx), so the row collapses to just the count there. */
+.filter-bar__results-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: var(--space-3);
+}
+
 .filter-bar__results {
   margin: 0;
   font-size: 0.85rem;
   color: var(--color-text-muted);
+}
+
+/* Hairline between the count and Sort, as in the reference. */
+.filter-bar__results-row::after {
+  content: "";
+  order: 1;
+  flex: 1 1 2rem;
+  block-size: 1px;
+  background: var(--color-border);
+}
+
+.filter-bar__results-row .filter-bar__results {
+  order: 0;
+}
+
+.filter-bar__results-row .filter-bar__sort {
+  order: 2;
+}
+
+/* Compact Sort-by next to the results count: the reference shows a
+ * single inline line, not the toolbar's usual labelled-select block, so
+ * the label is visually hidden (still in the DOM, still associated via
+ * `htmlFor` -- see SortControl's `compact` prop) and the select itself
+ * shrinks to a plain, low-chrome inline control. */
+.filter-bar__sort .control-select__field {
+  min-block-size: 2rem;
+  padding-block: 0.3rem;
+  padding-inline: 0.5rem 1.6rem;
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.filter-bar__sort .control-select__field:hover,
+.filter-bar__sort .control-select__field:focus-visible {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.filter-bar__sort .control-select__chevron {
+  inset-inline-end: 0.4rem;
 }
 
 .filter-chip {
@@ -3500,6 +4946,25 @@ html[dir="ltr"] .task-list__view-all svg {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+}
+
+/* Page size: label and dropdown on one line (it used to stack the label
+ * above a full-height native select, taller than the pager beside it). */
+.pagination__size {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pagination__size-label {
+  white-space: nowrap;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.pagination__size-select {
+  min-block-size: 2.5rem;
+  min-inline-size: 5rem;
 }
 
 .pagination__btn {
@@ -3642,6 +5107,248 @@ html[dir="ltr"] .task-list__view-all svg {
   min-inline-size: 9.5rem;
 }
 
+/* ---- themed date picker (DatePicker.tsx) ----
+ * The trigger reuses `.control-select__field` (border/hover/focus-visible
+ * shared with every other filter control); the popover is a portal, so its
+ * styles are not nested under the filter bar. Logical properties only. */
+.date-picker__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+.date-picker__trigger[aria-expanded="true"] {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.date-picker__icon {
+  inline-size: 1.1rem;
+  block-size: 1.1rem;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.date-picker__trigger[aria-expanded="true"] .date-picker__icon {
+  color: var(--color-primary);
+}
+
+.date-picker__trigger--empty .date-picker__text {
+  color: var(--color-text-subtle);
+}
+
+.date-picker__text {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date-picker__popover {
+  position: fixed;
+  z-index: 400;
+  inline-size: 20rem;
+  max-inline-size: calc(100vw - 1rem);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  animation: select-menu-in var(--motion-base) var(--ease-standard);
+}
+
+.date-picker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-block-end: var(--space-2);
+}
+
+.date-picker__title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.date-picker__nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard);
+}
+
+.date-picker__nav svg {
+  inline-size: 1.05rem;
+  block-size: 1.05rem;
+}
+
+.date-picker__nav:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.date-picker__nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.date-picker__weekdays,
+.date-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+
+.date-picker__weekdays {
+  margin-block-end: var(--space-1);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.date-picker__weekdays > span {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date-picker__grid--next {
+  animation: date-picker-next var(--motion-base) var(--ease-standard);
+}
+
+.date-picker__grid--prev {
+  animation: date-picker-prev var(--motion-base) var(--ease-standard);
+}
+
+@keyframes date-picker-next {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+}
+
+@keyframes date-picker-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+}
+
+[dir="rtl"] .date-picker__grid--next {
+  animation-name: date-picker-prev;
+}
+
+[dir="rtl"] .date-picker__grid--prev {
+  animation-name: date-picker-next;
+}
+
+.date-picker__day {
+  aspect-ratio: 1;
+  min-block-size: 2.25rem;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard);
+}
+
+.date-picker__day:hover {
+  background: var(--color-primary-soft);
+}
+
+.date-picker__day:active {
+  background: var(--color-primary-soft-strong);
+}
+
+.date-picker__day[aria-current="date"] {
+  border-color: var(--color-primary);
+  font-weight: 700;
+}
+
+.date-picker__day[aria-selected="true"] {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  font-weight: 700;
+}
+
+.date-picker__day[aria-disabled="true"] {
+  color: var(--color-text-subtle);
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: transparent;
+}
+
+.date-picker__day:focus-visible,
+.date-picker__nav:focus-visible,
+.date-picker__link:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.date-picker__footer {
+  display: flex;
+  justify-content: space-between;
+  margin-block-start: var(--space-2);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.date-picker__link {
+  min-block-size: 2.25rem;
+  padding-inline: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--ease-standard);
+}
+
+.date-picker__link:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+}
+
+.date-picker__link:disabled {
+  color: var(--color-text-subtle);
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .date-picker__popover,
+  .date-picker__grid--next,
+  .date-picker__grid--prev {
+    animation: none;
+  }
+  .date-picker__trigger,
+  .date-picker__nav,
+  .date-picker__day,
+  .date-picker__link {
+    transition: none;
+  }
+}
+
 /* ---- attendance: summary line + stacked rows on narrow screens ---- */
 .attendance-summary {
   display: flex;
@@ -3656,10 +5363,42 @@ html[dir="ltr"] .task-list__view-all svg {
 }
 
 .attendance-summary li {
-  padding: 0.25rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.85rem;
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: var(--color-surface);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tone follows the status (never colour alone: the label text stays). */
+.attendance-summary li::before {
+  content: "";
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.attendance-summary__item--present {
+  background: var(--color-success-bg);
+  border-color: transparent;
+  color: var(--color-success);
+}
+
+.attendance-summary__item--absent {
+  background: var(--color-danger-bg);
+  border-color: transparent;
+  color: var(--color-danger);
+}
+
+.attendance-summary__item--late {
+  background: var(--color-warning-bg);
+  border-color: transparent;
+  color: var(--color-warning-text);
 }
 
 @media (max-width: 767px) {
@@ -3688,12 +5427,50 @@ html[dir="ltr"] .task-list__view-all svg {
     display: block;
   }
 
+  /* One compact row per trainee: name and status controls on the same
+   * line (wrapping only when the phone is very narrow); the late-minutes
+   * field drops to its own line and only exists for "late". */
   .data-table--stacked tbody tr {
-    margin-block-end: var(--space-3);
-    padding: var(--space-3) var(--space-4);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--space-2);
+    margin-block-end: var(--space-2);
+    padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     background: var(--color-surface);
+  }
+
+  .data-table--stacked td.attendance-name {
+    flex: 1 1 4.5rem;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* The status control is self-explanatory beside the name; its column
+   * label ("Status") is dropped on phones to keep the row on one line. */
+  .data-table--stacked td[data-label]:nth-child(2)::before {
+    display: none;
+  }
+
+  .data-table--stacked td:nth-child(2) {
+    flex: 0 0 auto;
+  }
+
+  .data-table--stacked td:nth-child(3) {
+    flex: 1 1 100%;
+  }
+
+  .data-table--stacked .status-radio-group {
+    flex-wrap: nowrap;
+    gap: var(--space-1);
+  }
+
+  .data-table--stacked .status-radio-group label {
+    padding-inline: 0.45rem;
+    gap: 0.25rem;
+    font-size: 0.78rem;
   }
 
   .data-table--stacked tbody tr:hover {
@@ -3729,9 +5506,7 @@ html[dir="ltr"] .task-list__view-all svg {
     min-block-size: 2.75rem;
   }
 
-  .data-table--stacked .late-minutes-input {
-    inline-size: 100%;
-    max-inline-size: 9rem;
+  .data-table--stacked .late-minutes {
     min-block-size: 2.75rem;
   }
 }
@@ -3885,6 +5660,18 @@ a.button {
   animation: field-error-in var(--motion-base) var(--ease-standard) both;
 }
 
+/* Save stays in reach on a long roster: a sticky bar at the end of the
+ * page, so the action never scrolls away from the rows being edited. */
+.attendance-actions {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 5;
+  margin-inline: calc(var(--space-3) * -1);
+  padding: var(--space-3);
+  background: var(--color-bg);
+  border-block-start: 1px solid var(--color-border);
+}
+
 .unsaved-note {
   display: inline-flex;
   align-items: center;
@@ -3926,6 +5713,55 @@ a.button {
   margin-bottom: var(--space-5);
 }
 
+/* Each question is its own panel, so a long form reads as a list of
+ * distinct questions (label + answer together) rather than one run of
+ * identical option rows. */
+.survey-form .survey-section .field {
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.survey-form .survey-section .field > label,
+.survey-form .survey-section .field > legend {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: var(--space-3);
+}
+
+.survey-form .survey-section .field[data-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+/* Number answers are short: no need for a full-width box. */
+.survey-form .field input[type="number"] {
+  max-inline-size: 10rem;
+}
+
+/* A mandatory-answer miss must show on the choice rows too, not only in
+ * the error text (the base rule only recoloured text inputs). */
+.survey-form .field[data-invalid="true"] .option-item {
+  border-color: var(--color-danger);
+}
+
+/* Rating-style questions: a wrapping row of equal choices on wide
+ * screens, the tall stack on narrow ones. */
+@media (min-width: 640px) {
+  .option-list--scale {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  }
+
+  .option-list--scale .option-item {
+    justify-content: center;
+    text-align: center;
+    padding-inline: var(--space-3);
+  }
+}
+
 .survey-section .section-title {
   margin-top: var(--space-5);
   padding-block-end: var(--space-2);
@@ -3938,9 +5774,29 @@ a.button {
   gap: var(--space-2);
 }
 
+/* Read-only: the saved choice must stand out (filled, accent edge, bold)
+ * while the unchosen ones recede -- the generic disabled style used to
+ * grey them all alike, so the answer was barely visible. */
+.survey-form--readonly .option-item:has(input:disabled) {
+  cursor: default;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
 .survey-form--readonly .option-item:has(input:checked) {
   border-color: var(--color-primary);
+  border-inline-start-width: 4px;
+  background: var(--color-primary-soft);
   color: var(--color-text);
+  font-weight: 700;
+}
+
+.survey-form--readonly .field textarea:disabled,
+.survey-form--readonly .field input[type="number"]:disabled {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  -webkit-text-fill-color: var(--color-text);
+  opacity: 1;
 }
 
 @media (max-width: 720px) {
@@ -4069,17 +5925,13 @@ a.button {
   font-size: 0.92rem;
 }
 
-/* Filter panel: a tidy grid instead of a content-sized wrap, so a wide
- * Course select can no longer push "From"/"To" onto an orphan row. Long
- * option text is clipped by the select itself. */
+/* Status row: a tidy grid instead of a content-sized wrap, so Day /
+ * Evaluation / Survey (/ Attendance) status line up as equal-width,
+ * equal-height selects instead of wrapping unevenly. Long option text is
+ * clipped by the select itself. (Course now lives in the always-visible
+ * primary row, not this panel -- see `.filter-bar__primary` above.) */
 @media (min-width: 768px) {
-  .filter-bar__controls {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
-    align-items: end;
-  }
-
-  .filter-bar__controls > .control-select {
+  .filter-bar__controls .control-select {
     display: flex;
     min-inline-size: 0;
   }
@@ -4250,4 +6102,76 @@ a.button {
 
 .attendance-summary__hint {
   margin: calc(-1 * var(--space-2)) 0 var(--space-4);
+}
+
+/* ---- header program selector (the box becomes a dropdown when the user is
+ * assigned in more than one program; see components/dashboard/ProgramInfoBox.tsx) */
+.program-switcher {
+  position: relative;
+}
+
+.program-switcher__trigger {
+  inline-size: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.program-switcher__trigger:hover {
+  border-color: var(--color-primary);
+}
+
+.program-switcher__list {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-start: calc(100% + 0.35rem);
+  z-index: 40;
+  min-inline-size: 100%;
+  inline-size: max-content;
+  max-inline-size: min(24rem, 90vw);
+  max-block-size: 18rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
+.program-switcher__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0.5rem var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.program-switcher__option.is-active {
+  background: var(--color-primary-soft);
+}
+
+.program-switcher__option[aria-selected="true"] {
+  color: var(--color-primary);
+}
+
+.program-switcher__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.program-switcher__name {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.program-switcher__dates {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
 }

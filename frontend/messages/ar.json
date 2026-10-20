@@ -24,7 +24,9 @@
     "notificationsUnavailable": "لا توجد إشعارات لعرضها حالياً.",
     "decorLine1": "بالعلم نبني جيلاً",
     "decorLine2": "بكتاب الله",
-    "switchToLocale": "التبديل إلى {locale}"
+    "switchToLocale": "التبديل إلى {locale}",
+    "backToTrainingDays": "العودة إلى الأيام التدريبية",
+    "footerNavLabel": "روابط التذييل"
   },
   "Nav": {
     "primaryNavigation": "التنقل الرئيسي",
@@ -35,10 +37,10 @@
       "supervisor": "مشرفة",
       "trainer": "مدربة"
     },
-    "program": "البرنامج التدريبي",
-    "attendanceEvaluation": "الحضور والتقييم",
-    "myReports": "تقاريري",
-    "profile": "الملف الشخصي"
+    "profile": "الملف الشخصي",
+    "help": "المساعدة",
+    "terms": "الشروط",
+    "privacy": "الخصوصية"
   },
   "Breadcrumbs": {
     "ariaLabel": "مسار التنقل",
@@ -108,12 +110,14 @@
     "notFoundMessage": "الصفحة التي تبحثين عنها غير موجودة أو تم نقلها.",
     "backHome": "العودة إلى الرئيسية",
     "titleUnauthenticated": "انتهت صلاحية الجلسة",
+    "titleSignInFailed": "فشل تسجيل الدخول",
     "titleForbidden": "الوصول مرفوض",
     "titleNotFound": "غير موجود",
     "titleValidation": "بعض المعلومات مفقودة أو غير صحيحة",
     "titleConflict": "تم الإرسال مسبقاً",
     "titleRateLimited": "عدد كبير جداً من المحاولات",
     "titleNetwork": "مشكلة في الاتصال",
+    "titleUnavailable": "الخدمة غير متاحة",
     "titleInternal": "حدث خطأ ما",
     "titleGeneric": "خطأ",
     "network": "تعذّر الوصول إلى الخادم. تحققي من اتصالك وحاولي مرة أخرى.",
@@ -124,8 +128,7 @@
     "notFoundStateMessage": "تعذّر العثور على ما تبحثين عنه. ربما تم حذفه أو نقله.",
     "validationMessage": "يرجى مراجعة المعلومات والمحاولة مرة أخرى.",
     "internalMessage": "حدث خطأ من جانبنا. يرجى المحاولة مرة أخرى بعد قليل.",
-    "genericMessage": "حدثت مشكلة غير متوقعة. يرجى المحاولة مرة أخرى.",
-    "reference": "المرجع"
+    "genericMessage": "حدثت مشكلة غير متوقعة. يرجى المحاولة مرة أخرى."
   },
   "Dashboard": {
     "loading": "جارٍ تحميل أيامك التدريبية...",
@@ -133,10 +136,10 @@
     "emptyTraineeMessage": "لا توجد لديكِ أيام تدريبية مسجَّلة لعرضها حالياً.",
     "emptySupervisorMessage": "لا توجد لديكِ أيام تدريبية مسندة لعرضها حالياً.",
     "emptyTrainerMessage": "لا توجد لديكِ أيام تدريبية مسندة لعرضها حالياً.",
-    "traineeTitle": "أيامي التدريبية",
-    "supervisorTitle": "الأيام التدريبية المسندة",
-    "trainerTitle": "الأيام التدريبية المسندة",
     "dateUnknown": "التاريخ غير محدد",
+    "dayNumberLabel": "اليوم {number}",
+    "dayNumberWithTopic": "اليوم {number} — {topic}",
+    "timeRange": "من {start} إلى {end}",
     "dayState": {
       "planned": "مخطط له",
       "open": "مفتوح",
@@ -156,21 +159,36 @@
     "sectionTrainingDay": "اليوم التدريبي",
     "sectionSurvey": "الاستبيان",
     "sectionReport": "التقرير",
-    "continueSurvey": "متابعة الاستبيان",
-    "continueReport": "متابعة التقرير",
+    "sectionEvaluation": "التقييم الإشرافي",
+    "continueSurvey": "متابعة الاستبانة",
+    "continueReport": "متابعة تقرير الانطباع",
+    "continueEvaluation": "متابعة التقييم الإشرافي",
     "hint": {
       "notConfigured": "لم يُعدّ بعد",
       "planned": "غير متاح بعد",
       "open": "غير متاح حاليًا",
       "closed": "اليوم مغلق",
       "postponed": "اليوم مؤجل",
-      "cancelled": "اليوم ملغى"
+      "cancelled": "اليوم ملغى",
+      "missedDeadline": "لم تُنجزي هذا قبل إغلاق المهلة المحددة."
     },
-    "openSurvey": "فتح الاستبيان",
-    "viewSurvey": "عرض الاستبيان",
-    "openReport": "فتح التقرير",
-    "viewReport": "عرض التقرير",
-    "manageAttendance": "إدارة الحضور",
+    "openSurvey": "تعبئة الاستبانة",
+    "viewSurvey": "عرض الاستبانة",
+    "openReport": "تعبئة تقرير الانطباع",
+    "viewReport": "عرض تقرير الانطباع",
+    "openEvaluation": "تعبئة التقييم الإشرافي",
+    "viewEvaluation": "عرض التقييم الإشرافي",
+    "submittedOn": "تم الإرسال في {date}",
+    "recordAttendance": "تسجيل الحضور",
+    "continueAttendance": "استكمال الحضور",
+    "viewAttendance": "عرض الحضور",
+    "actionAvailabilityLabel": "حالة التقييم",
+    "actionAvailabilityHint": "هل يمكن تقديم هذا الإجراء الآن -- بغض النظر عن حالة اليوم التدريبي نفسه، الذي قد يكون «مفتوحاً» مع أن نافذة التقييم لم تبدأ بعد أو أنها أُغلقت بالفعل.",
+    "actionAvailability": {
+      "upcoming": "قادم",
+      "openForEvaluation": "متاح للتقييم",
+      "closed": "مغلق"
+    },
     "welcomeBack": "مرحباً بك مجدداً يا {name}",
     "welcomeSubtitleTrainee": "في رحلتك نحو التميز في قيادة مدارس تحفيظ القرآن الكريم",
     "welcomeSubtitleSupervisor": "في رحلتك نحو دعم التميز في مدارس تحفيظ القرآن الكريم",
@@ -198,6 +216,7 @@
     "quickStatReports": "التقارير",
     "quickStatDays": "الأيام المنجزة",
     "quickStatCourses": "الدورات",
+    "programSwitcherLabel": "اختيار البرنامج",
     "programCurrentLabel": "البرنامج الحالي",
     "programMessageTitle": "رسالة من إدارة البرنامج",
     "programMessageUnavailable": "لا تتوفر حالياً رسائل أو إعلانات من إدارة البرنامج عبر هذا النظام.",
@@ -240,7 +259,19 @@
       "not_started": "لم يُسجَّل بعد",
       "partial": "مسجَّل جزئياً",
       "complete": "مكتمل"
-    }
+    },
+    "daysStatsRegionLabel": "ملخص الأيام التدريبية",
+    "programStatsHeading": "إحصائيات البرنامج",
+    "statTotalDays": "إجمالي الأيام",
+    "statCompletedDays": "الأيام المنتهية",
+    "daysIntroTrainee": "تابعي رحلتك التدريبية واطلعي على الأيام المنجزة والقادمة.",
+    "daysIntroTrainer": "راجع أيامك التدريبية المسندة إليك وعبّئ تقرير الانطباع لكل يوم.",
+    "daysIntroSupervisor": "تابع تسجيل الحضور والتقييم الإشرافي لأيامك التدريبية المسندة إليك.",
+    "statTotalDaysSupport": "مجموع الأيام التدريبية في البرنامج",
+    "statCompletedDaysSupport": "تم إنجازها من الأيام التدريبية",
+    "statUpcomingDaysSupport": "الأيام المتبقية في البرنامج",
+    "statUpcomingDays": "الأيام القادمة",
+    "daysSubtitleCount": "{count, plural, =1 {يوم تدريبي واحد ضمن برنامجك الحالي} =2 {يومان تدريبيان ضمن برنامجك الحالي} few {# أيام تدريبية ضمن برنامجك الحالي} other {# يوماً تدريبياً ضمن برنامجك الحالي}}"
   },
   "Survey": {
     "loadingSurvey": "جارٍ تحميل الاستبانة...",
@@ -254,6 +285,8 @@
     "missingRequiredTitle": "يرجى الإجابة عن الأسئلة المطلوبة",
     "questionRequiredError": "هذا السؤال مطلوب.",
     "requiredLabel": "(مطلوب)",
+    "scaleRange": "أدخلي رقماً صحيحاً من {min} إلى {max}.",
+    "noAnswer": "لم تتم الإجابة عن هذا السؤال.",
     "readOnlyNotice": "تم إرسال هذه الإجابة وهي للقراءة فقط.",
     "confirmTitle": "هل تريدين إرسال إجابتك؟",
     "confirmMessage": "بعد الإرسال، لا يمكن تعديل هذه الإجابة. هل تريدين المتابعة؟",
@@ -278,6 +311,7 @@
     "emptyMessage": "لا توجد تسجيلات فعّالة في برنامج هذا اليوم التدريبي.",
     "nameColumn": "الاسم",
     "statusColumn": "الحالة",
+    "minutesUnit": "دقيقة",
     "lateMinutesColumn": "دقائق التأخير",
     "notApplicable": "لا ينطبق",
     "status": {
@@ -294,12 +328,19 @@
     "filterAll": "الكل",
     "notRecorded": "غير مسجَّل",
     "notYetSaved": "غير محفوظ بعد",
-    "notYetSavedHint": "المتدربات اللواتي ليس لهن سجل حضور محفوظ يظهرن حاضرات وسيُحفظن كذلك ما لم تغيّري حالتهن.",
+    "markRemainingPresent": "تعيين المتبقيات كحاضرات",
+    "notYetSavedHint": "لا توجد حالة محددة مسبقًا: اختاري حالة لكل متدربة. تُحفظ المتدربات اللواتي حدّدتِ حالتهن فقط، وتبقى الأخريات غير مسجَّلات.",
     "summaryLabel": "ملخص الحضور",
     "summaryCount": "{label}: {count}",
     "shownOf": "عرض {shown} من {total} متدربة",
     "statusFor": "حالة {name}",
-    "unsavedChanges": "تغييرات غير محفوظة"
+    "unsavedChanges": "تغييرات غير محفوظة",
+    "readOnlyNotice": "هذا اليوم التدريبي مغلق، لذا يُعرض الحضور كما سُجِّل ولا يمكن تغييره بعد الآن.",
+    "notOpenNotice": "لم يُفتح هذا اليوم التدريبي بعد، لذا لا يمكن تسجيل الحضور إلا بعد أن يفتحه المشرف العام.",
+    "leaveTitle": "المغادرة دون حفظ؟",
+    "leaveMessage": "لديكِ تغييرات حضور غير محفوظة. إذا غادرتِ الآن فستفقدينها.",
+    "leaveConfirm": "المغادرة دون حفظ",
+    "leaveStay": "البقاء في الصفحة"
   },
   "Profile": {
     "title": "ملفي الشخصي",
@@ -311,40 +352,11 @@
     "logout": "تسجيل الخروج",
     "timezoneLabel": "المنطقة الزمنية"
   },
-  "Pages": {
-    "programTitle": "البرنامج التدريبي",
-    "programSubtitle": "برنامجك الحالي والدورات التابعة له.",
-    "programEmptyTitle": "لا يوجد برنامج بعد",
-    "programEmptyMessage": "أنت غير مرتبط ببرنامج تدريبي حالياً.",
-    "programState": {
-      "draft": "مسودة",
-      "active": "نشط",
-      "completed": "مكتمل",
-      "cancelled": "ملغى"
-    },
-    "programCoursesTitle": "الدورات",
-    "programCoursesEmpty": "لا توجد دورات لعرضها في هذا البرنامج بعد.",
-    "courseDays": "الأيام التدريبية: {count}",
-    "courseClosedDays": "الأيام المكتملة: {count}",
-    "courseHours": "الساعات: {count}",
-    "evaluationsTitle": "الحضور والتقييم",
-    "evaluationsSubtitle": "سجّل الحضور وأكمل استبانة المشرف لكل يوم تدريبي.",
-    "evaluationsPending": "بحاجة إلى إجراء",
-    "evaluationsDone": "مكتملة",
-    "reportsTitle": "تقاريري",
-    "reportsSubtitle": "أكمل التقرير الخاص بكل يوم من أيامك التدريبية.",
-    "reportsPending": "بانتظار الإكمال",
-    "reportsSubmitted": "تم إرسالها",
-    "reportsUnavailable": "غير متاحة",
-    "sectionEmpty": "لا يوجد ما يُعرض هنا.",
-    "supervisorSurveyLabel": "استبانة المشرف",
-    "programStatusLabel": "حالة البرنامج",
-    "programCoursesEmptyTitle": "لا توجد دورات بعد"
-  },
   "Ui": {
     "searchLabel": "بحث",
     "searchPlaceholder": "ابحثي...",
     "clearSearch": "مسح البحث",
+    "close": "إغلاق",
     "filters": "التصفية",
     "clearFilters": "مسح عوامل التصفية",
     "activeFilters": "{count, plural, =1 {عامل تصفية نشط واحد} =2 {عاملا تصفية نشطان} few {# عوامل تصفية نشطة} other {# عامل تصفية نشط}}",
@@ -363,17 +375,20 @@
     "noResultsHint": "تحققي من الإملاء أو جرّبي بحثاً مختلفاً.",
     "noFilterMatch": "لا توجد عناصر تطابق عوامل التصفية المحددة",
     "noFilterMatchHint": "جرّبي إزالة أحد عوامل التصفية لعرض المزيد.",
-    "resultsOf": "{shown} من {total} يوماً تدريبياً",
+    "resultsOf": "عرض {shown} أيام من أصل {total}",
     "daysCount": "{count, plural, =1 {يوم تدريبي واحد} =2 {يومان تدريبيان} few {# أيام تدريبية} other {# يوماً تدريبياً}}"
   },
   "Lists": {
     "searchLabel": "البحث في الأيام التدريبية",
-    "searchPlaceholder": "ابحثي بالدورة أو البرنامج أو التاريخ",
+    "searchPlaceholder": "ابحثي عن يوم تدريبي أو موضوع",
     "all": "الكل",
     "course": "الدورة",
+    "searchPlaceholderCourse": "ابحثي باسم الدورة...",
     "program": "البرنامج",
     "from": "من",
     "to": "إلى",
+    "dateRangeLabel": "النطاق الزمني",
+    "chooseDate": "اختاري التاريخ",
     "attendance": "الحضور",
     "attendanceState": {
       "complete": "مكتمل",
@@ -386,10 +401,87 @@
       "course": "اسم الدورة (أ-ي)"
     },
     "chipSearch": "بحث: «{value}»",
-    "chipFilter": "{name}: {value}"
+    "chipFilter": "{name}: {value}",
+    "viewToggleLabel": "العرض",
+    "viewCard": "بطاقات",
+    "viewCalendar": "تقويم",
+    "previousMonth": "الشهر السابق",
+    "nextMonth": "الشهر التالي",
+    "clearDate": "مسح",
+    "today": "اليوم",
+    "monthSelectLabel": "الشهر",
+    "yearSelectLabel": "السنة",
+    "calendarDayWithCountAndWeekday": "{weekday}، {day}، {count, plural, =1 {يوم تدريبي واحد} =2 {يومان تدريبيان} few {# أيام تدريبية} other {# يوماً تدريبياً}}",
+    "calendarNoSelectionTitle": "لم يتم اختيار يوم تدريبي",
+    "calendarNoSelectionMessage": "اختاري يوماً مميّزاً في التقويم لعرض يومه التدريبي، أو جرّبي شهراً آخر."
   },
   "Forms": {
     "required": "هذا الحقل مطلوب.",
     "requiredLabel": "(مطلوب)"
+  },
+  "Info": {
+    "help": {
+      "title": "المساعدة",
+      "subtitle": "إجابات عن الأسئلة الشائعة وطرق التواصل معنا.",
+      "blocks": [
+        {
+          "heading": "تعذّر تسجيل الدخول",
+          "text": "استخدمي «نسيت كلمة المرور» في صفحة الدخول أو راسلي {email}."
+        },
+        {
+          "heading": "النموذج أو الحضور لأحد الأيام غير متاح",
+          "text": "يُفتح فقط أثناء اليوم التدريبي المفتوح وخلال مدة النموذج؛ اسألي المشرفة."
+        },
+        {
+          "heading": "خطأ في نموذج مُرسَل",
+          "text": "النموذج المُرسَل نهائي ولا يمكن تعديله؛ راسلي {email}."
+        },
+        {
+          "heading": "التواصل",
+          "text": "للمساعدة، أو للاطلاع على بياناتكِ أو تصحيحها أو حذفها، راسلي {email}."
+        }
+      ]
+    },
+    "terms": {
+      "title": "شروط الاستخدام",
+      "subtitle": "يُرجى القراءة قبل استخدام النظام.",
+      "blocks": [
+        {
+          "text": "استخدمي حسابكِ الشخصي فقط ولا تشاركي كلمة المرور."
+        },
+        {
+          "text": "أجيبي عن النماذج اليومية بصدق."
+        },
+        {
+          "text": "النموذج المُرسَل نهائي ولا يمكن تعديله."
+        },
+        {
+          "text": "لا تحاولي الوصول إلى بيانات لا تخصكِ."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "إشعار الخصوصية",
+      "subtitle": "كيف تُستخدم بياناتكِ وكيف تُحفظ.",
+      "blocks": [
+        {
+          "heading": "ما الذي نسجّله",
+          "text": "يسجّل هذا النظام اسمكِ وبيانات التواصل معكِ وحضوركِ والإجابات التي ترسلينها في النماذج اليومية، وذلك لتنفيذ البرنامج التدريبي وتقييمه."
+        },
+        {
+          "heading": "من يطّلع عليها",
+          "text": "المشرف العام وحده يمكنه معرفة الإجابات الخاصة بكِ، ولا ترى المشرفة أو المدربة أي إجابات فردية. وتعرض التقارير نتائج مجمّعة ولا تذكر اسمكِ."
+        },
+        {
+          "heading": "مدة الاحتفاظ",
+          "text": "نحتفظ ببياناتكِ حتى تطلبي حذفها. وعند الطلب يزيل المشرف العام هويتكِ من النظام: يُمسح الاسم وبيانات التواصل ويُعطَّل تسجيل الدخول. وتبقى النتائج المجمّعة والتقارير المعتمدة لأنها لا تحدد هويتكِ."
+        },
+        {
+          "heading": "طلباتكِ",
+          "text": "للاطلاع على بياناتكِ أو تصحيحها أو حذفها راسلي {email}."
+        }
+      ]
+    },
+    "contactLabel": "للتواصل:"
   }
 }

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { renderWithIntl } from "./testUtils";
+import { renderWithIntl, chooseOption } from "./testUtils";
 import SupervisorDaysPage from "@/app/[locale]/supervisor/days/page";
 import TrainerDaysPage from "@/app/[locale]/trainer/days/page";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -27,8 +27,21 @@ function mockAuth(role: "supervisor" | "trainee" | "trainer") {
   });
 }
 
-const cardTitles = () =>
-  screen.queryAllByRole("article").map((a) => a.querySelector(".card__title")?.textContent ?? "");
+// Both the trainer/supervisor Training Days pages now carry the same
+// summary-cards row (total/completed/upcoming) the trainee page already
+// had -- those tiles are `<article>` elements too (see
+// components/dashboard/DaySummaryCards.tsx), so a plain
+// `getAllByRole("article")` picks up 3 extra, non-day-card articles
+// ahead of the real list. Scope to `.day-card` so these assertions keep
+// counting/reading only the actual Training Days cards.
+const dayCardArticles = () => screen.queryAllByRole("article").filter((a) => a.classList.contains("day-card"));
+
+// `.card__title` is now the computed "Day N [— topic]" ordinal, not the
+// course name (section 4 of the day-card title rework) -- course name
+// moved to the first `.card__meta` line under the title, so that's what
+// these filter/search assertions (which care about *which course* is
+// shown) now read.
+const cardCourseNames = () => dayCardArticles().map((a) => a.querySelector(".card__meta")?.textContent ?? "");
 
 function summary(days: DashboardEntryDto[]): DashboardResponseDto {
   return { days, program: null, stats: null, next_session: null };
@@ -57,8 +70,8 @@ describe("flat list page (supervisor days)", () => {
     expect(screen.getByText("30 training days")).toBeInTheDocument();
 
     await user.type(screen.getByRole("searchbox", { name: "Search training days" }), "beta");
-    await waitFor(() => expect(screen.getByText("15 of 30 training days")).toBeInTheDocument());
-    expect(cardTitles().some((t) => t.startsWith("Alpha"))).toBe(false);
+    await waitFor(() => expect(screen.getByText("Showing 15 of 30 days")).toBeInTheDocument());
+    expect(cardCourseNames().some((t) => t.startsWith("Alpha"))).toBe(false);
     expect(screen.getByRole("button", { name: /Remove filter: Search: “beta”/ })).toBeInTheDocument();
 
     await user.clear(screen.getByRole("searchbox", { name: "Search training days" }));
@@ -75,7 +88,7 @@ describe("flat list page (supervisor days)", () => {
     const user = userEvent.setup();
     renderWithIntl(<SupervisorDaysPage />);
     await screen.findAllByRole("article");
-    await user.selectOptions(screen.getByLabelText("Day Status"), "cancelled");
+    await chooseOption(user, "Day Status", "Cancelled");
     expect(await screen.findByText("No items match the selected filters")).toBeInTheDocument();
     expect(__getMockSearchParams().get("status")).toBe("cancelled");
     await user.click(screen.getAllByRole("button", { name: "Clear filters" })[0]);
@@ -86,13 +99,13 @@ describe("flat list page (supervisor days)", () => {
     const user = userEvent.setup();
     renderWithIntl(<SupervisorDaysPage />);
     await screen.findAllByRole("article");
-    await user.selectOptions(screen.getByRole("combobox", { name: "Attendance" }), "complete");
-    expect(await screen.findByText("15 of 30 training days")).toBeInTheDocument();
-    await user.selectOptions(screen.getByLabelText("Survey Status"), "submitted");
+    await chooseOption(user, "Attendance", "Complete");
+    expect(await screen.findByText("Showing 15 of 30 days")).toBeInTheDocument();
+    await chooseOption(user, "Survey Status", "Submitted");
     expect(await screen.findByText("No items match the selected filters")).toBeInTheDocument();
-    await user.selectOptions(screen.getByLabelText("Survey Status"), "");
-    await user.selectOptions(screen.getByLabelText("Sort by"), "course");
-    const titles = cardTitles();
+    await chooseOption(user, "Survey Status", "All");
+    await chooseOption(user, "Sort by", "Course name (A-Z)");
+    const titles = cardCourseNames();
     // Attendance "complete" keeps the Beta days; numeric collation orders them 2, 4, 6...
     expect(titles.slice(0, 3)).toEqual(["Beta Course 2", "Beta Course 4", "Beta Course 6"]);
     expect(dashboardApi.get).toHaveBeenCalledTimes(1);
@@ -102,23 +115,23 @@ describe("flat list page (supervisor days)", () => {
     const user = userEvent.setup();
     renderWithIntl(<SupervisorDaysPage />);
     await screen.findAllByRole("article");
-    expect(screen.getAllByRole("article")).toHaveLength(12);
+    expect(dayCardArticles()).toHaveLength(12);
     expect(screen.getByText("Page 1 of 3")).toBeInTheDocument();
 
     await user.type(screen.getByRole("searchbox", { name: "Search training days" }), "alpha");
     await screen.findByText("Page 1 of 2");
-    expect(screen.getAllByRole("article")).toHaveLength(12);
+    expect(dayCardArticles()).toHaveLength(12);
 
     await user.click(screen.getByRole("button", { name: "Next page" }));
     await screen.findByText("Page 2 of 2");
-    expect(screen.getAllByRole("article")).toHaveLength(3);
-    expect(cardTitles().some((t) => t.startsWith("Beta"))).toBe(false);
+    expect(dayCardArticles()).toHaveLength(3);
+    expect(cardCourseNames().some((t) => t.startsWith("Beta"))).toBe(false);
     expect(__getMockSearchParams().get("q")).toBe("alpha");
     expect(__getMockSearchParams().get("page")).toBe("2");
 
-    await user.selectOptions(screen.getByLabelText("Items per page"), "24");
+    await chooseOption(user, "Items per page", "24");
     await screen.findByText("Page 1 of 1");
-    expect(screen.getAllByRole("article")).toHaveLength(15);
+    expect(dayCardArticles()).toHaveLength(15);
     expect(__getMockSearchParams().get("size")).toBe("24");
     expect(dashboardApi.get).toHaveBeenCalledTimes(1);
   });
@@ -164,8 +177,8 @@ describe("flat list page (supervisor days)", () => {
     );
     renderWithIntl(<SupervisorDaysPage />);
     await screen.findAllByRole("article");
-    await user.selectOptions(screen.getByLabelText("Program"), "2");
-    expect(await screen.findByText("4 of 8 training days")).toBeInTheDocument();
+    await chooseOption(user, "Program", "Program Two");
+    expect(await screen.findByText("Showing 4 of 8 days")).toBeInTheDocument();
   });
 });
 

@@ -194,11 +194,11 @@ describe("SubmitButton", () => {
 });
 
 describe("FormError", () => {
-  it("shows the server message with request id and takes focus", () => {
+  it("shows the server message without the request id and takes focus", () => {
     const error = new ApiError({ code: "VALIDATION_ERROR", message: "Bad input.", fields: null }, 422, "req_9");
     const { container } = renderWithIntl(<FormError error={error} />);
     expect(screen.getByText("Bad input.")).toBeInTheDocument();
-    expect(screen.getByText("req_9")).toBeInTheDocument();
+    expect(screen.queryByText("req_9")).not.toBeInTheDocument();
     expect(container.querySelector(".form-error")).toHaveFocus();
   });
 

@@ -234,6 +234,7 @@ export function SurveyForm({
               answer={answers[question.question_id]}
               invalid={missingIds.includes(question.question_id)}
               disabled={readOnly || Boolean(busy)}
+              readOnly={readOnly}
               onChange={(patch) => setAnswer(question.question_id, patch)}
             />
           ))}
@@ -286,12 +287,14 @@ function QuestionField({
   answer,
   invalid,
   disabled,
+  readOnly,
   onChange,
 }: {
   question: SurveyQuestionDto;
   answer: SurveyAnswerDto | undefined;
   invalid: boolean;
   disabled: boolean;
+  readOnly: boolean;
   onChange: (patch: Partial<SurveyAnswerDto>) => void;
 }) {
   const t = useTranslations("Survey");
@@ -304,9 +307,22 @@ function QuestionField({
       id={`question-${question.question_id}-input`}
       wrapperId={`question-${question.question_id}`}
       label={question.title}
-      required={question.required}
+      // The "required" marker only matters while answering.
+      required={question.required && !readOnly}
       group={isGroup}
       error={invalid ? t("questionRequiredError") : null}
+      // A submitted response shows exactly what was saved, so a question
+      // with no saved answer says so instead of looking like a blank form.
+      hint={
+        readOnly && !isAnswered(question, answer)
+          ? t("noAnswer")
+          : !readOnly &&
+              question.question_type === "scale" &&
+              question.scale_min != null &&
+              question.scale_max != null
+            ? t("scaleRange", { min: question.scale_min, max: question.scale_max })
+            : undefined
+      }
     >
       {(control, labelId) => (
         <QuestionInput
@@ -322,6 +338,14 @@ function QuestionField({
       )}
     </FormField>
   );
+}
+
+/** A rating-style choice (3+ short options, e.g. Poor..Excellent) lays out
+ * as a row/grid on wide screens instead of a tall stack; purely a layout
+ * choice -- options, order and values are untouched. */
+function isCompactScale(question: SurveyQuestionDto): boolean {
+  const options = question.options ?? [];
+  return options.length >= 3 && options.length <= 7 && options.every((o) => o.label.length <= 16);
 }
 
 function QuestionInput({
@@ -346,7 +370,12 @@ function QuestionInput({
   switch (question.question_type) {
     case "simple_choice":
       return (
-        <div className="option-list" role="radiogroup" aria-labelledby={labelId} aria-describedby={describedBy}>
+        <div
+          className={`option-list${isCompactScale(question) ? " option-list--scale" : ""}`}
+          role="radiogroup"
+          aria-labelledby={labelId}
+          aria-describedby={describedBy}
+        >
           {(question.options ?? []).map((option) => (
             <label className="option-item" key={option.id} htmlFor={`${inputId}-${option.id}`}>
               <input
