@@ -21,7 +21,6 @@ class TrainingEnrollment(models.Model):
         required=True,
     )
     # Optional link to the participant's login account, when one exists.
-    user_id = fields.Many2one("res.users", string="User Account")
     state = fields.Selection(
         selection=[
             ("active", "Active"),

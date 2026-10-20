@@ -1,8 +1,12 @@
+import logging
+
 from odoo import _, http
 from odoo.exceptions import AccessDenied
 from odoo.http import request
 
 from .common import api_error_response, api_response, handle_api_errors
+
+_logger = logging.getLogger(__name__)
 
 
 class OperationalAuthController(http.Controller):
@@ -60,6 +64,22 @@ class OperationalAuthController(http.Controller):
             data=request.env.user._get_operational_profile(), request_id=request_id
         )
 
+    @staticmethod
+    def _outgoing_mail_reachable():
+        """True when Odoo can open a connection to its outgoing mail server
+        (always True in test mode, where Odoo never connects)."""
+        mail_servers = request.env["ir.mail_server"].sudo()
+        try:
+            session = mail_servers._connect__()
+        except Exception:  # noqa: BLE001 -- any failure means "not reachable"
+            return False
+        if session:
+            try:
+                session.quit()
+            except Exception:  # noqa: BLE001 -- the connection worked; ignore close errors
+                pass
+        return True
+
     @http.route(
         "/api/v1/auth/password/forgot", type="json2", auth="public", methods=["POST"]
     )
@@ -81,6 +101,22 @@ class OperationalAuthController(http.Controller):
                 _("login is required."),
                 422,
                 fields={"login": [_("This field is required.")]},
+                request_id=request_id,
+            )
+        # Standard Odoo discards a reset email it could not hand to the mail
+        # server and still reports "sent", so check the outgoing mail server
+        # first. The check does not depend on the login, so a failure cannot
+        # be used to tell whether an account exists.
+        if not self._outgoing_mail_reachable():
+            _logger.warning(
+                "Password reset not attempted: the outgoing mail server is "
+                "unreachable (request_id=%s)", request_id,
+            )
+            return api_error_response(
+                "SERVICE_UNAVAILABLE",
+                _("Password reset by email is currently unavailable. "
+                  "Please contact your administrator."),
+                503,
                 request_id=request_id,
             )
         try:

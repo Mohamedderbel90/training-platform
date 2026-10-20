@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- DEC-44/45: General Supervisor anonymises a trainee (PDPL deletion
+         request). Available from the Action menu of a contact and of an
+         enrollment. Irreversible: the identity is erased. -->
+    <record id="view_training_anonymise_wizard_form" model="ir.ui.view">
+        <field name="name">training.anonymise.wizard.form</field>
+        <field name="model">training.anonymise.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Anonymise Trainee">
+                <p class="text-danger">This erases the trainee's name and contact data, disables her
+                    login and deactivates her enrollments. Attendance, responses and approved
+                    reports are kept. It cannot be undone.</p>
+                <group>
+                    <field name="partner_id" readonly="1" force_save="1"/>
+                    <field name="reason" placeholder="Reference of the deletion request"/>
+                </group>
+                <footer>
+                    <button name="action_anonymise" string="Anonymise" type="object"
+                            class="btn-danger"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_training_anonymise_partner" model="ir.actions.act_window">
+        <field name="name">Anonymise Trainee</field>
+        <field name="res_model">training.anonymise.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="binding_view_types">form,list</field>
+        <field name="group_ids" eval="[(4, ref('training_management.group_training_admin'))]"/>
+    </record>
+
+    <record id="action_training_anonymise_enrollment" model="ir.actions.act_window">
+        <field name="name">Anonymise Trainee</field>
+        <field name="res_model">training.anonymise.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_training_enrollment"/>
+        <field name="binding_view_types">form,list</field>
+        <field name="group_ids" eval="[(4, ref('training_management.group_training_admin'))]"/>
+    </record>
+</odoo>

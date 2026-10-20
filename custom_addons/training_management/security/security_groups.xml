@@ -4,7 +4,7 @@
          a "category_id" field on Odoo 19 (it was replaced by
          res.groups.privilege, a heavier "access level" grouping
          concept with different, mutually-exclusive-selection
-         semantics that do not fit these five independent roles). No
+         semantics that do not fit these four independent roles). No
          category/privilege grouping is used here; it is a UI
          organization nicety, not a security requirement. -->
 
@@ -18,14 +18,6 @@
 
     <record id="group_training_trainer" model="res.groups">
         <field name="name">Trainer</field>
-    </record>
-
-    <!-- Assistant Admin: delegated operational administration only.
-         Does not, by default, approve final reports (PROJECT_SPEC
-         section 7.2). Approval logic itself is out of scope for M1. -->
-    <record id="group_training_assistant_admin" model="res.groups">
-        <field name="name">Assistant Admin</field>
-        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
     <!-- General Supervisor / Admin: full administrative access,

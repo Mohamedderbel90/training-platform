@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Admin/Assistant Admin only (ir.model.access.csv). System
+    <!-- Admin only (ir.model.access.csv). System
          -generated audit trail: create/unlink are disabled everywhere in
          the UI (retrying uses action_retry(), never a manual re-create),
          matching "Reminders run automatically and have traceable

@@ -19,3 +19,9 @@ from . import test_training_notification  # noqa: F401
 from . import test_training_audit_log  # noqa: F401
 from . import test_e2e_full_scenario  # noqa: F401
 from . import test_requirements_alignment  # noqa: F401
+from . import test_decision_followups  # noqa: F401
+from . import test_critical_high_fixes  # noqa: F401
+from . import test_medium_low_fixes  # noqa: F401
+from . import test_stabilization  # noqa: F401
+from . import test_smart_buttons  # noqa: F401
+from . import test_translated_messages  # noqa: F401

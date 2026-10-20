@@ -1,29 +1,24 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_training_program_admin,training.program.admin,model_training_program,group_training_admin,1,1,1,1
-access_training_program_assistant_admin,training.program.assistant_admin,model_training_program,group_training_assistant_admin,1,1,1,0
 access_training_program_trainee,training.program.trainee,model_training_program,group_training_trainee,1,0,0,0
 access_training_program_supervisor,training.program.supervisor,model_training_program,group_training_supervisor,1,0,0,0
 access_training_program_trainer,training.program.trainer,model_training_program,group_training_trainer,1,0,0,0
 
 access_training_course_admin,training.course.admin,model_training_course,group_training_admin,1,1,1,1
-access_training_course_assistant_admin,training.course.assistant_admin,model_training_course,group_training_assistant_admin,1,1,1,0
 access_training_course_trainee,training.course.trainee,model_training_course,group_training_trainee,1,0,0,0
 access_training_course_supervisor,training.course.supervisor,model_training_course,group_training_supervisor,1,0,0,0
 access_training_course_trainer,training.course.trainer,model_training_course,group_training_trainer,1,0,0,0
 
 access_training_day_admin,training.day.admin,model_training_day,group_training_admin,1,1,1,1
-access_training_day_assistant_admin,training.day.assistant_admin,model_training_day,group_training_assistant_admin,1,1,1,0
 access_training_day_trainee,training.day.trainee,model_training_day,group_training_trainee,1,0,0,0
 access_training_day_supervisor,training.day.supervisor,model_training_day,group_training_supervisor,1,0,0,0
 access_training_day_trainer,training.day.trainer,model_training_day,group_training_trainer,1,0,0,0
 
 access_training_enrollment_admin,training.enrollment.admin,model_training_enrollment,group_training_admin,1,1,1,1
-access_training_enrollment_assistant_admin,training.enrollment.assistant_admin,model_training_enrollment,group_training_assistant_admin,1,1,1,0
 access_training_enrollment_trainee,training.enrollment.trainee,model_training_enrollment,group_training_trainee,1,0,0,0
 access_training_enrollment_supervisor,training.enrollment.supervisor,model_training_enrollment,group_training_supervisor,1,0,0,0
 
 access_training_attendance_admin,training.attendance.admin,model_training_attendance,group_training_admin,1,1,1,1
-access_training_attendance_assistant_admin,training.attendance.assistant_admin,model_training_attendance,group_training_assistant_admin,1,1,1,0
 access_training_attendance_supervisor,training.attendance.supervisor,model_training_attendance,group_training_supervisor,1,1,1,0
 
 access_survey_survey_trainee,survey.survey.trainee,survey.model_survey_survey,group_training_trainee,1,0,0,0
@@ -47,13 +42,14 @@ access_survey_user_input_line_supervisor,survey.user_input.line.supervisor,surve
 access_survey_user_input_line_trainer,survey.user_input.line.trainer,survey.model_survey_user_input_line,group_training_trainer,1,1,1,0
 
 access_training_survey_response_kpi_admin,training.survey.response.kpi.admin,model_training_survey_response_kpi,group_training_admin,1,0,0,0
-access_training_survey_response_kpi_assistant_admin,training.survey.response.kpi.assistant_admin,model_training_survey_response_kpi,group_training_assistant_admin,1,0,0,0
 
 access_training_report_admin,training.report.admin,model_training_report,group_training_admin,1,1,1,1
-access_training_report_assistant_admin,training.report.assistant_admin,model_training_report,group_training_assistant_admin,1,1,1,0
 
 access_training_notification_log_admin,training.notification.log.admin,model_training_notification_log,group_training_admin,1,1,1,0
-access_training_notification_log_assistant_admin,training.notification.log.assistant_admin,model_training_notification_log,group_training_assistant_admin,1,1,1,0
 
 access_training_audit_log_admin,training.audit.log.admin,model_training_audit_log,group_training_admin,1,0,0,0
-access_training_audit_log_assistant_admin,training.audit.log.assistant_admin,model_training_audit_log,group_training_assistant_admin,1,0,0,0
+access_training_response_correction_admin,training.response.correction.admin,model_training_response_correction,group_training_admin,1,1,1,1
+access_training_response_correction_line_admin,training.response.correction.line.admin,model_training_response_correction_line,group_training_admin,1,1,1,1
+access_training_dashboard_admin,training.dashboard.admin,model_training_dashboard,group_training_admin,1,1,1,1
+access_training_anonymise_wizard_admin,training.anonymise.wizard.admin,model_training_anonymise_wizard,group_training_admin,1,1,1,1
+access_res_config_settings_training_admin,res.config.settings.training.admin,base.model_res_config_settings,group_training_admin,1,1,1,0

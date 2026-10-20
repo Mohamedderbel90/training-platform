@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Admin/Assistant Admin, read-only (ir.model.access.csv). PROJECT_SPEC
+    <!-- Admin, read-only (ir.model.access.csv). PROJECT_SPEC
          section 17: "Audit records are not editable from normal user
          interfaces." -->
     <record id="view_training_audit_log_list" model="ir.ui.view">
@@ -11,7 +11,7 @@
                 <field name="create_date" string="Date"/>
                 <field name="event_type"/>
                 <field name="user_id"/>
-                <field name="model_name"/>
+                <field name="record_label"/>
                 <field name="description"/>
             </list>
         </field>

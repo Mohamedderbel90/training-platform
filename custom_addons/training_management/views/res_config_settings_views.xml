@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- PROJECT_SPEC section 8: "Configuration: Use res.config.settings
-         extension for global configuration." Admin only (own Settings
-         app entry gated by group_training_admin); never exposed in
-         Next.js (section 16: "Notification configuration exists in
-         Odoo, never Next.js"). Pattern verified against
-         .odoo-core/addons/event/views/res_config_settings_views.xml
-         (a module adding its own dedicated Settings app, not just
-         inserting into an existing one). -->
+    <!-- FR-072 / DEC-26: reminder configuration as a native Odoo Settings
+         page, opened from Training Management > Settings > Settings by the
+         General Supervisor (no technical-administrator rights needed;
+         see models/res_config_settings.py). -->
     <record id="res_config_settings_view_form" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.inherit.training_management</field>
         <field name="model">res.config.settings</field>
@@ -16,42 +12,67 @@
             <xpath expr="//form" position="inside">
                 <app data-string="Training Management" string="Training Management"
                      name="training_management" groups="training_management.group_training_admin">
-                    <block title="Reminder Notifications" name="training_notification_settings_container">
-                        <setting id="training_notification_reminders_enabled_setting"
+                    <block title="Reminders" name="training_reminders_container">
+                        <setting id="training_reminders_enabled_setting"
                                  string="Daily Task Reminders"
                                  help="Automatically remind trainees, supervisors and trainers about pending daily tasks">
-                            <field name="training_notification_reminders_enabled"/>
+                            <field name="training_reminders_enabled"/>
                         </setting>
-                        <setting id="training_notification_sms_setting"
-                                 string="SMS Reminders"
-                                 help="Also send reminders by SMS">
-                            <field name="training_notification_sms_enabled"/>
+                        <setting id="training_reminder_lead_hours_setting"
+                                 string="Reminder Lead Time"
+                                 help="Reminders are sent only during this many hours before the survey closes. 0 = no lead-time rule: remind from the moment the survey window opens.">
+                            <field name="training_reminder_lead_hours"/>
                         </setting>
-                        <setting id="training_notification_whatsapp_setting"
-                                 string="WhatsApp Reminders"
-                                 help="Also send reminders by WhatsApp">
-                            <field name="training_notification_whatsapp_enabled"/>
+                        <setting id="training_reminder_count_setting"
+                                 string="Number of Reminders"
+                                 help="How many reminders each person may receive per channel.">
+                            <field name="training_reminder_count"/>
                         </setting>
-                        <setting id="training_notification_fallback_setting"
-                                 string="Channel Fallback"
-                                 help="If a channel fails, try the next enabled channel instead of giving up">
-                            <field name="training_notification_channel_fallback"/>
+                        <setting id="training_reminder_interval_setting"
+                                 string="Interval Between Reminders"
+                                 help="Minimum hours between two reminders (used when more than one).">
+                            <field name="training_reminder_interval_hours"/>
                         </setting>
-                        <setting id="training_notification_retries_setting"
-                                 string="Maximum Retry Attempts">
+                        <setting id="training_retries_setting"
+                                 string="Retry Attempts"
+                                 help="How many times a failed delivery is retried.">
                             <field name="training_notification_max_retries"/>
                         </setting>
-                        <setting id="training_sms_provider_setting"
-                                 string="SMS Provider Mode">
-                            <field name="training_sms_provider_mode" widget="radio"/>
+                    </block>
+                    <block title="Channels" name="training_channels_container">
+                        <setting id="training_channel_order_setting"
+                                 string="Channel Order"
+                                 help="With fallback on, channels are tried in this order. Email is always on.">
+                            <field name="training_channel_order"/>
                         </setting>
-                        <setting id="training_whatsapp_provider_setting"
-                                 string="WhatsApp Provider Mode">
-                            <field name="training_whatsapp_provider_mode" widget="radio"/>
+                        <setting id="training_fallback_setting"
+                                 string="Channel Fallback"
+                                 help="If a channel fails, try the next enabled channel instead of giving up.">
+                            <field name="training_notification_channel_fallback"/>
+                        </setting>
+                        <setting id="training_sms_setting"
+                                 string="SMS Reminders"
+                                 help="Also send reminders by SMS. Without a configured provider SMS attempts are logged as failed, never as sent.">
+                            <field name="training_notification_sms_enabled"/>
+                            <div class="mt8" invisible="not training_notification_sms_enabled">
+                                <field name="training_sms_provider_mode" widget="radio"/>
+                            </div>
+                        </setting>
+                        <setting id="training_whatsapp_setting"
+                                 string="WhatsApp Reminders"
+                                 help="Also send reminders by WhatsApp. No WhatsApp provider is available yet, so attempts are logged as failed.">
+                            <field name="training_notification_whatsapp_enabled"/>
                         </setting>
                     </block>
                 </app>
             </xpath>
         </field>
+    </record>
+
+    <record id="action_training_settings" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'training_management', 'bin_size': False}</field>
     </record>
 </odoo>

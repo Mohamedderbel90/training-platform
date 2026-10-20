@@ -29,8 +29,7 @@ response-rate number rather than recomputing them -- generate/approve
 workflow, filters/show-hide sections, versioning (approved versions
 are immutable; changes create a new version), a QWeb PDF with a
 visual approval stamp, and a lightweight xlsxwriter-based Excel
-export. Admin/Assistant Admin only in Odoo Back-office; Approve is
-further restricted to Admin. See
+export. General Supervisor (Admin) only in Odoo Back-office. See
 docs/adr/ADR-008-training-report-approval-and-export.md.
 
 Milestone M9 status: adds training.notification.log, a cross-channel
@@ -88,6 +87,9 @@ docs/adr/ADR-010-hardening-and-deployment-readiness.md.
         "views/training_notification_views.xml",
         "views/training_audit_log_views.xml",
         "views/res_config_settings_views.xml",
+        "views/training_response_correction_views.xml",
+        "views/training_dashboard_views.xml",
+        "views/training_anonymise_wizard_views.xml",
         "data/mail_templates.xml",
         "data/cron.xml",
         "views/menus.xml",

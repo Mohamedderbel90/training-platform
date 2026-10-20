@@ -1,5 +1,6 @@
 from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase, tagged
+from .fixtures import day_supervisor, day_trainer
 
 
 @tagged("post_install", "-at_install", "training_management_survey")
@@ -7,7 +8,6 @@ class TestTrainingDaySurveyRoles(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        admin = cls.env.ref("base.user_admin")
         cls.program = cls.env["training.program"].create(
             {
                 "name": "Survey Role Program",
@@ -29,8 +29,8 @@ class TestTrainingDaySurveyRoles(TransactionCase):
                 "date": "2026-01-05",
                 "start_datetime": "2026-01-05 08:00:00",
                 "end_datetime": "2026-01-05 12:00:00",
-                "supervisor_id": admin.id,
-                "trainer_ids": [(6, 0, [admin.id])],
+                "supervisor_id": day_supervisor(cls.env).id,
+                "trainer_ids": [(6, 0, [day_trainer(cls.env).id])],
                 "survey_open_at": "2026-01-05 12:00:00",
                 "survey_close_at": "2026-01-06 12:00:00",
             }

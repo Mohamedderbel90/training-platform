@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- P2 / DEC-11: General Supervisor correction of a final response,
+         with a mandatory reason (before/after values are audited). -->
+    <record id="view_training_response_correction_form" model="ir.ui.view">
+        <field name="name">training.response.correction.form</field>
+        <field name="model">training.response.correction</field>
+        <field name="arch" type="xml">
+            <form string="Correct Final Response">
+                <group>
+                    <field name="response_id" readonly="1" force_save="1"/>
+                    <field name="reason" placeholder="Why is this final response being corrected?"/>
+                </group>
+                <field name="line_ids" nolabel="1">
+                    <list create="false" delete="false" editable="bottom">
+                        <field name="line_id" column_invisible="1" force_save="1"/>
+                        <field name="question_id" readonly="1"/>
+                        <field name="answer_type" column_invisible="1"/>
+                        <field name="option_id" readonly="answer_type != 'suggestion'"
+                               options="{'no_create': True, 'no_open': True}"/>
+                        <field name="text" readonly="answer_type not in ('char_box', 'text_box')"/>
+                        <field name="number" readonly="answer_type not in ('scale', 'numerical_box')"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_apply" string="Apply Correction" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_survey_user_input_form_inherit_correction" model="ir.ui.view">
+        <field name="name">survey.user_input.form.inherit.training.correction</field>
+        <field name="model">survey.user_input</field>
+        <field name="inherit_id" ref="survey.survey_user_input_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_print_answers']" position="attributes">
+                <attribute name="invisible">state != 'done' or training_day_id</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_print_answers']" position="after">
+                <button name="action_open_correction_wizard" string="Correct Final Response"
+                        type="object" invisible="state != 'done' or not training_day_id"
+                        groups="training_management.group_training_admin"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

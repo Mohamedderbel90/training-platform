@@ -8,17 +8,28 @@
          that regardless of menu visibility). -->
     <menuitem id="menu_training_management_root"
               name="Training Management"
-              groups="group_training_admin,group_training_assistant_admin"
+              groups="group_training_admin"
               sequence="10"/>
 
     <!-- PROJECT_SPEC section 8 lists "Dashboard / Analytics" as the
-         first submenu. Admin/Assistant Admin only; see
+         first submenu. General Supervisor (Admin) only (DEC-13: per-response
+         scores are General Supervisor only); see
          training_survey_response_kpi.py / ir.model.access.csv. -->
     <menuitem id="menu_training_dashboard"
               name="Dashboard / Analytics"
               parent="menu_training_management_root"
-              action="action_training_survey_response_kpi"
+              groups="group_training_admin"
               sequence="5"/>
+    <menuitem id="menu_training_dashboard_overview"
+              name="Overview"
+              parent="menu_training_dashboard"
+              action="action_training_dashboard"
+              sequence="1"/>
+    <menuitem id="menu_training_dashboard_scores"
+              name="Score Analysis"
+              parent="menu_training_dashboard"
+              action="action_training_survey_response_kpi"
+              sequence="2"/>
 
     <menuitem id="menu_training_program"
               name="Programs"
@@ -44,11 +55,16 @@
               action="action_training_attendance"
               sequence="10"/>
 
+    <!-- Enrollments: the participants list. -->
     <menuitem id="menu_training_enrollment"
               name="Enrollments"
               parent="menu_training_management_root"
-              action="action_training_enrollment"
               sequence="40"/>
+    <menuitem id="menu_training_enrollment_participants"
+              name="Participants"
+              parent="menu_training_enrollment"
+              action="action_training_enrollment"
+              sequence="10"/>
 
     <!-- Standard Odoo Survey UI, filtered to this project's surveys
          (PROJECT_SPEC section 8: "Use Odoo Survey standard UI ... Do
@@ -60,27 +76,26 @@
               sequence="50"/>
 
     <!-- PROJECT_SPEC section 8 / DEVELOPMENT_PLAN M8: course/program
-         reports, versioning, approval, PDF/Excel export. Admin and
-         Assistant Admin only (Approve itself is further restricted to
-         Admin only, in the form view and in action_approve(); see
-         models/training_report.py). -->
+         reports, versioning, approval, PDF/Excel export. General
+         Supervisor only (DEC-15: reports are produced, approved and
+         exported by the General Supervisor). -->
     <menuitem id="menu_training_report"
               name="Reports"
               parent="menu_training_management_root"
               action="action_training_report"
               sequence="60"
-              groups="group_training_admin,group_training_assistant_admin"/>
+              groups="group_training_admin"/>
 
     <!-- PROJECT_SPEC section 8 lists "Notifications" as menu item 8.
-         Reminder configuration itself lives under Settings (see
-         views/res_config_settings_views.xml); this menu is the
-         traceable delivery log (M9 exit criterion). -->
+         Reminder configuration itself is the Settings page under the
+         Settings menu (views/res_config_settings_views.xml); this menu is
+         the traceable delivery log (M9 exit criterion). -->
     <menuitem id="menu_training_notification"
               name="Notifications"
               parent="menu_training_management_root"
               action="action_training_notification_log"
               sequence="70"
-              groups="group_training_admin,group_training_assistant_admin"/>
+              groups="group_training_admin"/>
 
     <!-- PROJECT_SPEC section 8 lists "Audit" as menu item 9 (M10:
          docs/adr/ADR-010-hardening-and-deployment-readiness.md). -->
@@ -89,5 +104,20 @@
               parent="menu_training_management_root"
               action="action_training_audit_log"
               sequence="80"
-              groups="group_training_admin,group_training_assistant_admin"/>
+              groups="group_training_admin"/>
+
+    <!-- Settings (standard module navigation: the last top-level entry
+         groups configuration): the native Settings page (reminders and
+         channels, FR-072 / DEC-26), General Supervisor only. -->
+    <menuitem id="menu_training_settings"
+              name="Settings"
+              parent="menu_training_management_root"
+              sequence="90"
+              groups="group_training_admin"/>
+    <menuitem id="menu_training_notification_settings"
+              name="Settings"
+              parent="menu_training_settings"
+              action="action_training_settings"
+              sequence="10"
+              groups="group_training_admin"/>
 </odoo>

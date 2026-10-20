@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from odoo import fields
 from odoo.exceptions import AccessError
@@ -323,7 +324,9 @@ class TestTrainingNotification(TransactionCase):
             )
         )
 
-    def test_sms_test_provider_succeeds_with_phone(self):
+    def test_sms_without_provider_is_never_marked_sent(self):
+        """C6 / FR-073: with no real SMS provider the attempt is logged as
+        failed -- a message that was not sent is never reported as sent."""
         self.set_param("training_management.notification_sms_enabled", "True")
         self.Log.cron_send_reminders()
         log = self.Log.search(
@@ -333,9 +336,63 @@ class TestTrainingNotification(TransactionCase):
                 ("channel", "=", "sms"),
             ]
         )
+        self.assertEqual(log.status, "failed")
+        self.assertIn("not sent", log.error_message)
+        self.assertFalse(log.provider_reference)
+        self.assertFalse(log.sent_date)
+
+    def test_sms_marked_sent_only_after_real_delivery(self):
+        self.set_param("training_management.notification_sms_enabled", "True")
+        with patch.object(
+            self.Log.__class__, "_deliver_sms", return_value="sms.sms:99"
+        ):
+            self.Log.cron_send_reminders()
+        log = self.Log.search(
+            [
+                ("training_day_id", "=", self.day.id),
+                ("partner_id", "=", self.trainee_user.partner_id.id),
+                ("channel", "=", "sms"),
+            ]
+        )
         self.assertEqual(log.status, "sent")
-        self.assertTrue(log.provider_reference.startswith("test-sms-"))
+        self.assertEqual(log.provider_reference, "sms.sms:99")
         self.assertTrue(log.body)
+
+    def test_email_delivery_failure_is_logged_failed_not_sent(self):
+        """An unreachable mail server must not leave a log row saying
+        "sent" for a mail that was only queued."""
+        mail_server_cls = type(self.env["ir.mail_server"])
+        with patch.object(
+            mail_server_cls, "_connect__", side_effect=ConnectionRefusedError("no smtp")
+        ):
+            self.Log.cron_send_reminders()
+        log = self.Log.search(
+            [
+                ("training_day_id", "=", self.day.id),
+                ("partner_id", "=", self.trainee_user.partner_id.id),
+                ("channel", "=", "email"),
+            ]
+        )
+        self.assertEqual(log.status, "failed")
+        self.assertIn("could not be delivered", log.error_message)
+        self.assertEqual(log.retry_count, 1)
+
+    def test_odoo_sms_provider_failure_is_logged_failed(self):
+        self.set_param("training_management.notification_sms_enabled", "True")
+        self.set_param("training_management.sms_provider_mode", "odoo_sms")
+        with patch(
+            "odoo.addons.sms.models.sms_sms.SmsSms.send", autospec=True
+        ) as send:
+            send.side_effect = lambda sms, *a, **k: sms.write({"state": "error"})
+            self.Log.cron_send_reminders()
+        log = self.Log.search(
+            [
+                ("training_day_id", "=", self.day.id),
+                ("partner_id", "=", self.trainee_user.partner_id.id),
+                ("channel", "=", "sms"),
+            ]
+        )
+        self.assertEqual(log.status, "failed")
 
     def test_sms_missing_phone_fails(self):
         self.set_param("training_management.notification_sms_enabled", "True")
@@ -358,7 +415,7 @@ class TestTrainingNotification(TransactionCase):
 
     # ---- WhatsApp channel (test-only adapter, no standard connector) ----
 
-    def test_whatsapp_test_provider_succeeds_with_phone(self):
+    def test_whatsapp_without_provider_is_never_marked_sent(self):
         self.set_param("training_management.notification_whatsapp_enabled", "True")
         self.Log.cron_send_reminders()
         log = self.Log.search(
@@ -368,8 +425,8 @@ class TestTrainingNotification(TransactionCase):
                 ("channel", "=", "whatsapp"),
             ]
         )
-        self.assertEqual(log.status, "sent")
-        self.assertTrue(log.provider_reference.startswith("test-whatsapp-"))
+        self.assertEqual(log.status, "failed")
+        self.assertFalse(log.provider_reference)
 
     def test_whatsapp_unconfigured_provider_mode_fails_cleanly(self):
         self.set_param("training_management.notification_whatsapp_enabled", "True")
@@ -410,7 +467,10 @@ class TestTrainingNotification(TransactionCase):
         self.set_param("training_management.notification_whatsapp_enabled", "True")
         self.set_param("training_management.notification_channel_fallback", "True")
         self.trainee_user.partner_id.email = False
-        self.Log.cron_send_reminders()
+        with patch.object(
+            self.Log.__class__, "_deliver_sms", return_value="sms:t"
+        ), patch.object(self.Log.__class__, "_deliver_whatsapp", return_value="wa:t"):
+            self.Log.cron_send_reminders()
         logs = self.Log.search(
             [
                 ("training_day_id", "=", self.day.id),
@@ -427,7 +487,10 @@ class TestTrainingNotification(TransactionCase):
         self.set_param("training_management.notification_sms_enabled", "True")
         self.set_param("training_management.notification_whatsapp_enabled", "True")
         self.set_param("training_management.notification_channel_fallback", "False")
-        self.Log.cron_send_reminders()
+        with patch.object(
+            self.Log.__class__, "_deliver_sms", return_value="sms:t"
+        ), patch.object(self.Log.__class__, "_deliver_whatsapp", return_value="wa:t"):
+            self.Log.cron_send_reminders()
         logs = self.Log.search(
             [
                 ("training_day_id", "=", self.day.id),
@@ -484,3 +547,191 @@ class TestTrainingNotification(TransactionCase):
             self.Log.with_user(self.trainee_user).search(
                 [("training_day_id", "=", self.day.id)]
             )
+
+    # ---- D1: reminder lead time (configurable, DEC-26) ----
+
+    def test_lead_time_zero_reminds_from_window_open(self):
+        self.set_param("training_management.notification_reminder_lead_hours", "0")
+        self.Log.cron_send_reminders()
+        self.assertTrue(
+            self.Log.search_count([("training_day_id", "=", self.day.id)])
+        )
+
+    def test_lead_time_waits_until_inside_lead_window(self):
+        self.day.survey_close_at = fields.Datetime.now() + timedelta(hours=5)
+        self.set_param("training_management.notification_reminder_lead_hours", "1")
+        self.Log.cron_send_reminders()
+        self.assertFalse(
+            self.Log.search_count([("training_day_id", "=", self.day.id)])
+        )
+
+    def test_lead_time_sends_inside_lead_window(self):
+        self.day.survey_close_at = fields.Datetime.now() + timedelta(hours=5)
+        self.set_param("training_management.notification_reminder_lead_hours", "6")
+        self.Log.cron_send_reminders()
+        self.assertTrue(
+            self.Log.search_count([("training_day_id", "=", self.day.id)])
+        )
+
+    # ---- C5: the General Supervisor configures reminders ----
+
+    def test_general_supervisor_can_save_reminder_settings(self):
+        gs = self.env["res.users"].with_context(no_reset_password=True).create(
+            {
+                "name": "notif_gs",
+                "login": "notif_gs",
+                "email": "notif_gs@example.com",
+                "group_ids": [
+                    (4, self.env.ref("base.group_user").id),
+                    (4, self.env.ref("training_management.group_training_admin").id),
+                ],
+            }
+        )
+        Settings = self.env["res.config.settings"].with_user(gs)
+        settings = Settings.create(
+            {
+                "training_reminder_lead_hours": 6,
+                "training_notification_max_retries": 0,
+                "training_reminders_enabled": False,
+                "training_reminder_count": 2,
+                "training_reminder_interval_hours": 12,
+                "training_channel_order": "sms,email,whatsapp",
+                "training_notification_sms_enabled": True,
+            }
+        )
+        settings.execute()
+        get = self.env["ir.config_parameter"].sudo().get_param
+        self.assertEqual(
+            get("training_management.notification_reminder_lead_hours"), "6"
+        )
+        # zero and False are real values, not "unset"
+        self.assertEqual(get("training_management.notification_max_retries"), "0")
+        self.assertEqual(get("training_management.notification_reminders_enabled"), "False")
+        self.assertEqual(get("training_management.notification_reminder_count"), "2")
+        self.assertEqual(
+            get("training_management.notification_channel_order"), "sms,email,whatsapp"
+        )
+        self.assertEqual(get("training_management.notification_sms_enabled"), "True")
+        values = Settings.default_get(
+            ["training_reminder_lead_hours", "training_reminders_enabled",
+             "training_channel_order"]
+        )
+        self.assertEqual(values["training_reminder_lead_hours"], 6)
+        self.assertFalse(values["training_reminders_enabled"])
+        self.assertEqual(values["training_channel_order"], "sms,email,whatsapp")
+        # the cron really stops when reminders are switched off
+        self.Log.cron_send_reminders()
+        self.assertFalse(self.Log.search_count([("training_day_id", "=", self.day.id)]))
+
+    def test_general_supervisor_can_open_the_settings_page_like_the_web_client(self):
+        """The web client reads display_name (and the form fields) on open;
+        core searched ir.actions.act_window as the user and failed for a
+        General Supervisor without technical rights."""
+        gs = self.env["res.users"].with_context(no_reset_password=True).create(
+            {
+                "name": "notif_gs3",
+                "login": "notif_gs3",
+                "email": "notif_gs3@example.com",
+                "group_ids": [
+                    (4, self.env.ref("base.group_user").id),
+                    (4, self.env.ref("training_management.group_training_admin").id),
+                ],
+            }
+        )
+        Settings = self.env["res.config.settings"].with_user(gs).with_context(
+            module="training_management"
+        )
+        views = Settings.get_views([(False, "form")])
+        fields_spec = {
+            name: {}
+            for name in views["models"]["res.config.settings"]["fields"]
+            if name not in ("create_date", "write_date", "create_uid", "write_uid")
+        }
+        fields_spec["display_name"] = {}
+        result = Settings.onchange({}, [], fields_spec)
+        self.assertEqual(result["value"]["display_name"], "Settings")
+
+    def test_general_supervisor_cannot_change_other_settings_through_the_page(self):
+        gs = self.env["res.users"].with_context(no_reset_password=True).create(
+            {
+                "name": "notif_gs2",
+                "login": "notif_gs2",
+                "email": "notif_gs2@example.com",
+                "group_ids": [
+                    (4, self.env.ref("base.group_user").id),
+                    (4, self.env.ref("training_management.group_training_admin").id),
+                ],
+            }
+        )
+        self.env["ir.config_parameter"].sudo().set_param("web.base.url", "http://keep.me")
+        settings = self.env["res.config.settings"].with_user(gs).create(
+            {"training_reminder_lead_hours": 3}
+        )
+        settings.execute()
+        self.assertEqual(
+            self.env["ir.config_parameter"].sudo().get_param("web.base.url"), "http://keep.me"
+        )
+
+    def test_non_admin_cannot_change_reminder_settings(self):
+        with self.assertRaises(AccessError):
+            self.env["res.config.settings"].with_user(self.supervisor_user).create(
+                {"training_reminder_lead_hours": 3}
+            )
+
+    # ---- DEC-26: reminder count, interval and channel order ----
+
+    def _logs(self):
+        return self.Log.search(
+            [
+                ("training_day_id", "=", self.day.id),
+                ("partner_id", "=", self.trainee_user.partner_id.id),
+            ],
+            order="reminder_no, id",
+        )
+
+    def test_reminder_count_one_sends_a_single_reminder(self):
+        self.Log.cron_send_reminders()
+        self.Log.cron_send_reminders()
+        self.assertEqual(self._logs().mapped("reminder_no"), [1])
+
+    def test_second_reminder_waits_for_the_interval(self):
+        self.set_param("training_management.notification_reminder_count", "2")
+        self.set_param("training_management.notification_reminder_interval_hours", "24")
+        self.Log.cron_send_reminders()
+        self.Log.cron_send_reminders()
+        self.assertEqual(self._logs().mapped("reminder_no"), [1])
+
+    def test_second_reminder_is_sent_after_the_interval_and_never_a_third(self):
+        self.set_param("training_management.notification_reminder_count", "2")
+        self.set_param("training_management.notification_reminder_interval_hours", "0")
+        self.Log.cron_send_reminders()
+        self.Log.cron_send_reminders()
+        self.Log.cron_send_reminders()
+        self.assertEqual(self._logs().mapped("reminder_no"), [1, 2])
+        self.assertEqual(set(self._logs().mapped("status")), {"sent"})
+
+    def test_no_further_reminder_after_the_final_submission(self):
+        self.set_param("training_management.notification_reminder_count", "3")
+        self.set_param("training_management.notification_reminder_interval_hours", "0")
+        self.Log.cron_send_reminders()
+        survey_input = self.env["survey.user_input"].create(
+            {
+                "survey_id": self.day.trainee_survey_id.id,
+                "training_day_id": self.day.id,
+                "respondent_role": "trainee",
+                "partner_id": self.trainee_user.partner_id.id,
+                "state": "in_progress",
+            }
+        )
+        survey_input.write({"state": "done"})
+        self.Log.cron_send_reminders()
+        self.assertEqual(self._logs().mapped("reminder_no"), [1])
+
+    def test_channel_order_decides_which_channel_goes_first_with_fallback(self):
+        self.set_param("training_management.notification_sms_enabled", "True")
+        self.set_param("training_management.notification_channel_fallback", "True")
+        self.set_param("training_management.notification_channel_order", "sms,email,whatsapp")
+        with patch.object(self.Log.__class__, "_deliver_sms", return_value="sms:t"):
+            self.Log.cron_send_reminders()
+        self.assertEqual(self._logs().mapped("channel"), ["sms"])
+        self.assertEqual(self._logs().status, "sent")

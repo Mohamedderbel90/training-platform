@@ -5,3 +5,4 @@ from . import trainee  # noqa: F401
 from . import supervisor  # noqa: F401
 from . import trainer  # noqa: F401
 from . import health  # noqa: F401
+from . import survey_access  # noqa: F401

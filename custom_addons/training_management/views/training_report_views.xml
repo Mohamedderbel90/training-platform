@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Admin/Assistant Admin only (see ir.model.access.csv: Trainee,
+    <!-- Admin only (see ir.model.access.csv: Trainee,
          Supervisor and Trainer have no ACL row at all on
          training.report, which also gates access to its
          ir.attachment PDF/Excel output; PROJECT_SPEC section 15 /
@@ -77,6 +77,9 @@
                         <field name="show_environment_score" readonly="state != 'draft'"/>
                         <field name="show_attendance" readonly="state != 'draft'"/>
                         <field name="show_response_rate" readonly="state != 'draft'"/>
+                        <field name="show_summary" readonly="state != 'draft'"/>
+                        <field name="show_comparison" readonly="state != 'draft'"/>
+                        <field name="show_comments" readonly="state != 'draft'"/>
                     </group>
                     <group string="KPI Snapshot" invisible="state == 'draft'">
                         <group>
@@ -85,7 +88,10 @@
                             <field name="kpi_content_score" readonly="1"
                                    invisible="not kpi_content_score_has_data"/>
                             <field name="kpi_environment_score" readonly="1"
+                                   string="Training Environment Score (Trainees)"
                                    invisible="not kpi_environment_score_has_data"/>
+                            <field name="kpi_environment_supervisor_score" readonly="1"
+                                   invisible="not kpi_environment_supervisor_score_has_data"/>
                             <field name="response_rate" readonly="1"
                                    invisible="not response_rate_has_data"/>
                         </group>
@@ -106,6 +112,7 @@
                         <field name="kpi_trainer_score_has_data"/>
                         <field name="kpi_content_score_has_data"/>
                         <field name="kpi_environment_score_has_data"/>
+                        <field name="kpi_environment_supervisor_score_has_data"/>
                         <field name="attendance_rate_has_data"/>
                         <field name="absence_rate_has_data"/>
                         <field name="late_rate_has_data"/>

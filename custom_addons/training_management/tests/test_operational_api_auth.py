@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from odoo.tests.common import tagged
 
 from .common import OperationalApiCase
@@ -175,6 +177,18 @@ class TestOperationalApiAuth(OperationalApiCase):
             resp_known.json()["data"]["message"],
             resp_unknown.json()["data"]["message"],
         )
+
+    def test_password_forgot_reports_unreachable_mail_server(self):
+        """Odoo itself discards a reset email it cannot send and still says
+        "sent"; when the outgoing mail server is unreachable the endpoint
+        must say so -- for a real and a nonexistent login alike, so the
+        failure does not reveal which accounts exist."""
+        mail_server_cls = type(self.env["ir.mail_server"])
+        with patch.object(mail_server_cls, "_connect__", side_effect=ConnectionRefusedError()):
+            for login in ("opapi_trainee", "no-such-login-at-all"):
+                resp = self.api_post("/auth/password/forgot", {"login": login})
+                self.assertEqual(resp.status_code, 503, login)
+                self.assertEqual(resp.json()["error"]["code"], "SERVICE_UNAVAILABLE")
 
     def test_password_reset_missing_fields_is_validation_error(self):
         resp = self.api_post("/auth/password/reset", {"token": "abc"})

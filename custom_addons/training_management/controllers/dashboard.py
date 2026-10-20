@@ -1,5 +1,5 @@
 from odoo import _, http
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, UserError
 from odoo.http import request
 
 from .common import api_response, handle_api_errors
@@ -16,25 +16,40 @@ class OperationalDashboardController(http.Controller):
                 _("You do not have the %s role required for this endpoint.") % role
             )
 
+    @staticmethod
+    def _program_id():
+        """Optional ``?program_id=`` of the header's program selector (json2
+        routes do not pass the query string to the handler)."""
+        value = request.httprequest.args.get("program_id")
+        if value in (None, ""):
+            return None
+        try:
+            return int(value)
+        except ValueError:
+            raise UserError(_("Invalid program."))
+
     @http.route("/api/v1/dashboard/trainee", type="json2", auth="user", methods=["GET"])
     @handle_api_errors
     def trainee_dashboard(self, request_id, **kwargs):
         self._require_role("trainee")
-        summary = request.env["training.day"].get_dashboard_summary("trainee")
+        summary = request.env["training.day"].get_dashboard_summary(
+            "trainee", program_id=self._program_id())
         return api_response(data=summary, request_id=request_id)
 
     @http.route("/api/v1/dashboard/supervisor", type="json2", auth="user", methods=["GET"])
     @handle_api_errors
     def supervisor_dashboard(self, request_id, **kwargs):
         self._require_role("supervisor")
-        summary = request.env["training.day"].get_dashboard_summary("supervisor")
+        summary = request.env["training.day"].get_dashboard_summary(
+            "supervisor", program_id=self._program_id())
         return api_response(data=summary, request_id=request_id)
 
     @http.route("/api/v1/dashboard/trainer", type="json2", auth="user", methods=["GET"])
     @handle_api_errors
     def trainer_dashboard(self, request_id, **kwargs):
         self._require_role("trainer")
-        summary = request.env["training.day"].get_dashboard_summary("trainer")
+        summary = request.env["training.day"].get_dashboard_summary(
+            "trainer", program_id=self._program_id())
         return api_response(data=summary, request_id=request_id)
 
     # Single training day in the dashboard-entry shape (ADR-011). Three

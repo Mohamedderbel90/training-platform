@@ -3,6 +3,7 @@ from datetime import timedelta
 from odoo import fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests.common import TransactionCase, tagged
+from .fixtures import day_supervisor, day_trainer
 
 
 @tagged("post_install", "-at_install", "training_management_report")
@@ -39,10 +40,6 @@ class TestTrainingReport(TransactionCase):
         # throughout test_survey_user_input.py for the same reason.
         cls.admin_group_user = make_user(
             "report_admin", "training_management.group_training_admin"
-        )
-        cls.assistant_admin_user = make_user(
-            "report_assistant_admin",
-            "training_management.group_training_assistant_admin",
         )
         cls.trainee_user = make_user(
             "report_trainee", "training_management.group_training_trainee"
@@ -105,8 +102,8 @@ class TestTrainingReport(TransactionCase):
                 "date": fields.Date.today(),
                 "start_datetime": now - timedelta(hours=2),
                 "end_datetime": now + timedelta(hours=2),
-                "supervisor_id": cls.admin_user.id,
-                "trainer_ids": [(6, 0, [cls.admin_user.id])],
+                "supervisor_id": day_supervisor(cls.env).id,
+                "trainer_ids": [(6, 0, [day_trainer(cls.env).id])],
                 "survey_open_at": now - timedelta(hours=1),
                 "survey_close_at": now + timedelta(hours=1),
             }
@@ -260,7 +257,7 @@ class TestTrainingReport(TransactionCase):
         report = self._create_course_report()
         report.action_generate()
         with self.assertRaises(AccessError):
-            report.with_user(self.assistant_admin_user).action_approve()
+            report.with_user(self.trainee_user).action_approve()
 
     def test_approve_sets_metadata_and_locks(self):
         report = self._create_course_report()

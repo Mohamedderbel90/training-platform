@@ -165,3 +165,51 @@ class TestOperationalApiTrainee(OperationalApiCase):
             },
         )
         self.assertEqual(resp.status_code, 400)
+
+    def test_get_my_submitted_response_read_back(self):
+        self.authenticate("opapi_trainee", "Test1234!")
+        option = self.trainee_options[4]
+        self.api_post(
+            "/training-days/%d/my-survey/submit" % self.day.id,
+            {"answers": [{"question_id": self.trainee_question.id, "answer_option_id": option.id}]},
+        )
+        resp = self.api_get("/training-days/%d/my-survey/response" % self.day.id)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()["data"]
+        self.assertEqual(data["status"]["state"], "submitted")
+        self.assertFalse(data["status"]["editable"])
+        self.assertEqual(
+            data["answers"],
+            [{"question_id": self.trainee_question.id, "answer_option_id": option.id}],
+        )
+        self.assertEqual(data["definition"]["survey_id"], self.trainee_survey.id)
+
+    def test_my_response_read_back_denied_before_submit(self):
+        self.authenticate("opapi_trainee", "Test1234!")
+        resp = self.api_get("/training-days/%d/my-survey/response" % self.day.id)
+        self.assertEqual(resp.status_code, 400)
+
+    def test_my_response_read_back_never_returns_another_trainees_answers(self):
+        self.authenticate("opapi_trainee", "Test1234!")
+        self.api_post(
+            "/training-days/%d/my-survey/submit" % self.day.id,
+            {
+                "answers": [
+                    {
+                        "question_id": self.trainee_question.id,
+                        "answer_option_id": self.trainee_options[3].id,
+                    }
+                ]
+            },
+        )
+        self.authenticate("opapi_trainee_other", "Test1234!")
+        resp = self.api_get("/training-days/%d/my-survey/response" % self.day.id)
+        self.assertNotEqual(resp.status_code, 200)
+
+    def test_my_response_read_back_is_trainee_only_and_day_scoped(self):
+        self.authenticate("opapi_supervisor", "Test1234!")
+        resp = self.api_get("/training-days/%d/my-survey/response" % self.day.id)
+        self.assertEqual(resp.status_code, 403)
+        self.authenticate("opapi_trainee", "Test1234!")
+        resp = self.api_get("/training-days/%d/my-survey/response" % self.unrelated_day.id)
+        self.assertEqual(resp.status_code, 403)

@@ -1,4 +1,4 @@
-import uuid
+from datetime import timedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
@@ -74,6 +74,8 @@ class TrainingNotificationLog(models.Model):
         required=True,
         default="pending",
     )
+    # DEC-26: which reminder of the configured count this row is (1..N).
+    reminder_no = fields.Integer(default=1, required=True)
     retry_count = fields.Integer(default=0)
     error_message = fields.Char(readonly=True)
     sent_date = fields.Datetime(readonly=True)
@@ -93,9 +95,9 @@ class TrainingNotificationLog(models.Model):
     )
 
     _day_role_partner_channel_event_uniq = models.Constraint(
-        "unique(training_day_id, respondent_role, partner_id, channel, event_type)",
+        "unique(training_day_id, respondent_role, partner_id, channel, event_type, reminder_no)",
         "Only one reminder log entry is allowed per training day, role, "
-        "respondent, channel and event.",
+        "respondent, channel, event and reminder number.",
     )
 
     # ------------------------------------------------------------------
@@ -120,22 +122,45 @@ class TrainingNotificationLog(models.Model):
             "max_retries": int(
                 get_param("training_management.notification_max_retries", "3")
             ),
+            # D1/DEC-26: hours before survey_close_at from which reminders
+            # are sent. 0 (the ADR-009 default) = no lead-time rule, remind
+            # from the moment the survey window opens.
+            # DEC-26: how many reminders a recipient may get per channel,
+            # the minimum hours between two of them, and the channel order.
+            "reminder_count": max(
+                int(get_param("training_management.notification_reminder_count", "1") or 1), 1
+            ),
+            "reminder_interval_hours": max(
+                int(get_param("training_management.notification_reminder_interval_hours", "24") or 0), 0  # noqa: E501
+            ),
+            "channel_order": [
+                c for c in (
+                    get_param("training_management.notification_channel_order", "email,sms,whatsapp")  # noqa: E501
+                    or "email,sms,whatsapp"
+                ).split(",")
+                if c in ("email", "sms", "whatsapp")
+            ] or ["email", "sms", "whatsapp"],
+            "lead_hours": int(
+                get_param("training_management.notification_reminder_lead_hours", "0")
+                or 0
+            ),
             "sms_provider_mode": get_param(
                 "training_management.sms_provider_mode", "test"
-            ),
-            "whatsapp_provider_mode": get_param(
-                "training_management.whatsapp_provider_mode", "test"
             ),
         }
 
     @api.model
     def _enabled_channels(self, config):
-        channels = ["email"]
+        enabled = {"email"}
         if config["sms_enabled"]:
-            channels.append("sms")
+            enabled.add("sms")
         if config["whatsapp_enabled"]:
-            channels.append("whatsapp")
-        return channels
+            enabled.add("whatsapp")
+        order = list(config["channel_order"])
+        for channel in ("email", "sms", "whatsapp"):  # never drop a channel
+            if channel not in order:
+                order.append(channel)
+        return [c for c in order if c in enabled]
 
     # ------------------------------------------------------------------
     # Eligibility (M9 task: "ir.cron eligibility checks" /
@@ -201,7 +226,10 @@ class TrainingNotificationLog(models.Model):
             ]
         )
         channels = self._enabled_channels(config)
+        lead = timedelta(hours=config["lead_hours"])
         for day in days:
+            if config["lead_hours"] > 0 and now < day.survey_close_at - lead:
+                continue  # too early: remind only inside the lead-time window
             for role, partner in self._get_pending_recipients(day):
                 self._dispatch(day, role, partner, channels, config)
 
@@ -212,8 +240,53 @@ class TrainingNotificationLog(models.Model):
         if policy enables it"): when enabled, stop at the first channel
         that succeeds; when disabled, every enabled channel is attempted
         and tracked independently."""
+        now = fields.Datetime.now()
+        previous_end = None
+        for round_no in range(1, config["reminder_count"] + 1):
+            logs = self.search(
+                [
+                    ("training_day_id", "=", day.id),
+                    ("respondent_role", "=", role),
+                    ("partner_id", "=", partner.id),
+                    ("event_type", "=", EVENT_DAILY_TASK_REMINDER),
+                    ("reminder_no", "=", round_no),
+                ]
+            )
+            if round_no > 1:
+                # A further reminder only after the previous one is done
+                # and the configured interval has passed.
+                if previous_end is None or now < previous_end + timedelta(
+                    hours=config["reminder_interval_hours"]
+                ):
+                    return
+            if self._round_complete(logs, channels, config):
+                previous_end = max(
+                    (log.sent_date or log.write_date for log in logs), default=now
+                )
+                continue
+            self._run_round(day, role, partner, channels, config, round_no)
+            return  # at most one reminder round per cron run
+
+    def _round_complete(self, logs, channels, config):
+        """A round is complete when it can do nothing more: with fallback,
+        one channel sent (or every channel exhausted); without fallback,
+        every enabled channel sent or exhausted."""
+        by_channel = {log.channel: log for log in logs}
+
+        def done(channel):
+            log = by_channel.get(channel)
+            return bool(log) and (
+                log.status == "sent"
+                or (log.status == "failed" and log.retry_count >= config["max_retries"])
+            )
+
+        if config["fallback"] and any(log.status == "sent" for log in logs):
+            return True
+        return all(done(channel) for channel in channels)
+
+    def _run_round(self, day, role, partner, channels, config, round_no):
         for channel in channels:
-            log = self._get_or_create_log(day, role, partner, channel)
+            log = self._get_or_create_log(day, role, partner, channel, round_no)
             if log.status == "sent":
                 if config["fallback"]:
                     return
@@ -224,7 +297,7 @@ class TrainingNotificationLog(models.Model):
             if log.status == "sent" and config["fallback"]:
                 return
 
-    def _get_or_create_log(self, day, role, partner, channel):
+    def _get_or_create_log(self, day, role, partner, channel, round_no=1):
         existing = self.search(
             [
                 ("training_day_id", "=", day.id),
@@ -232,6 +305,7 @@ class TrainingNotificationLog(models.Model):
                 ("partner_id", "=", partner.id),
                 ("channel", "=", channel),
                 ("event_type", "=", EVENT_DAILY_TASK_REMINDER),
+                ("reminder_no", "=", round_no),
             ],
             limit=1,
         )
@@ -244,6 +318,7 @@ class TrainingNotificationLog(models.Model):
                 "partner_id": partner.id,
                 "channel": channel,
                 "event_type": EVENT_DAILY_TASK_REMINDER,
+                "reminder_no": round_no,
             }
         )
 
@@ -290,11 +365,22 @@ class TrainingNotificationLog(models.Model):
             "training_management.mail_template_daily_task_reminder"
         )
         mail_id = template.send_mail(self.id, force_send=False)
+        mail = self.env["mail.mail"].sudo().browse(mail_id)
+        # Hand the mail to the mail server now, so the log shows the real
+        # outcome instead of "sent" for a mail that is only queued (an
+        # unreachable mail server leaves it in the "exception" state).
+        mail.send(raise_exception=False)
+        if mail.exists() and mail.state == "exception":
+            raise UserError(
+                _("The email could not be delivered: %s")
+                % (mail.failure_reason or _("unknown error"))
+            )
         self.write(
             {
                 "status": "sent",
                 "sent_date": fields.Datetime.now(),
-                "mail_mail_id": mail_id,
+                # a delivered mail may already be deleted (auto_delete)
+                "mail_mail_id": mail.exists().id or False,
                 "provider_reference": str(mail_id),
             }
         )
@@ -305,28 +391,7 @@ class TrainingNotificationLog(models.Model):
         if not self.partner_id.phone:
             raise UserError(_("Missing phone number for %s.") % self.partner_id.name)
         body = self._render_reminder_text()
-        if config["sms_provider_mode"] == "odoo_sms":
-            # Standard Odoo functionality (the "sms" module, verified
-            # present on this Odoo 19 Community runtime -- ADR-001) for a
-            # deployment with a real IAP SMS account/credits configured.
-            # Never exercised by this project's own automated tests (it
-            # would require real IAP network access), per the instruction
-            # not to invent provider credentials during development.
-            sms = self.env["sms.sms"].sudo().create(
-                {
-                    "partner_id": self.partner_id.id,
-                    "number": self.partner_id.phone,
-                    "body": body,
-                }
-            )
-            sms.send()
-            reference = "sms.sms:%s" % sms.id
-        else:
-            # Safe test/mock adapter (default): simulates a successful
-            # provider hand-off with no network call and no real
-            # credentials, so the reminder pipeline is fully exercised in
-            # development/CI without ever sending a real SMS.
-            reference = "test-sms-%s" % uuid.uuid4().hex[:12]
+        reference = self._deliver_sms(body, config)
         self.write(
             {
                 "status": "sent",
@@ -342,16 +407,7 @@ class TrainingNotificationLog(models.Model):
         if not self.partner_id.phone:
             raise UserError(_("Missing phone number for %s.") % self.partner_id.name)
         body = self._render_reminder_text()
-        if config["whatsapp_provider_mode"] != "test":
-            # No standard Odoo WhatsApp connector exists on this Community
-            # runtime (ADR-001: the "whatsapp" module is Enterprise-only).
-            # A real provider (e.g. WhatsApp Business Cloud API) is a
-            # documented future extension point, not implemented here
-            # with invented credentials -- see ADR-009.
-            raise UserError(
-                _("No WhatsApp provider is configured for this deployment.")
-            )
-        reference = "test-whatsapp-%s" % uuid.uuid4().hex[:12]
+        reference = self._deliver_whatsapp(body, config)
         self.write(
             {
                 "status": "sent",
@@ -359,6 +415,40 @@ class TrainingNotificationLog(models.Model):
                 "body": body,
                 "provider_reference": reference,
             }
+        )
+
+    def _deliver_sms(self, body, config):
+        """C6/FR-073: returns a provider reference ONLY after a real
+        delivery succeeded (standard Odoo "sms" module with an IAP
+        account); otherwise raises, so the log is "failed" and a message
+        that was never sent is never reported as sent."""
+        self.ensure_one()
+        if config["sms_provider_mode"] != "odoo_sms":
+            raise UserError(
+                _("No SMS provider is configured: the message was not sent.")
+            )
+        sms = self.env["sms.sms"].sudo().create(
+            {
+                "partner_id": self.partner_id.id,
+                "number": self.partner_id.phone,
+                "body": body,
+            }
+        )
+        sms.send(unlink_sent=False, raise_exception=False)
+        if sms.state != "sent":
+            raise UserError(
+                _("The SMS provider did not send the message (%s).")
+                % (sms.failure_type or sms.state)
+            )
+        return "sms.sms:%s" % sms.id
+
+    def _deliver_whatsapp(self, body, config):
+        """No standard WhatsApp connector exists on this Community runtime
+        (ADR-001), so no message can be sent: always raises (never
+        reports success). A real provider is a future extension point."""
+        self.ensure_one()
+        raise UserError(
+            _("No WhatsApp provider is configured: the message was not sent.")
         )
 
     def _render_reminder_text(self):

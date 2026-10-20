@@ -78,8 +78,12 @@ class SurveyUserInput(models.Model):
         if not self._is_training_privileged():
             user = self.env.user
             for vals in vals_list:
-                if not vals.get("training_day_id"):
-                    continue
+                # These two checks must apply unconditionally, even when
+                # training_day_id is absent -- otherwise a day-less
+                # create() would skip every guard below and produce a
+                # finalized response with no ownership/window check
+                # (and write()'s _check_respondent_write() then blocks
+                # ever attaching a day to it afterwards).
                 if vals.get("state") == "done":
                     raise UserError(
                         _("A response can only be finalized by submitting it.")
@@ -89,6 +93,8 @@ class SurveyUserInput(models.Model):
                     raise AccessError(
                         _("You can only create a response for yourself.")
                     )
+                if not vals.get("training_day_id"):
+                    continue
                 day = self.env["training.day"].browse(vals["training_day_id"])
                 # Ownership + open day + open survey window + no final
                 # response yet (same gate as the Operational API).
@@ -113,7 +119,115 @@ class SurveyUserInput(models.Model):
                     )
         if not self._is_training_privileged():
             self._check_respondent_write(vals)
-        return super().write(vals)
+        # SRS section 6.11 / PROJECT_SPEC section 17: "administrative
+        # correction of a final response" is audit-worthy. The guard
+        # above already means only a privileged, env.su-scoped caller
+        # can ever reach this point for a response whose state is
+        # already 'done' (ADR-003) -- there is no admin UI/wizard for
+        # this yet (that workflow is OPD-11, not decided here); this
+        # only makes that one existing, otherwise-silent path leave a
+        # trace, matching how day_reopen/day_close/report_approval/
+        # permission_change are logged elsewhere in this addon.
+        to_audit = self.browse()
+        before_by_id = {}
+        if self._is_training_privileged():
+            to_audit = self.filtered(
+                lambda ui: ui.state == "done" and ui.training_day_id
+            )
+            before_by_id = {
+                user_input.id: {
+                    name: user_input._audit_field_repr(name)
+                    for name in vals
+                    if name in user_input._fields
+                }
+                for user_input in to_audit
+            }
+        if to_audit:
+            self.env["training.audit.log"]._require_correction_reason()
+        result = super().write(vals)
+        for user_input in to_audit:
+            before = before_by_id[user_input.id]
+            changes = (
+                ", ".join(
+                    "%s: %r -> %r"
+                    % (name, before[name], user_input._audit_field_repr(name))
+                    for name in before
+                )
+                or "(no tracked field changed)"
+            )
+            self.env["training.audit.log"]._log(
+                "response_correction",
+                _(
+                    "Final response for training day %(day)s (%(role)s) "
+                    "was administratively corrected by %(user)s. "
+                    "Changes: %(changes)s."
+                )
+                % {
+                    "day": user_input.training_day_id.date,
+                    "role": user_input._role_label(user_input.respondent_role),
+                    "user": self.env.user.name,
+                    "changes": changes,
+                },
+                record=user_input,
+            )
+        return result
+
+    def action_print_answers(self):
+        """C4: the standard print page is a public survey route, refused
+        for project surveys; say so instead of opening an error page."""
+        if self.filtered("training_day_id"):
+            raise UserError(
+                _(
+                    "Training responses cannot be printed from the survey "
+                    "pages. Use the training reports instead."
+                )
+            )
+        return super().action_print_answers()
+
+    def action_open_correction_wizard(self):
+        """P2: the Odoo button on a final response (General Supervisor)."""
+        self.ensure_one()
+        if not self.env.user.has_group("training_management.group_training_admin"):
+            raise AccessError(
+                _("Only the General Supervisor can correct a final response.")
+            )
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Correct Final Response"),
+            "res_model": "training.response.correction",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_response_id": self.id},
+        }
+
+    def action_correct_final_response(self, vals, reason):
+        """DEC-11: the one sanctioned way to correct an already-final
+        response. General Supervisor only; a non-blank ``reason`` is
+        mandatory and is stored with the before/after values in the
+        audit log. The response stays ``done`` (there is no separate
+        "administratively corrected" state) and approved reports are
+        unaffected -- a correction shows up in a new report version."""
+        if not self.env.user.has_group("training_management.group_training_admin"):
+            raise AccessError(
+                _("Only the General Supervisor can correct a final response.")
+            )
+        reason = (reason or "").strip()
+        if not reason:
+            raise UserError(
+                _("A reason is required to correct a final response.")
+            )
+        self.sudo().with_context(correction_reason=reason).write(vals)
+        return True
+
+    def _audit_field_repr(self, name):
+        """Safe, human-readable snapshot of one field's current value for
+        the audit description above -- relational fields are reduced to
+        their display name rather than an internal recordset repr."""
+        self.ensure_one()
+        value = self[name]
+        if isinstance(value, models.BaseModel):
+            return value.display_name if value else False
+        return value
 
     def _check_respondent_write(self, vals):
         """End-user writes to a training response: identity/context
@@ -145,6 +259,11 @@ class SurveyUserInput(models.Model):
                     user_input.respondent_role, user=user
                 )
 
+    def _role_label(self, role):
+        """Readable (translated) respondent role for audit descriptions."""
+        labels = dict(self._fields["respondent_role"]._description_selection(self.env))
+        return labels.get(role, role or "-")
+
     def unlink(self):
         if not self.env.su:
             for user_input in self:
@@ -152,7 +271,29 @@ class SurveyUserInput(models.Model):
                     raise UserError(
                         _("A final, submitted response cannot be deleted.")
                     )
-        return super().unlink()
+        # Same audit-trail gap as write() above: only env.su can delete
+        # an already-final response, and that was previously silent.
+        to_audit = []
+        if self._is_training_privileged():
+            to_audit = [
+                (user_input, user_input.training_day_id.date, user_input.respondent_role)
+                for user_input in self
+                if user_input.state == "done" and user_input.training_day_id
+            ]
+        if to_audit:
+            self.env["training.audit.log"]._require_correction_reason()
+        result = super().unlink()
+        for user_input, day_date, role in to_audit:
+            self.env["training.audit.log"]._log(
+                "response_correction",
+                _(
+                    "Final response for training day %(day)s (%(role)s) "
+                    "was administratively deleted by %(user)s."
+                )
+                % {"day": day_date, "role": self._role_label(role), "user": self.env.user.name},
+                record=user_input,
+            )
+        return result
 
     # ------------------------------------------------------------------
     # Operational API support (M4). Answer application/validation lives
@@ -183,9 +324,17 @@ class SurveyUserInput(models.Model):
                     % item.get("question_id")
                 )
             question.ensure_one()
+            # Rewriting an answer of the caller's own, still in-progress
+            # response: respondents hold no delete right on answer lines,
+            # so the replaced line is removed with sudo, after the explicit
+            # guard (sudo would bypass the final-response check in unlink).
+            if self.state == "done":
+                raise UserError(
+                    _("A final, submitted response cannot be changed here.")
+                )
             self.user_input_line_ids.filtered(
                 lambda line, q=question: line.question_id == q
-            ).unlink()
+            ).sudo().unlink()
 
             if question.question_type == "simple_choice" and item.get(
                 "answer_option_id"
@@ -414,6 +563,58 @@ class SurveyUserInputLine(models.Model):
                     % line.question_id.title
                 )
 
+    def _is_training_privileged(self):
+        """Same privilege test as SurveyUserInput._is_training_privileged();
+        duplicated (not delegated) because it must be evaluated as this
+        model, matching how _check_training_line_values() and
+        _check_training_line_duplicates() already do the same check
+        inline below."""
+        return self.env.su or self.env.user.has_group(
+            "training_management.group_training_admin"
+        )
+
+    def _audit_answer_repr(self):
+        """P2/DEC-11: readable "question: answer" snapshot of one answer
+        line for the before/after values of a correction. Only the
+        answer content is stored, never the respondent identity."""
+        self.ensure_one()
+        if self.skipped:
+            value = "(skipped)"
+        elif self.answer_type == "suggestion":
+            value = self.suggested_answer_id.value or "-"
+        elif self.answer_type == "char_box":
+            value = self.value_char_box
+        elif self.answer_type == "text_box":
+            value = self.value_text_box
+        elif self.answer_type == "scale":
+            value = self.value_scale
+        elif self.answer_type == "numerical_box":
+            value = self.value_numerical_box
+        else:
+            value = self.answer_type
+        return "%s: %s" % (self.question_id.title or self.question_id.id, value)
+
+    def _log_answer_correction(self, description, details=None):
+        """One training.audit.log entry per affected final response
+        (not per line) -- same audit-trail gap as
+        SurveyUserInput.write()/unlink(): only env.su can touch an
+        answer line of an already-final response, and that was
+        previously silent. See SRS section 6.11 / PROJECT_SPEC 17."""
+        details = details or {}
+        for user_input in self.mapped("user_input_id"):
+            text = description % {
+                "day": user_input.training_day_id.date,
+                "role": user_input._role_label(user_input.respondent_role),
+                "user": self.env.user.name,
+            }
+            if details.get(user_input.id):
+                text = "%s %s" % (
+                    text, _("Values: %s.") % "; ".join(details[user_input.id])
+                )
+            self.env["training.audit.log"]._log(
+                "response_correction", text, record=user_input,
+            )
+
     @api.model_create_multi
     def create(self, vals_list):
         if not self.env.su:
@@ -432,8 +633,38 @@ class SurveyUserInputLine(models.Model):
                         )
                     )
         self._check_training_line_values([(self.browse(), v) for v in vals_list])
+        if self._is_training_privileged():
+            parent_ids = {
+                vals["user_input_id"] for vals in vals_list if vals.get("user_input_id")
+            }
+            if self.env["survey.user_input"].sudo().search_count(
+                [
+                    ("id", "in", list(parent_ids)),
+                    ("state", "=", "done"),
+                    ("training_day_id", "!=", False),
+                ]
+            ):
+                self.env["training.audit.log"]._require_correction_reason()
         lines = super().create(vals_list)
         lines._check_training_line_duplicates()
+        if self._is_training_privileged():
+            added = lines.filtered(
+                lambda line: line.user_input_id.state == "done"
+                and line.user_input_id.training_day_id
+            )
+            details = {}
+            for line in added:
+                details.setdefault(line.user_input_id.id, []).append(
+                    _("added %s") % line._audit_answer_repr()
+                )
+            added._log_answer_correction(
+                _(
+                    "An answer was administratively added to the final "
+                    "response for training day %(day)s (%(role)s) by "
+                    "%(user)s."
+                ),
+                details,
+            )
         return lines
 
     def write(self, vals):
@@ -446,9 +677,32 @@ class SurveyUserInputLine(models.Model):
                             "is final; its answers cannot be modified."
                         )
                     )
+        to_audit = self.browse()
+        if self._is_training_privileged():
+            to_audit = self.filtered(
+                lambda line: line.user_input_id.state == "done"
+                and line.user_input_id.training_day_id
+            )
         self._check_training_line_values([(line, vals) for line in self])
+        before = {}
+        if to_audit:
+            self.env["training.audit.log"]._require_correction_reason()
+            before = {line.id: line._audit_answer_repr() for line in to_audit}
         result = super().write(vals)
         self._check_training_line_duplicates()
+        details = {}
+        for line in to_audit:
+            details.setdefault(line.user_input_id.id, []).append(
+                "%s -> %s" % (before[line.id], line._audit_answer_repr())
+            )
+        to_audit._log_answer_correction(
+            _(
+                "An answer of the final response for training day "
+                "%(day)s (%(role)s) was administratively modified by "
+                "%(user)s."
+            ),
+            details,
+        )
         return result
 
     def unlink(self):
@@ -461,4 +715,38 @@ class SurveyUserInputLine(models.Model):
                             "is final; its answers cannot be deleted."
                         )
                     )
-        return super().unlink()
+        to_audit = self.browse()
+        if self._is_training_privileged():
+            to_audit = self.filtered(
+                lambda line: line.user_input_id.state == "done"
+                and line.user_input_id.training_day_id
+            )
+        # Resolve to the parent response(s) before the lines themselves
+        # are gone; the parent record is not deleted here, only its
+        # child lines, so it remains valid to log against afterwards.
+        affected_responses = to_audit.mapped("user_input_id")
+        removed = {}
+        if to_audit:
+            self.env["training.audit.log"]._require_correction_reason()
+            for line in to_audit:
+                removed.setdefault(line.user_input_id.id, []).append(
+                    _("removed %s") % line._audit_answer_repr()
+                )
+        result = super().unlink()
+        for user_input in affected_responses:
+            text = _(
+                "An answer was administratively removed from the "
+                "final response for training day %(day)s (%(role)s) "
+                "by %(user)s."
+            ) % {
+                "day": user_input.training_day_id.date,
+                "role": user_input._role_label(user_input.respondent_role),
+                "user": self.env.user.name,
+            }
+            text = "%s %s" % (
+                text, _("Values: %s.") % "; ".join(removed.get(user_input.id, []))
+            )
+            self.env["training.audit.log"]._log(
+                "response_correction", text, record=user_input,
+            )
+        return result

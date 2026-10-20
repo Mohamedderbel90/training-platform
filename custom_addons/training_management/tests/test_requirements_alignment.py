@@ -1,6 +1,6 @@
 """Backend requirement-alignment tests (docs/REQUIREMENTS_ALIGNMENT.md
 AC-ALN rows that had no automated evidence): multi-program isolation,
-KPI formula edge cases, Assistant Admin boundaries, report/Excel parity,
+KPI formula edge cases, non-General-Supervisor boundaries, report/Excel parity,
 approval and audit enforcement, and server-side respondent hardening."""
 import base64
 import io
@@ -10,6 +10,7 @@ from datetime import timedelta
 from odoo import fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests.common import TransactionCase, tagged
+from .fixtures import day_trainer
 
 RATING_LABELS = [(1, "Poor"), (2, "Acceptable"), (3, "Good"), (4, "Very Good"), (5, "Excellent")]
 
@@ -37,9 +38,6 @@ class AlignmentCase(TransactionCase):
 
         cls.make_user = staticmethod(make_user)
         cls.gs_user = make_user("aln_gs", "training_management.group_training_admin")
-        cls.assistant_user = make_user(
-            "aln_assistant", "training_management.group_training_assistant_admin"
-        )
         cls.supervisor_user = make_user(
             "aln_supervisor", "training_management.group_training_supervisor"
         )
@@ -90,6 +88,7 @@ class AlignmentCase(TransactionCase):
                 "end_datetime": now + timedelta(hours=2),
                 "state": day_state,
                 "supervisor_id": cls.supervisor_user.id,
+                "trainer_ids": [(6, 0, [day_trainer(cls.env).id])],
                 "survey_open_at": now - timedelta(hours=1),
                 "survey_close_at": now + timedelta(hours=1),
                 "trainee_survey_id": cls.survey.id,
@@ -167,7 +166,11 @@ class TestMultiProgramIsolation(AlignmentCase):
         self.assertEqual(att_a["absence_rate"], 25.0)
 
     def test_response_rate_does_not_mix(self):
-        self.assertEqual(self.analytics.get_trainee_response_rate(program=self.prog_a), 100.0)
+        # D3: three trainees responded but one of them was absent; only
+        # responses of the present/late targets count (2 of 3 targets).
+        self.assertAlmostEqual(
+            self.analytics.get_trainee_response_rate(program=self.prog_a), 200.0 / 3
+        )
         # Program B: nobody present/late -> denominator 0 -> None, not 0.
         self.assertIsNone(self.analytics.get_trainee_response_rate(program=self.prog_b))
 
@@ -203,44 +206,37 @@ class TestMultiProgramIsolation(AlignmentCase):
 
 
 @tagged("post_install", "-at_install", "training_management_report", "training_management_security")
-class TestAssistantAdminBoundaries(AlignmentCase):
+class TestNonAdminBoundaries(AlignmentCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.program, cls.course, cls.day = cls.build_program(
-            "ALN Assistant Program", 4, ["present", "late"], 2
+            "ALN Boundaries Program", 4, ["present", "late"], 2
         )
 
-    def test_assistant_admin_can_generate_report_with_real_numbers(self):
-        report = self.env["training.report"].create(
-            {"report_type": "program", "program_id": self.program.id}
-        )
-        report.with_user(self.assistant_user).action_generate()
-        self.assertEqual(report.state, "generated")
-        self.assertTrue(report.kpi_trainer_score_has_data)
-        self.assertEqual(report.kpi_trainer_score, 4.0)
-
-    def test_assistant_admin_cannot_read_individual_responses(self):
-        for model in ("survey.user_input", "survey.user_input.line"):
-            with self.assertRaises(AccessError):
-                self.env[model].with_user(self.assistant_user).search([])
+    def test_supervisor_cannot_create_or_generate_reports(self):
+        """DEC-15: only the General Supervisor produces reports."""
+        with self.assertRaises(AccessError):
+            self.env["training.report"].with_user(self.supervisor_user).create(
+                {"report_type": "program", "program_id": self.program.id}
+            )
 
     def test_analytics_service_never_widens_access_for_other_roles(self):
-        """training.analytics is callable by any user; only the two
-        back-office admin roles aggregate through sudo. A supervisor
+        """training.analytics is callable by any user; only the General
+        Supervisor aggregates through sudo. A supervisor
         gets numbers scoped by their own record rules (no responses)."""
         kpi = self.analytics.with_user(self.supervisor_user).get_kpi(program=self.program)
         self.assertIsNone(kpi["trainer_performance"])
 
-    def test_assistant_admin_cannot_approve_directly(self):
+    def test_supervisor_cannot_approve_directly(self):
         report = self.env["training.report"].create(
             {"report_type": "program", "program_id": self.program.id}
         )
         report.action_generate()
         with self.assertRaises(AccessError):
-            report.with_user(self.assistant_user).action_approve()
+            report.with_user(self.supervisor_user).action_approve()
         with self.assertRaises(AccessError):
-            report.with_user(self.assistant_user).write({"state": "approved"})
+            report.with_user(self.supervisor_user).write({"state": "approved"})
         self.assertEqual(report.state, "generated")
 
     def test_direct_state_write_by_gs_is_stamped_and_audited(self):
@@ -298,7 +294,8 @@ class TestReportOutputParity(AlignmentCase):
         for expected in (
             "Trainer Score",
             "Content Score",
-            "Training Environment Score",
+            "Training Environment Score (Trainees)",
+            "Training Environment Score (Supervisor)",
             "Attendance Rate (%)",
             "Absence Rate (%)",
             "Late Rate (%)",
@@ -447,6 +444,7 @@ class TestRespondentServerSideEnforcement(AlignmentCase):
                 "end_datetime": now - timedelta(hours=4),
                 "state": "open",
                 "supervisor_id": cls.supervisor_user.id,
+                "trainer_ids": [(6, 0, [day_trainer(cls.env).id])],
                 "survey_open_at": now - timedelta(hours=6),
                 "survey_close_at": now - timedelta(hours=1),
                 "trainee_survey_id": cls.survey.id,
@@ -478,6 +476,13 @@ class TestRespondentServerSideEnforcement(AlignmentCase):
             self.env["survey.user_input"].with_user(self.trainee).create(
                 dict(self._vals(self.day), state="done")
             )
+
+    def test_dayless_response_cannot_be_created_as_done(self):
+        vals = self._vals(self.day)
+        del vals["training_day_id"]
+        vals["state"] = "done"
+        with self.assertRaises(UserError):
+            self.env["survey.user_input"].with_user(self.trainee).create(vals)
 
     def test_cannot_create_response_for_someone_else(self):
         vals = self._vals(self.day)
@@ -652,8 +657,8 @@ class TestSecurityReviewRegressions(AlignmentCase):
         with self.assertRaises(ValidationError):
             Line.create(vals)
 
-    def test_assistant_admin_cannot_forge_approved_report(self):
-        Report = self.env["training.report"].with_user(self.assistant_user)
+    def test_non_admin_cannot_forge_approved_report(self):
+        Report = self.env["training.report"].with_user(self.supervisor_user)
         with self.assertRaises(AccessError):
             Report.create(
                 {
@@ -669,6 +674,6 @@ class TestSecurityReviewRegressions(AlignmentCase):
             {"report_type": "program", "program_id": self.program.id, "state": "generated"}
         )
         report.with_user(self.gs_user).write(
-            {"state": "approved", "approved_by": self.assistant_user.id}
+            {"state": "approved", "approved_by": self.supervisor_user.id}
         )
         self.assertEqual(report.approved_by, self.gs_user)

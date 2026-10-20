@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- P1 / FR-050..056: General Supervisor dashboard (Odoo only). Figures
+         come from training.analytics, the same source as the reports. -->
+    <record id="view_training_dashboard_form" model="ir.ui.view">
+        <field name="name">training.dashboard.form</field>
+        <field name="model">training.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Dashboard" create="false" edit="true">
+                <header>
+                    <button name="action_view_days" string="View Days" type="object"
+                            class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <group string="Filters">
+                        <group>
+                            <field name="program_id" options="{'no_create': True}"/>
+                            <field name="course_id" options="{'no_create': True}"/>
+                            <field name="trainer_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="day_state"/>
+                        </group>
+                    </group>
+                    <group string="Indicators">
+                        <group>
+                            <field name="days_count"/>
+                            <field name="trainer_score" invisible="not trainer_score_has_data"/>
+                            <field name="content_score" invisible="not content_score_has_data"/>
+                            <field name="environment_score" invisible="not environment_score_has_data"/>
+                            <field name="environment_supervisor_score"
+                                   invisible="not environment_supervisor_score_has_data"/>
+                        </group>
+                        <group>
+                            <label for="attendance_rate" invisible="not attendance_rate_has_data"/>
+                            <div class="d-inline-flex align-items-baseline gap-1" invisible="not attendance_rate_has_data">
+                                <field name="attendance_rate" nolabel="1" class="oe_inline"/><span translation="off">%</span>
+                            </div>
+                            <label for="absence_rate" invisible="not absence_rate_has_data"/>
+                            <div class="d-inline-flex align-items-baseline gap-1" invisible="not absence_rate_has_data">
+                                <field name="absence_rate" nolabel="1" class="oe_inline"/><span translation="off">%</span>
+                            </div>
+                            <label for="late_rate" invisible="not late_rate_has_data"/>
+                            <div class="d-inline-flex align-items-baseline gap-1" invisible="not late_rate_has_data">
+                                <field name="late_rate" nolabel="1" class="oe_inline"/><span translation="off">%</span>
+                            </div>
+                            <label for="response_rate" invisible="not response_rate_has_data"/>
+                            <div class="d-inline-flex align-items-baseline gap-1" invisible="not response_rate_has_data">
+                                <field name="response_rate" nolabel="1" class="oe_inline"/><span translation="off">%</span>
+                            </div>
+                        </group>
+                    </group>
+                    <group invisible="1">
+                        <field name="trainer_score_has_data"/>
+                        <field name="content_score_has_data"/>
+                        <field name="environment_score_has_data"/>
+                        <field name="environment_supervisor_score_has_data"/>
+                        <field name="attendance_rate_has_data"/>
+                        <field name="absence_rate_has_data"/>
+                        <field name="late_rate_has_data"/>
+                        <field name="response_rate_has_data"/>
+                    </group>
+                    <group string="Comparison and Trend">
+                        <field name="comparison_html" nolabel="1" colspan="2"/>
+                    </group>
+                    <p class="text-muted">An indicator with no data is hidden, never shown as 0.
+                        Cancelled and postponed days are not counted.</p>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_training_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">training.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+</odoo>

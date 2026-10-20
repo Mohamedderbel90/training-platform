@@ -34,11 +34,32 @@
                            statusbar_visible="planned,open,closed"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_attendance" type="object" class="oe_stat_button" icon="fa-check-square-o"
+                                groups="training_management.group_training_admin">
+                            <field name="attendance_count" widget="statinfo" string="Attendance"/>
+                        </button>
+                        <button name="action_open_trainee_responses" type="object" class="oe_stat_button" icon="fa-star-o"
+                                groups="training_management.group_training_admin">
+                            <field name="trainee_response_count" widget="statinfo" string="Trainee Responses"/>
+                        </button>
+                        <button name="action_open_supervisor_response" type="object" class="oe_stat_button" icon="fa-eye"
+                                groups="training_management.group_training_admin">
+                            <field name="supervisor_response_count" widget="statinfo" string="Supervisor Evaluation"/>
+                        </button>
+                        <button name="action_open_trainer_responses" type="object" class="oe_stat_button" icon="fa-pencil-square-o"
+                                groups="training_management.group_training_admin">
+                            <field name="trainer_response_count" widget="statinfo" string="Trainer Reports"/>
+                        </button>
+                    </div>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
                             invisible="active"/>
                     <group>
                         <field name="course_id"/>
                         <field name="date"/>
+                        <field name="topic"/>
+                        <field name="status_reason" placeholder="Required to postpone or cancel"/>
+                        <field name="postponed_from_date" invisible="not postponed_from_date"/>
                     </group>
                     <group>
                         <group string="Schedule">

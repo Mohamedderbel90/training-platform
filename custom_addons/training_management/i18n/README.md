@@ -42,3 +42,14 @@ Do not create parallel `_ar`/`_en` fields for translatable business
 content; use `translate=True` on the field instead (already done for
 `training.program.name` and `training.course.name`), per PROJECT_SPEC
 section 2A.
+
+## Keeping `ar.po` complete (2026-10-04)
+
+Odoo ignores a `.po` entry that has no `#:` reference, so never append bare
+`msgid`/`msgstr` pairs. After changing user-facing text:
+
+1. Upgrade a database (`-u training_management`).
+2. `odoo-bin i18n export -c env/odoo.conf -d <db> -o /tmp/new.pot training_management`
+3. Merge the existing Arabic by `msgid` into the new template, translate every
+   empty entry, save as `ar.po`, copy the template over `training_management.pot`.
+4. Upgrade with `--i18n-overwrite` and check views, menus and messages in Arabic.

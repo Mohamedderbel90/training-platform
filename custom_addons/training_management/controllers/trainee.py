@@ -38,6 +38,19 @@ class TraineeSurveyController(http.Controller):
         return api_response(data=status, request_id=request_id)
 
     @http.route(
+        "/api/v1/training-days/<int:day_id>/my-survey/response",
+        type="json2", auth="user", methods=["GET"],
+    )
+    @handle_api_errors
+    def get_my_survey_response(self, day_id, request_id, **kwargs):
+        """The trainee's own submitted answers, read-only (OPD-01)."""
+        self._require_trainee()
+        day = request.env["training.day"].browse(day_id)
+        return api_response(
+            data=day.get_trainee_submitted_response_dto(), request_id=request_id
+        )
+
+    @http.route(
         "/api/v1/training-days/<int:day_id>/my-survey/submit",
         type="json2", auth="user", methods=["POST"],
     )

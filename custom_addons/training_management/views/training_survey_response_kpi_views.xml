@@ -3,7 +3,7 @@
     <!-- Standard Odoo Pivot/Graph/List views over the reporting
          projection (see models/training_survey_response_kpi.py for why
          a SQL-view model is used instead of a computed Float field or a
-         custom OWL dashboard). Admin/Assistant Admin only; see
+         custom OWL dashboard). Admin only; see
          ir.model.access.csv; this aggregates individual trainee survey
          data and must never be exposed to Trainee/Supervisor/Trainer
          (PROJECT_SPEC section 7, M3 point 11). -->
@@ -38,6 +38,7 @@
         <field name="arch" type="xml">
             <list string="Training KPIs" create="false" edit="false" delete="false">
                 <field name="training_day_id"/>
+                <field name="day_date"/>
                 <field name="course_id"/>
                 <field name="program_id"/>
                 <field name="respondent_role"/>
@@ -55,6 +56,10 @@
                 <field name="program_id"/>
                 <field name="course_id"/>
                 <field name="training_day_id"/>
+                <field name="day_date"/>
+                <filter name="filter_day_open" string="Open Days" domain="[('day_state', '=', 'open')]"/>
+                <filter name="filter_day_closed" string="Closed Days" domain="[('day_state', '=', 'closed')]"/>
+                <separator/>
                 <filter name="filter_trainer_performance" string="Trainer Performance" domain="[('kpi_category', '=', 'trainer_performance')]"/>
                 <filter name="filter_content" string="Content" domain="[('kpi_category', '=', 'content')]"/>
                 <filter name="filter_environment" string="Environment" domain="[('kpi_category', '=', 'environment')]"/>
@@ -66,6 +71,8 @@
                     <filter name="group_by_program" string="Program" context="{'group_by': 'program_id'}"/>
                     <filter name="group_by_course" string="Course" context="{'group_by': 'course_id'}"/>
                     <filter name="group_by_kpi_category" string="KPI Category" context="{'group_by': 'kpi_category'}"/>
+                    <filter name="group_by_day" string="Training Day" context="{'group_by': 'training_day_id'}"/>
+                    <filter name="group_by_day_date" string="Day Date" context="{'group_by': 'day_date:month'}"/>
                     <filter name="group_by_respondent_role" string="Respondent Role" context="{'group_by': 'respondent_role'}"/>
                 </group>
             </search>

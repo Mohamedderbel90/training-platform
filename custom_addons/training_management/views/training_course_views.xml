@@ -20,8 +20,31 @@
         <field name="arch" type="xml">
             <form string="Training Course">
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_days" type="object" class="oe_stat_button" icon="fa-calendar"
+                                groups="training_management.group_training_admin">
+                            <field name="day_count" widget="statinfo" string="Training Days"/>
+                        </button>
+                        <button name="action_open_attendance" type="object" class="oe_stat_button" icon="fa-check-square-o"
+                                groups="training_management.group_training_admin">
+                            <field name="attendance_count" widget="statinfo" string="Attendance"/>
+                        </button>
+                        <button name="action_open_responses" type="object" class="oe_stat_button" icon="fa-star-o"
+                                groups="training_management.group_training_admin">
+                            <field name="response_count" widget="statinfo" string="Evaluations"/>
+                        </button>
+                        <button name="action_open_reports" type="object" class="oe_stat_button" icon="fa-file-text-o"
+                                groups="training_management.group_training_admin">
+                            <field name="report_count" widget="statinfo" string="Reports"/>
+                        </button>
+                    </div>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
                             invisible="active"/>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not dates_outside_program">
+                        The course dates are outside the program's dates.
+                    </div>
+                    <field name="dates_outside_program" invisible="1"/>
                     <group>
                         <field name="name"/>
                         <field name="program_id"/>

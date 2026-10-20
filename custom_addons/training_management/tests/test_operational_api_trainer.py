@@ -33,6 +33,26 @@ class TestOperationalApiTrainer(OperationalApiCase):
         self.assertEqual(resume_data["status"]["response"]["state"], "in_progress")
         self.assertEqual(resume_data["answers"][0]["text"], "Draft notes")
 
+    def test_trainer_can_rewrite_draft_answers_and_submit_them(self):
+        """Saving a draft twice, then submitting with a changed answer, must
+        work for the trainer (who has no delete right on answer lines)."""
+        self.authenticate("opapi_trainer", "Test1234!")
+        path = "/training-days/%d/trainer-report" % self.day.id
+        q = self.trainer_question.id
+        draft = self.api_put(
+            path + "/draft", {"answers": [{"question_id": q, "text": "A"}]}
+        )
+        self.assertEqual(draft.status_code, 200)
+        draft = self.api_put(
+            path + "/draft", {"answers": [{"question_id": q, "text": "B"}]}
+        )
+        self.assertEqual(draft.status_code, 200)
+        resp = self.api_post(path + "/submit", {"answers": [{"question_id": q, "text": "C"}]})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["data"]["state"], "submitted")
+        answers = self.api_get(path).json()["data"]["answers"]
+        self.assertEqual([a["text"] for a in answers], ["C"])
+
     def test_final_submit(self):
         self.authenticate("opapi_trainer", "Test1234!")
         self.api_put(

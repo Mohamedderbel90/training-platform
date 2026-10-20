@@ -1,8 +1,9 @@
 from datetime import timedelta
 
 from odoo import fields
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests.common import TransactionCase, tagged
+from .fixtures import day_supervisor, day_trainer
 
 
 @tagged("post_install", "-at_install", "training_management_workflow")
@@ -47,6 +48,10 @@ class TestTrainingDayWorkflow(TransactionCase):
         cls.trainee_survey = cls.env["survey.survey"].create(
             {"title": "Workflow Trainee Survey", "survey_role": "trainee"}
         )
+        cls.env["survey.question"].create(
+            {"survey_id": cls.trainee_survey.id, "title": "Comment",
+             "question_type": "char_box"}
+        )
 
     def _make_day(self, **overrides):
         now = fields.Datetime.now()
@@ -55,11 +60,12 @@ class TestTrainingDayWorkflow(TransactionCase):
             "date": fields.Date.today(),
             "start_datetime": now - timedelta(hours=2),
             "end_datetime": now + timedelta(hours=2),
-            "supervisor_id": self.admin.id,
-            "trainer_ids": [(6, 0, [self.admin.id])],
+            "supervisor_id": day_supervisor(self.env).id,
+            "trainer_ids": [(6, 0, [day_trainer(self.env).id])],
             "survey_open_at": now - timedelta(hours=1),
             "survey_close_at": now + timedelta(hours=1),
             "trainee_survey_id": self.trainee_survey.id,
+            "status_reason": "Test reason",
         }
         values.update(overrides)
         return self.env["training.day"].create(values)
@@ -206,3 +212,53 @@ class TestTrainingDayWorkflow(TransactionCase):
         self.assertEqual(day.state, "planned")
         with self.assertRaises(UserError):
             day.check_survey_access("trainee", user=self.trainee_user)
+
+    # ---- P4: postponement needs a reason and a new date ----
+
+    def test_postpone_and_cancel_require_a_reason(self):
+        for action in ("action_postpone", "action_cancel"):
+            day = self._make_day(state="open", status_reason=False)
+            with self.assertRaises(UserError):
+                getattr(day, action)()
+            self.assertEqual(day.state, "open")
+            day.status_reason = "  "
+            with self.assertRaises(UserError):
+                getattr(day, action)()
+            day.status_reason = "Trainer unavailable"
+            getattr(day, action)()
+            self.assertNotEqual(day.state, "open")
+
+    def test_postponed_day_reopens_only_on_a_new_date(self):
+        day = self._make_day(state="open")
+        day.action_postpone()
+        self.assertEqual(day.postponed_from_date, day.date)
+        with self.assertRaises(UserError):
+            day.action_open()
+        day.date = fields.Date.today() + timedelta(days=7)
+        day.action_open()
+        self.assertEqual(day.state, "open")
+
+    # ---- P5: a survey without questions is not put to respondents ----
+
+    def test_day_cannot_open_with_an_empty_survey(self):
+        empty = self.env["survey.survey"].create(
+            {"title": "Empty", "survey_role": "supervisor"}
+        )
+        day = self._make_day(state="planned", supervisor_survey_id=empty.id)
+        with self.assertRaises(ValidationError):
+            day.action_open()
+
+    # ---- M1: assignments ----
+
+    def test_assignments_need_matching_active_roles_and_a_trainer(self):
+        with self.assertRaises(ValidationError):
+            self._make_day(trainer_ids=[(5, 0, 0)])
+        with self.assertRaises(ValidationError):
+            self._make_day(supervisor_id=self.trainee_user.id)
+        with self.assertRaises(ValidationError):
+            self._make_day(trainer_ids=[(6, 0, [day_supervisor(self.env).id])])
+        inactive = day_trainer(self.env).copy({"login": "fx_inactive_trainer"})
+        inactive.active = False
+        with self.assertRaises(ValidationError):
+            self._make_day(trainer_ids=[(6, 0, [inactive.id])])
+        self.assertTrue(self._make_day())

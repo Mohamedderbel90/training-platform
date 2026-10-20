@@ -11,6 +11,7 @@ SURVEY_ROLE_FIELDS = {
 
 class TrainingDay(models.Model):
     _name = "training.day"
+    _inherit = ["training.smart.buttons"]
     _description = "Training Day"
     _order = "date, start_datetime"
 
@@ -21,6 +22,13 @@ class TrainingDay(models.Model):
         ondelete="restrict",
     )
     date = fields.Date(required=True)
+    # Per-day subject covered, distinct from course_id (the course it
+    # belongs to). Optional/nullable: a day with no topic set yet (e.g.
+    # not backfilled on existing data) must render fine everywhere --
+    # no default, no backfill of fake text. translate=True to match the
+    # other short admin-editable bilingual AR/EN text fields on this
+    # addon (training.course.name, training.program.name).
+    topic = fields.Char(string="Topic", translate=True)
     start_datetime = fields.Datetime(required=True)
     end_datetime = fields.Datetime(required=True)
     state = fields.Selection(
@@ -35,10 +43,15 @@ class TrainingDay(models.Model):
         default="planned",
     )
     # One supervisor per training day in V1 (PROJECT_SPEC section 5).
+    # The domains only filter the pickers; _check_assignments below is the
+    # server-side enforcement.
     supervisor_id = fields.Many2one(
         "res.users",
         string="Supervisor",
         required=True,
+        domain=lambda self: [
+            ("group_ids", "in", self.env.ref("training_management.group_training_supervisor").ids)
+        ],
     )
     # Direct Many2many for V1; no training.trainer.assignment model.
     trainer_ids = fields.Many2many(
@@ -47,7 +60,18 @@ class TrainingDay(models.Model):
         "day_id",
         "user_id",
         string="Trainers",
+        domain=lambda self: [
+            ("group_ids", "in", self.env.ref("training_management.group_training_trainer").ids)
+        ],
     )
+    # P4 / DEC-02 / SRS-PROG-003: why a day was postponed or cancelled, and
+    # the date it had when it was postponed (a postponed day can only be
+    # reopened on a new date).
+    status_reason = fields.Text(
+        string="Postpone / Cancel Reason",
+        help="Required to postpone or cancel the training day.",
+    )
+    postponed_from_date = fields.Date(readonly=True, copy=False)
     survey_open_at = fields.Datetime(required=True)
     survey_close_at = fields.Datetime(required=True)
     active = fields.Boolean(default=True)
@@ -107,6 +131,53 @@ class TrainingDay(models.Model):
             else:
                 day.display_name = course_name
 
+    def _check_surveys_have_questions(self):
+        """P5 / SRS-SURVEY-001: a survey without questions is never put in
+        front of respondents; checked when the day is opened."""
+        for day in self:
+            for field_name in SURVEY_ROLE_FIELDS:
+                survey = day[field_name]
+                if survey and not survey.question_ids:
+                    raise ValidationError(
+                        _("The survey \"%s\" has no questions and cannot be "
+                          "used by a training day.") % survey.title
+                    )
+
+    attendance_count = fields.Integer(compute="_compute_smart_counts")
+    trainee_response_count = fields.Integer(compute="_compute_smart_counts")
+    supervisor_response_count = fields.Integer(compute="_compute_smart_counts")
+    trainer_response_count = fields.Integer(compute="_compute_smart_counts")
+
+    def _compute_smart_counts(self):
+        for day in self:
+            day.attendance_count = day._smart_count(
+                "training.attendance", [("training_day_id", "=", day.id)])
+            for role in ("trainee", "supervisor", "trainer"):
+                day["%s_response_count" % role] = day._smart_count(
+                    "survey.user_input",
+                    day._responses_domain("training_day_id", role))
+
+    def action_open_attendance(self):
+        return self._smart_action(
+            _("Attendance Records"), "training.attendance",
+            [("training_day_id", "=", self.id)],
+            context={"default_training_day_id": self.id})
+
+    def _open_responses(self, name, role):
+        return self._smart_action(
+            name, "survey.user_input",
+            self._responses_domain("training_day_id", role),
+            context={"create": False})
+
+    def action_open_trainee_responses(self):
+        return self._open_responses(_("Trainee Responses"), "trainee")
+
+    def action_open_supervisor_response(self):
+        return self._open_responses(_("Supervisor Evaluation"), "supervisor")
+
+    def action_open_trainer_responses(self):
+        return self._open_responses(_("Trainer Reports"), "trainer")
+
     @api.constrains("trainee_survey_id", "supervisor_survey_id", "trainer_survey_id")
     def _check_survey_roles(self):
         for day in self:
@@ -121,13 +192,53 @@ class TrainingDay(models.Model):
                         % {"field": field_name, "role": expected_role}
                     )
 
+    @api.constrains("supervisor_id", "trainer_ids")
+    def _check_assignments(self):
+        """M1 / SRS-PROG-003, ERD: the supervisor and the trainers of a day
+        are active users holding the matching operational role, and at
+        least one trainer is assigned."""
+        supervisor_group = self.env.ref("training_management.group_training_supervisor")
+        trainer_group = self.env.ref("training_management.group_training_trainer")
+        for day in self:
+            supervisor = day.supervisor_id
+            if not supervisor.active or supervisor_group not in supervisor.group_ids:
+                raise ValidationError(
+                    _("%s must be an active user with the Supervisor role.")
+                    % supervisor.display_name
+                )
+            if not day.trainer_ids:
+                raise ValidationError(
+                    _("At least one trainer must be assigned to the training "
+                      "day on %s.") % day.date
+                )
+            for trainer in day.trainer_ids:
+                if not trainer.active or trainer_group not in trainer.group_ids:
+                    raise ValidationError(
+                        _("%s must be an active user with the Trainer role.")
+                        % trainer.display_name
+                    )
+
+    @api.onchange("date", "course_id")
+    def _onchange_date_within_course(self):
+        """P9 / SRS-PROG-002: a warning (not a block) when the day falls
+        outside its course's dates."""
+        for day in self:
+            course = day.course_id
+            if course and day.date and not (course.start_date <= day.date <= course.end_date):
+                return {
+                    "warning": {
+                        "title": _("Date outside the course"),
+                        "message": _("The day's date is outside the course's dates."),
+                    }
+                }
+
     @api.constrains("start_datetime", "end_datetime")
     def _check_datetimes(self):
         for day in self:
             if day.end_datetime <= day.start_datetime:
                 raise ValidationError(
-                    "The end time must be after the start time for training "
-                    "day on %s." % day.date
+                    _("The end time must be after the start time for training "
+                      "day on %(date)s.") % {"date": day.date}
                 )
 
     @api.constrains("survey_open_at", "survey_close_at")
@@ -135,16 +246,17 @@ class TrainingDay(models.Model):
         for day in self:
             if day.survey_close_at <= day.survey_open_at:
                 raise ValidationError(
-                    "The survey close time must be after the survey open "
-                    "time for training day on %s." % day.date
+                    _("The survey close time must be after the survey open "
+                      "time for training day on %(date)s.") % {"date": day.date}
                 )
 
     def unlink(self):
         for day in self:
             if day.state != "planned":
                 raise UserError(
-                    "Only planned training days can be deleted. Archive or "
-                    "cancel the training day on %s instead." % day.date
+                    _("Only planned training days can be deleted. Archive or "
+                      "cancel the training day on %(date)s instead.")
+                    % {"date": day.date}
                 )
         return super().unlink()
 
@@ -190,13 +302,43 @@ class TrainingDay(models.Model):
                             "to_state": new_state,
                         }
                     )
+        # P4 / DEC-02: a day is postponed or cancelled only with a reason,
+        # and a postponed day is reopened only on a new date.
+        postponing = self.browse()
+        if new_state in ("postponed", "cancelled"):
+            for day in self:
+                if day.state == new_state:
+                    continue
+                reason = vals.get("status_reason", day.status_reason)
+                if not (reason or "").strip():
+                    raise UserError(
+                        _("A reason is required to postpone or cancel the "
+                          "training day on %s.") % day.date
+                    )
+            if new_state == "postponed":
+                postponing = self.filtered(lambda day: day.state != "postponed")
+        if new_state == "open":
+            for day in self.filtered(lambda d: d.state == "postponed"):
+                new_date = vals.get("date", day.date)
+                if str(new_date) == str(day.postponed_from_date):
+                    raise UserError(
+                        _("Set a new date before reopening the postponed "
+                          "training day (currently %s).") % day.date
+                    )
         reopened = self.browse()
         closed = self.browse()
         if new_state == "open":
             reopened = self.filtered(lambda day: day.state == "closed")
         elif new_state == "closed":
             closed = self.filtered(lambda day: day.state != "closed")
+        postponed_from = {day.id: day.date for day in postponing}
         result = super().write(vals)
+        if new_state == "open":
+            self._check_surveys_have_questions()
+        for day in postponing:
+            super(TrainingDay, day).write(
+                {"postponed_from_date": postponed_from[day.id]}
+            )
         # PROJECT_SPEC section 17: exceptional reopen of a training day
         # is audit-worthy. Logged here (not only in action_reopen) so a
         # statusbar click or a direct write({'state': 'open'}) on a
@@ -291,7 +433,7 @@ class TrainingDay(models.Model):
             raise UserError(_("Unknown survey role: %s") % role)
         return self[field_name]
 
-    def _check_role_ownership(self, role, user):
+    def _check_role_ownership(self, role, user, require_active_enrollment=True):
         """Raise AccessError/UserError if ``user`` is not the intended
         respondent for ``role`` on this day. Deliberately does NOT check
         day state / survey window / existing-final-response -- only
@@ -304,20 +446,25 @@ class TrainingDay(models.Model):
         """
         self.ensure_one()
         if role == "trainee":
+            # D2 / DEC-07: only an ACTIVE enrollment gives access to a
+            # day's survey; inactive or completed enrollees keep only the
+            # read-back of what they already submitted
+            # (require_active_enrollment=False).
+            domain = [
+                ("program_id", "=", self.course_id.program_id.id),
+                ("partner_id", "=", user.partner_id.id),
+            ]
+            if require_active_enrollment:
+                domain.append(("state", "=", "active"))
             enrollment = (
                 self.env["training.enrollment"]
                 .with_user(user)
-                .search(
-                    [
-                        ("program_id", "=", self.course_id.program_id.id),
-                        ("partner_id", "=", user.partner_id.id),
-                    ],
-                    limit=1,
-                )
+                .search(domain, limit=1)
             )
             if not enrollment:
                 raise AccessError(
-                    _("You are not enrolled in this training day's program.")
+                    _("You are not actively enrolled in this training "
+                      "day's program.")
                 )
         elif role == "supervisor":
             if self.supervisor_id != user:
@@ -333,7 +480,7 @@ class TrainingDay(models.Model):
         else:
             raise UserError(_("Unknown survey role: %s") % role)
 
-    def get_survey_definition_dto(self, role, user=None):
+    def get_survey_definition_dto(self, role, user=None, require_active_enrollment=True):
         """Read-only survey definition (M4 point 10): ownership is
         checked, but not day state / survey window -- a trainee/
         supervisor/trainer may look at a survey's questions before it
@@ -346,7 +493,9 @@ class TrainingDay(models.Model):
             raise UserError(
                 _("No %s survey is configured for this training day.") % role
             )
-        day._check_role_ownership(role, user)
+        day._check_role_ownership(
+            role, user, require_active_enrollment=require_active_enrollment
+        )
         return survey.with_user(user)._get_definition_dto()
 
     def check_survey_access(self, role, user=None):
@@ -538,6 +687,41 @@ class TrainingDay(models.Model):
             response.write({"state": "in_progress"})
         return response
 
+    def get_trainee_submitted_response_dto(self, user=None):
+        """Read-back of the caller's OWN final trainee response (OPD-01,
+        approved by the project owner): the survey definition plus the
+        saved answers, only once the response is submitted (state "done").
+        Ownership comes from the same checks every other trainee endpoint
+        uses -- the day record rule, enrolment (_check_role_ownership) and a
+        search scoped to the caller's own partner -- so another trainee's
+        response, or a draft, can never be returned. Read-only: nothing
+        here writes, and no edit path is introduced."""
+        self.ensure_one()
+        user = user or self.env.user
+        definition = self.get_survey_definition_dto(
+            "trainee", user=user, require_active_enrollment=False
+        )
+        existing = (
+            self.env["survey.user_input"]
+            .with_user(user)
+            .search(
+                [
+                    ("training_day_id", "=", self.id),
+                    ("respondent_role", "=", "trainee"),
+                    ("partner_id", "=", user.partner_id.id),
+                    ("state", "=", "done"),
+                ],
+                limit=1,
+            )
+        )
+        if not existing:
+            raise UserError(_("You have not submitted this survey yet."))
+        return {
+            "definition": definition,
+            "status": existing._get_status_dto(),
+            "answers": existing._get_answers_dto(),
+        }
+
     def get_trainer_report_dto(self, role, user=None):
         """Combined definition + current status/answers for roles whose
         single GET endpoint must support resuming a draft (trainer)."""
@@ -555,27 +739,95 @@ class TrainingDay(models.Model):
             answers = response._get_answers_dto()
         return {"definition": definition, "status": status, "answers": answers}
 
+    @api.model
+    def _assigned_days_domain(self, role, user):
+        """Days assigned to ``user`` in ``role``: the supervisor's own days,
+        the trainer's own days, or the days of the trainee's program. Applied
+        by the role listings on top of the M1 record rules, so a listing is
+        scoped to the logged-in user even for an account that holds more
+        than one group (record rules of several groups are OR-ed)."""
+        if role == "supervisor":
+            return [("supervisor_id", "=", user.id)]
+        if role == "trainer":
+            return [("trainer_ids", "in", [user.id])]
+        if role == "trainee":
+            return [
+                ("course_id.program_id.enrollment_ids.partner_id", "=", user.partner_id.id)
+            ]
+        raise UserError(_("Unknown role: %s") % role)
+
+    def _assigned_days(self, role, user):
+        return self.with_user(user).search(
+            self._assigned_days_domain(role, user),
+            order="date desc, start_datetime desc",
+        )
+
     def get_dashboard(self, role, user=None):
-        """Dashboard listing for ``role``: every training.day accessible
-        to ``user``, scoped entirely by the M1 record rules on
-        training.day (no duplicate ownership filtering here)."""
+        """Dashboard listing for ``role``: the training days assigned to
+        ``user`` in that role, scoped by the M1 record rules and, explicitly,
+        by _assigned_days_domain()."""
         user = user or self.env.user
-        days = self.with_user(user).search([], order="date desc, start_datetime desc")
+        days = self._assigned_days(role, user)
         return [day._build_dashboard_entry(role, user) for day in days]
 
-    def get_dashboard_summary(self, role, user=None):
+    def get_dashboard_summary(self, role, user=None, program_id=None):
         """Dashboard home aggregates (welcome/stat-card/next-session
-        blocks): the same ``days`` list get_dashboard() already returns,
-        plus a "current program" snapshot, plain counts derived from it,
-        and the nearest upcoming session -- all computed from data
-        already scoped by the M1 record rules, with no new stored KPI
-        and no formula duplicated out of training.analytics (M5 point
-        7/8). ``program``/``stats``/``next_session`` are None when the
-        user has no accessible training days at all, never a misleading
-        zeroed-out block.
+        blocks), scoped to ONE program: ``program_id`` when given, else the
+        user's current program (the one of the nearest upcoming, else most
+        recent, assigned day). ``days``, ``stats``, ``next_session`` and
+        ``program`` are all computed from that program's days only, out of
+        the days assigned to ``user`` (see _assigned_days_domain), so a
+        program the user has no assigned day in is refused, never shown.
+        ``programs`` lists every program the user has assigned days in (the
+        header's program selector). Plain counts derived from the days; no
+        stored KPI and no formula duplicated out of training.analytics (M5
+        point 7/8). Everything is None/empty when the user has no assigned
+        days at all, never a misleading zeroed-out block.
         """
         user = user or self.env.user
-        days = self.with_user(user).search([], order="date desc, start_datetime desc")
+        all_days = self._assigned_days(role, user)
+
+        programs = []
+        for program in all_days.mapped("course_id.program_id").sorted(
+            key=lambda p: (p.start_date or fields.Date.today(), p.id), reverse=True
+        ):
+            programs.append(
+                {
+                    "id": program.id,
+                    "name": program.name,
+                    "start_date": fields.Date.to_string(program.start_date),
+                    "end_date": fields.Date.to_string(program.end_date),
+                    "state": program.state,
+                }
+            )
+
+        today = fields.Date.context_today(self)
+
+        def nearest(days):
+            # `days` is ordered date desc, so the nearest upcoming day is
+            # the LAST upcoming element, not the first.
+            upcoming = days.filtered(
+                lambda d: d.state in ("planned", "open") and d.date and d.date >= today
+            )
+            return (upcoming[-1] if upcoming else days[0]), upcoming
+
+        selected = None
+        if program_id:
+            selected = all_days.mapped("course_id.program_id").filtered(
+                lambda p: p.id == program_id
+            )
+            if not selected:
+                raise AccessError(
+                    _("You have no training days assigned in this program.")
+                )
+        elif all_days:
+            selected = nearest(all_days)[0].course_id.program_id
+
+        days = (
+            all_days.filtered(lambda d: d.course_id.program_id == selected)
+            if selected
+            else all_days.browse()
+        )
         entries = [day._build_dashboard_entry(role, user) for day in days]
 
         program = None
@@ -583,43 +835,25 @@ class TrainingDay(models.Model):
         next_session = None
 
         if days:
-            today = fields.Date.context_today(self)
-            # `days` is ordered date desc, so within the filtered subset
-            # the nearest upcoming day is the LAST element, not the first.
-            upcoming = days.filtered(
-                lambda d: d.state in ("planned", "open") and d.date and d.date >= today
-            )
-            current_day = upcoming[-1] if upcoming else days[0]
-            current_program = current_day.course_id.program_id
-
-            if current_program:
-                program_days = days.filtered(
-                    lambda d: d.course_id.program_id.id == current_program.id
-                )
-                training_days_count = len(program_days)
-                closed_count = len(
-                    program_days.filtered(lambda d: d.state == "closed")
-                )
-                training_hours = program_days._get_training_hours()
-                stats = {
-                    "courses_count": len(program_days.mapped("course_id")),
-                    "training_days_count": training_days_count,
-                    "training_hours": round(training_hours, 1),
-                    "progress_percent": (
-                        round((closed_count / training_days_count) * 100.0, 1)
-                        if training_days_count
-                        else None
-                    ),
-                }
-                program = {
-                    "id": current_program.id,
-                    "name": current_program.name,
-                    "start_date": fields.Date.to_string(current_program.start_date),
-                    "end_date": fields.Date.to_string(current_program.end_date),
-                    "state": current_program.state,
-                    "courses": program_days._get_dashboard_courses(),
-                }
-
+            current_day, upcoming = nearest(days)
+            training_days_count = len(days)
+            closed_count = len(days.filtered(lambda d: d.state == "closed"))
+            stats = {
+                "courses_count": len(days.mapped("course_id")),
+                "training_days_count": training_days_count,
+                "training_hours": round(days._get_training_hours(), 1),
+                "progress_percent": round(
+                    (closed_count / training_days_count) * 100.0, 1
+                ),
+            }
+            program = {
+                "id": selected.id,
+                "name": selected.name,
+                "start_date": fields.Date.to_string(selected.start_date),
+                "end_date": fields.Date.to_string(selected.end_date),
+                "state": selected.state,
+                "courses": days._get_dashboard_courses(),
+            }
             if upcoming:
                 # _build_dashboard_entry() already carries `trainers`.
                 next_session = current_day._build_dashboard_entry(role, user)
@@ -627,6 +861,7 @@ class TrainingDay(models.Model):
         return {
             "days": entries,
             "program": program,
+            "programs": programs,
             "stats": stats,
             "next_session": next_session,
         }
@@ -699,6 +934,7 @@ class TrainingDay(models.Model):
             "course_id": self.course_id.id,
             "program_id": self.course_id.program_id.id,
             "date": fields.Date.to_string(self.date) if self.date else None,
+            "topic": self.topic or None,
             "course_name": self.course_id.name,
             "program_name": self.course_id.program_id.name,
             "start_datetime": (

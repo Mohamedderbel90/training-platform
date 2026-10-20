@@ -18,7 +18,41 @@
         <field name="model">training.program</field>
         <field name="arch" type="xml">
             <form string="Training Program">
+                <header>
+                    <button name="action_activate" string="Activate" type="object"
+                            class="btn-primary" invisible="state != 'draft'"
+                            groups="training_management.group_training_admin"/>
+                    <button name="action_complete" string="Complete" type="object"
+                            class="btn-primary" invisible="state != 'active'"
+                            groups="training_management.group_training_admin"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state not in ('draft', 'active')"
+                            confirm="Cancelling a program is final. Continue?"
+                            groups="training_management.group_training_admin"/>
+                </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_courses" type="object" class="oe_stat_button" icon="fa-book"
+                                groups="training_management.group_training_admin">
+                            <field name="course_count" widget="statinfo" string="Courses"/>
+                        </button>
+                        <button name="action_open_days" type="object" class="oe_stat_button" icon="fa-calendar"
+                                groups="training_management.group_training_admin">
+                            <field name="day_count" widget="statinfo" string="Training Days"/>
+                        </button>
+                        <button name="action_open_enrollments" type="object" class="oe_stat_button" icon="fa-users"
+                                groups="training_management.group_training_admin">
+                            <field name="enrollment_count" widget="statinfo" string="Participants"/>
+                        </button>
+                        <button name="action_open_attendance" type="object" class="oe_stat_button" icon="fa-check-square-o"
+                                groups="training_management.group_training_admin">
+                            <field name="attendance_count" widget="statinfo" string="Attendance"/>
+                        </button>
+                        <button name="action_open_responses" type="object" class="oe_stat_button" icon="fa-star-o"
+                                groups="training_management.group_training_admin">
+                            <field name="response_count" widget="statinfo" string="Evaluations"/>
+                        </button>
+                    </div>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
                             invisible="active"/>
                     <group>

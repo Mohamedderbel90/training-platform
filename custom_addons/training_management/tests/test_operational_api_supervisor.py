@@ -46,6 +46,51 @@ class TestOperationalApiSupervisor(OperationalApiCase):
         )
         self.assertEqual(count, 1)
 
+    def test_rejected_attendance_request_stores_nothing(self):
+        """A request answered with a validation error must not leave any
+        of its writes behind (negative late minutes were stored although
+        the API answered 422)."""
+        self.authenticate("opapi_supervisor", "Test1234!")
+        url = "/training-days/%d/attendance" % self.day.id
+        ok = self.api_put(url, {"items": [{"trainee_id": self.enrollment.id, "status": "present"}]})
+        self.assertEqual(ok.status_code, 200)
+        bad = self.api_put(
+            url,
+            {"items": [{"trainee_id": self.enrollment.id, "status": "late", "late_minutes": -5}]},
+        )
+        self.assertEqual(bad.status_code, 422)
+        record = self.env["training.attendance"].search(
+            [("training_day_id", "=", self.day.id), ("enrollment_id", "=", self.enrollment.id)]
+        )
+        self.assertEqual((record.status, record.late_minutes), ("present", 0))
+
+    def test_put_attendance_rejected_once_day_closed(self):
+        """OPD-12: attendance edits must close once the day reaches a
+        final state, mirroring the day-state gate already enforced for
+        survey submission."""
+        self.authenticate("opapi_supervisor", "Test1234!")
+        self.day.action_close()
+        resp = self.api_put(
+            "/training-days/%d/attendance" % self.day.id,
+            {"items": [{"trainee_id": self.enrollment.id, "status": "present"}]},
+        )
+        self.assertEqual(resp.status_code, 400)
+
+    def test_get_attendance_allowed_after_day_closed(self):
+        """Closing the day must not prevent viewing previously recorded
+        attendance -- only saving/editing is locked."""
+        self.authenticate("opapi_supervisor", "Test1234!")
+        put_resp = self.api_put(
+            "/training-days/%d/attendance" % self.day.id,
+            {"items": [{"trainee_id": self.enrollment.id, "status": "present"}]},
+        )
+        self.assertEqual(put_resp.status_code, 200)
+        self.day.action_close()
+        get_resp = self.api_get("/training-days/%d/attendance" % self.day.id)
+        self.assertEqual(get_resp.status_code, 200)
+        items = {item["trainee_id"]: item for item in get_resp.json()["data"]["items"]}
+        self.assertEqual(items[self.enrollment.id]["status"], "present")
+
     def test_put_attendance_rejects_foreign_enrollment(self):
         self.authenticate("opapi_supervisor", "Test1234!")
         foreign_enrollment = self.env["training.enrollment"].create(

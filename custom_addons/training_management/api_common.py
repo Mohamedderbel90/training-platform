@@ -117,6 +117,25 @@ _HTTP_STATUS_TO_CODE = {
 # message and losing the useful ones. The replacement text is
 # translated at the point of use (build_error_response), never at
 # import time, so it picks up the current request's language.
+#
+# The exact same problem exists for MissingError: Odoo's ORM raises it
+# with a hard-coded two-line message whenever a lazy field read finds
+# the row gone (odoo/orm/fields.py / fields_relational.py --
+# `"\n".join(["Record does not exist or has been deleted.", "(Record:
+# %(record)s, User: %(user)s)"])`) -- e.g. "(Record: training.day
+# (999999,), User: 5)". That leaks the internal model name, an ORM
+# tuple repr, and the internal numeric user id straight into a
+# NOT_FOUND response body (verified live: every day-scoped endpoint
+# that does `request.env["training.day"].browse(day_id)` without an
+# explicit `.exists()` check -- attendance, the trainee/supervisor/
+# trainer survey and trainer-report endpoints -- hits this the moment
+# any model method underneath does a plain field read on a nonexistent
+# day). This project's OWN explicit MissingError raises (e.g.
+# training.day.get_dashboard_day()'s "Training day not found.") are
+# short, single-line, and already clean, so the same length/newline
+# heuristic -- rather than a blanket replacement -- is reused here too:
+# it catches the ORM's own default message without double-wrapping an
+# already-clean one.
 _MAX_VERBATIM_ACCESS_ERROR_LENGTH = 200
 
 
@@ -216,10 +235,14 @@ def build_error_response(exc, request_id=None):
     for exc_cls, status, code in _ERROR_MAP:
         if isinstance(exc, exc_cls):
             message = str(exc)
-            if code == "FORBIDDEN" and (
+            if code in ("FORBIDDEN", "NOT_FOUND") and (
                 "\n" in message or len(message) > _MAX_VERBATIM_ACCESS_ERROR_LENGTH
             ):
-                message = _("You do not have permission to access this resource.")
+                message = (
+                    _("You do not have permission to access this resource.")
+                    if code == "FORBIDDEN"
+                    else _("Record not found.")
+                )
             return api_error_response(code, message, status, request_id=request_id)
     _logger.exception(
         "Unhandled error in operational API (request_id=%s)", request_id
@@ -230,6 +253,17 @@ def build_error_response(exc, request_id=None):
         500,
         request_id=request_id,
     )
+
+
+def _rollback_failed_request():
+    """Discard everything the failed request wrote. The error is turned into
+    a normal HTTP response here, so Odoo would otherwise commit the writes
+    made before the exception (e.g. a bulk save whose constraint failed on
+    flush would still persist the rejected value)."""
+    try:
+        request.env.cr.rollback()
+    except Exception:  # noqa: BLE001 -- never mask the original error
+        _logger.exception("Could not roll back a failed operational API request")
 
 
 def handle_api_errors(func):
@@ -246,6 +280,7 @@ def handle_api_errors(func):
         try:
             return func(self, *args, request_id=request_id, **kwargs)
         except Exception as exc:  # noqa: BLE001 -- single, documented catch-all boundary
+            _rollback_failed_request()
             return build_error_response(exc, request_id=request_id)
 
     return wrapped

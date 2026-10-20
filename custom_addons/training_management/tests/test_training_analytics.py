@@ -3,6 +3,7 @@ from datetime import timedelta
 from odoo import fields
 from odoo.exceptions import AccessError
 from odoo.tests.common import TransactionCase, tagged
+from .fixtures import day_supervisor, day_trainer
 
 
 @tagged("post_install", "-at_install", "training_management_analytics")
@@ -114,8 +115,8 @@ class TestTrainingAnalytics(TransactionCase):
             "date": fields.Date.today(),
             "start_datetime": now - timedelta(hours=2),
             "end_datetime": now + timedelta(hours=2),
-            "supervisor_id": self.admin.id,
-            "trainer_ids": [(6, 0, [self.admin.id])],
+            "supervisor_id": day_supervisor(self.env).id,
+            "trainer_ids": [(6, 0, [day_trainer(self.env).id])],
             "survey_open_at": now - timedelta(hours=1),
             "survey_close_at": now + timedelta(hours=1),
         }

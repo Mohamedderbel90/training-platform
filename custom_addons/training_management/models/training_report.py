@@ -1,5 +1,7 @@
 import base64
 import io
+import re
+from collections import Counter, OrderedDict
 
 import xlsxwriter
 
@@ -22,6 +24,9 @@ FILTER_FIELDS = {
     "show_environment_score",
     "show_attendance",
     "show_response_rate",
+    "show_summary",
+    "show_comparison",
+    "show_comments",
 }
 
 # Attachment pointers are system-managed (set only by _render_report_pdf()/
@@ -92,6 +97,23 @@ class TrainingReport(models.Model):
     show_environment_score = fields.Boolean(default=True)
     show_attendance = fields.Boolean(default=True)
     show_response_rate = fields.Boolean(default=True)
+    # DEC-23: BRD 11.1/11.2 narrative sections. Each can be hidden before
+    # export (FR-064).
+    show_summary = fields.Boolean(
+        string="Executive Summary", default=True,
+        help="Training days covered, highest indicators (strengths) and "
+        "lowest indicators (opportunities).",
+    )
+    show_comparison = fields.Boolean(
+        string="Comparison and Trend", default=True,
+        help="Day comparison and trend for a course report; course "
+        "comparison and trend for a program report.",
+    )
+    show_comments = fields.Boolean(
+        string="Notes and Recommendations", default=True,
+        help="Free-text answers of the supervisor, trainers and trainees "
+        "(without identity) and repeated comments.",
+    )
 
     # ---- KPI snapshot, computed once at action_generate() time and never
     # recomputed live. A companion "*_has_data" boolean is used everywhere
@@ -105,6 +127,15 @@ class TrainingReport(models.Model):
     kpi_content_score_has_data = fields.Boolean(readonly=True)
     kpi_environment_score = fields.Float(string="Environment Score", readonly=True)
     kpi_environment_score_has_data = fields.Boolean(readonly=True)
+    # DEC-21: environment is two separate indicators; kpi_environment_score
+    # above is the trainees' indicator, this one the supervisor's.
+    kpi_environment_supervisor_score = fields.Float(
+        string="Training Environment Score (Supervisor)", readonly=True
+    )
+    kpi_environment_supervisor_score_has_data = fields.Boolean(readonly=True)
+    # DEC-23 snapshot of the narrative/comparison sections, computed once
+    # at generation time like every other figure (null-safe, never live).
+    narrative_json = fields.Json(readonly=True, copy=False)
 
     present_count = fields.Integer(readonly=True)
     late_count = fields.Integer(readonly=True)
@@ -168,8 +199,7 @@ class TrainingReport(models.Model):
         # Approval/generation are workflow transitions (action_generate /
         # action_approve, audited in write()); a report can never be
         # *created* already generated/approved or with approval stamps,
-        # which would forge an approved report for an Assistant Admin
-        # (who holds create ACL) without the audit trail.
+        # which would forge an approved report without the audit trail.
         if not self.env.su:
             for vals in vals_list:
                 if (
@@ -187,10 +217,10 @@ class TrainingReport(models.Model):
         if vals.get("state") == "approved":
             approving = self.filtered(lambda report: report.state != "approved")
         if approving and not self.env.su:
-            # PROJECT_SPEC section 7.2/15: only the General Supervisor
+            # PROJECT_SPEC section 7.1/15: only the General Supervisor
             # approves. Enforced on the write itself, not just in
-            # action_approve(), so an Assistant Admin (who has write ACL
-            # on this model) cannot set state='approved' directly.
+            # action_approve(), so no other user can set state='approved'
+            # directly.
             if not self.env.user.has_group(
                 "training_management.group_training_admin"
             ):
@@ -278,6 +308,9 @@ class TrainingReport(models.Model):
                 "kpi_content_score_has_data": False,
                 "kpi_environment_score": 0.0,
                 "kpi_environment_score_has_data": False,
+                "kpi_environment_supervisor_score": 0.0,
+                "kpi_environment_supervisor_score_has_data": False,
+                "narrative_json": False,
                 "present_count": 0,
                 "late_count": 0,
                 "absent_count": 0,
@@ -323,10 +356,165 @@ class TrainingReport(models.Model):
         return {"program": self.program_id}
 
     # ------------------------------------------------------------------
+    # Narrative / comparison sections (DEC-23, BRD 11.1 and 11.2)
+    # ------------------------------------------------------------------
+
+    NARRATIVE_KPI_KEYS = (
+        "trainer_performance",
+        "content",
+        "environment",
+        "environment_supervisor",
+    )
+
+    def _narrative_labels(self):
+        return {
+            "trainer_performance": _("Trainer Score"),
+            "content": _("Content Score"),
+            "environment": _("Training Environment Score (Trainees)"),
+            "environment_supervisor": _("Training Environment Score (Supervisor)"),
+            "attendance_rate": _("Attendance Rate (%)"),
+        }
+
+    def _narrative_role_label(self, role):
+        return {
+            "trainee": _("Trainees (anonymous)"),
+            "supervisor": _("Supervisor"),
+            "trainer": _("Trainers"),
+        }.get(role, role or "-")
+
+    def _period_figures(self, analytics, label, date_from, date_to, scope):
+        return analytics.get_period_figures(label, date_from, date_to, scope)
+
+    @staticmethod
+    def _trend(values):
+        """Last period minus first period among periods that have data
+        (DEC-20); None when fewer than two periods have data."""
+        present = [v for v in values if v is not None]
+        if len(present) < 2:
+            return None
+        return round(present[-1] - present[0], 2)
+
+    def _collect_comments(self, analytics, days):
+        """Free-text answers of final responses, grouped by respondent
+        role and question; no identity is read or stored (DEC-15)."""
+        responses = analytics._survey_input_model().search(
+            [("training_day_id", "in", days.ids), ("state", "=", "done")]
+        )
+        groups = OrderedDict()
+        all_texts = []
+        for response in responses.sorted("id"):
+            for line in response.user_input_line_ids:
+                if line.skipped:
+                    continue
+                if line.answer_type == "char_box":
+                    text = line.value_char_box
+                elif line.answer_type == "text_box":
+                    text = line.value_text_box
+                else:
+                    continue
+                text = (text or "").strip()
+                if not text:
+                    continue
+                key = (response.respondent_role or "", line.question_id.title or "")
+                groups.setdefault(key, []).append(text)
+                all_texts.append(text)
+        normalized = Counter(
+            re.sub(r"\s+", " ", text).strip().lower() for text in all_texts
+        )
+        first_seen = {}
+        for text in all_texts:
+            first_seen.setdefault(re.sub(r"\s+", " ", text).strip().lower(), text)
+        repeated = [
+            {"text": first_seen[norm], "count": count}
+            for norm, count in normalized.most_common()
+            if count >= 2
+        ]
+        return {
+            "withheld": False,
+            "groups": [
+                {"role": role, "question": question, "answers": answers}
+                for (role, question), answers in groups.items()
+            ],
+            "repeated": repeated,
+        }
+
+    def _build_narrative(self, date_from, date_to, overall):
+        """Snapshot for the BRD 11.1/11.2 sections. ``overall`` carries the
+        already-computed report-level indicators (value or None)."""
+        self.ensure_one()
+        analytics = self.env["training.analytics"]
+        scope = self._get_scope_kwargs()
+        days = analytics._resolve_days(date_from=date_from, date_to=date_to, **scope)
+
+        if self.report_type == "course":
+            kind = "day"
+            periods = [
+                self._period_figures(
+                    analytics, fields.Date.to_string(day.date), None, None, {"day": day}
+                )
+                for day in days.sorted(lambda d: (d.date, d.id))
+            ]
+        else:
+            kind = "course"
+            periods = [
+                self._period_figures(
+                    analytics, course.name, date_from, date_to, {"course": course}
+                )
+                for course in self.program_id.course_ids.sorted(
+                    lambda c: (c.sequence, c.start_date, c.id)
+                )
+            ]
+
+        available = [
+            (key, overall[key]) for key in self.NARRATIVE_KPI_KEYS
+            if overall.get(key) is not None
+        ]
+        highlights = {"highest": None, "lowest": None}
+        if len(available) >= 2:
+            highest = max(available, key=lambda kv: kv[1])
+            lowest = min(available, key=lambda kv: kv[1])
+            highlights = {
+                "highest": {"key": highest[0], "value": round(highest[1], 2)},
+                "lowest": {"key": lowest[0], "value": round(lowest[1], 2)},
+            }
+
+        # Comments are individual trainee detail territory (BR-008, D-14):
+        # only the General Supervisor's generation collects them.
+        can_read_comments = self.env.su or self.env.user.has_group(
+            "training_management.group_training_admin"
+        )
+        if can_read_comments:
+            comments = self._collect_comments(analytics, days)
+        else:
+            comments = {"withheld": True, "groups": [], "repeated": []}
+
+        return {
+            "days_count": len(days),
+            "highlights": highlights,
+            "comparison": {"kind": kind, "rows": periods},
+            "trend": {
+                key: self._trend([row[key] for row in periods])
+                for key in self.NARRATIVE_KPI_KEYS + ("attendance_rate",)
+            },
+            "comments": comments,
+        }
+
+    # ------------------------------------------------------------------
     # Generation / approval workflow
     # ------------------------------------------------------------------
 
+    def _check_general_supervisor(self):
+        """DEC-15: reports are produced and exported by the General
+        Supervisor only."""
+        if not self.env.su and not self.env.user.has_group(
+            "training_management.group_training_admin"
+        ):
+            raise AccessError(
+                _("Only the General Supervisor can generate or export reports.")
+            )
+
     def action_generate(self):
+        self._check_general_supervisor()
         analytics = self.env["training.analytics"]
         for report in self:
             if report.state == "approved":
@@ -350,7 +538,14 @@ class TrainingReport(models.Model):
 
             trainer_score = kpi.get("trainer_performance")
             content_score = kpi.get("content")
-            environment_score = kpi.get("environment")
+            environment_score = analytics.get_kpi(
+                date_from=date_from, date_to=date_to, categories=("environment",),
+                respondent_role="trainee", **scope
+            )["environment"]
+            environment_supervisor_score = analytics.get_kpi(
+                date_from=date_from, date_to=date_to, categories=("environment",),
+                respondent_role="supervisor", **scope
+            )["environment"]
 
             report.write(
                 {
@@ -364,6 +559,21 @@ class TrainingReport(models.Model):
                     "kpi_content_score_has_data": content_score is not None,
                     "kpi_environment_score": environment_score or 0.0,
                     "kpi_environment_score_has_data": environment_score is not None,
+                    "kpi_environment_supervisor_score": environment_supervisor_score
+                    or 0.0,
+                    "kpi_environment_supervisor_score_has_data": (
+                        environment_supervisor_score is not None
+                    ),
+                    "narrative_json": report._build_narrative(
+                        date_from,
+                        date_to,
+                        {
+                            "trainer_performance": trainer_score,
+                            "content": content_score,
+                            "environment": environment_score,
+                            "environment_supervisor": environment_supervisor_score,
+                        },
+                    ),
                     "present_count": attendance["present_count"],
                     "late_count": attendance["late_count"],
                     "absent_count": attendance["absent_count"],
@@ -384,8 +594,7 @@ class TrainingReport(models.Model):
 
     def action_approve(self):
         if not self.env.user.has_group("training_management.group_training_admin"):
-            # PROJECT_SPEC section 7.2: Assistant Admin does not, by
-            # default, approve final reports.
+            # PROJECT_SPEC section 7.1: only the General Supervisor approves.
             raise AccessError(
                 _("Only the General Supervisor/Admin can approve a report.")
             )
@@ -456,9 +665,16 @@ class TrainingReport(models.Model):
                 self.show_content_score,
             ),
             (
-                _("Training Environment Score"),
+                _("Training Environment Score (Trainees)"),
                 self.kpi_environment_score
                 if self.kpi_environment_score_has_data
+                else None,
+                self.show_environment_score,
+            ),
+            (
+                _("Training Environment Score (Supervisor)"),
+                self.kpi_environment_supervisor_score
+                if self.kpi_environment_supervisor_score_has_data
                 else None,
                 self.show_environment_score,
             ),
@@ -484,8 +700,89 @@ class TrainingReport(models.Model):
             ),
         ]
 
+    def _write_narrative_to_sheet(self, sheet, bold, row):
+        """Same narrative sections as the PDF (DEC-23), same show/hide
+        toggles, written from the stored snapshot."""
+        nar = self.narrative_json or {}
+        labels = self._narrative_labels()
+        if self.show_summary and nar:
+            row += 1
+            sheet.write(row, 0, _("Executive Summary"), bold)
+            row += 1
+            sheet.write(row, 0, _("Training days covered"))
+            sheet.write(row, 1, nar.get("days_count", 0))
+            row += 1
+            for title, item in (
+                (_("Strength (highest indicator)"), nar["highlights"]["highest"]),
+                (_("Opportunity (lowest indicator)"), nar["highlights"]["lowest"]),
+            ):
+                if item:
+                    sheet.write(row, 0, title)
+                    sheet.write(
+                        row, 1, "%s: %s" % (labels[item["key"]], item["value"])
+                    )
+                    row += 1
+        if self.show_comparison and nar:
+            comparison = nar["comparison"]
+            row += 1
+            sheet.write(
+                row, 0,
+                _("Day Comparison") if comparison["kind"] == "day"
+                else _("Course Comparison"),
+                bold,
+            )
+            row += 1
+            keys = list(self.NARRATIVE_KPI_KEYS) + ["attendance_rate"]
+            sheet.write(row, 0, "", bold)
+            for col, key in enumerate(keys, start=1):
+                sheet.write(row, col, labels[key], bold)
+            row += 1
+            for period in comparison["rows"]:
+                sheet.write(row, 0, period["label"])
+                for col, key in enumerate(keys, start=1):
+                    value = period[key]
+                    sheet.write(
+                        row, col, round(value, 2) if value is not None else _("No data")
+                    )
+                row += 1
+            sheet.write(row, 0, _("Trend (last minus first)"), bold)
+            for col, key in enumerate(keys, start=1):
+                value = nar["trend"].get(key)
+                sheet.write(
+                    row, col, value if value is not None else _("No data")
+                )
+            row += 1
+        if self.show_comments and nar:
+            comments = nar["comments"]
+            row += 1
+            sheet.write(row, 0, _("Notes and Recommendations"), bold)
+            row += 1
+            if comments["withheld"]:
+                sheet.write(
+                    row, 0,
+                    _("Withheld: comments are collected only when the General "
+                      "Supervisor generates the report."),
+                )
+                row += 1
+            for group in comments["groups"]:
+                for answer in group["answers"]:
+                    sheet.write(row, 0, self._narrative_role_label(group["role"]))
+                    sheet.write(row, 1, group["question"])
+                    sheet.write(row, 2, answer)
+                    row += 1
+            if comments["repeated"]:
+                row += 1
+                sheet.write(row, 0, _("Repeated comments (identical wording)"), bold)
+                row += 1
+                for item in comments["repeated"]:
+                    sheet.write(row, 0, item["count"])
+                    sheet.write(row, 1, item["text"])
+                    row += 1
+        return row
+
     def action_export_excel(self):
         self.ensure_one()
+        self._check_general_supervisor()
         if self.state == "draft":
             raise UserError(_("Generate the report before exporting it."))
 
@@ -548,6 +845,8 @@ class TrainingReport(models.Model):
                 sheet.write(row, 0, label)
                 sheet.write(row, 1, value)
                 row += 1
+
+        row = self._write_narrative_to_sheet(sheet, bold, row)
 
         workbook.close()
         output.seek(0)

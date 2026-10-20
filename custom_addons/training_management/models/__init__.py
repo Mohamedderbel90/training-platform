@@ -1,3 +1,4 @@
+from . import training_smart_buttons  # noqa: F401
 from . import training_program  # noqa: F401
 from . import training_course  # noqa: F401
 from . import training_day  # noqa: F401
@@ -13,5 +14,9 @@ from . import training_report  # noqa: F401
 from . import training_notification  # noqa: F401
 from . import training_audit_log  # noqa: F401
 from . import res_config_settings  # noqa: F401
+from . import training_response_correction  # noqa: F401
+from . import training_dashboard  # noqa: F401
+from . import training_anonymise_wizard  # noqa: F401
 from . import res_users  # noqa: F401
+from . import res_partner  # noqa: F401
 from . import ir_http  # noqa: F401

@@ -13,7 +13,20 @@ EVENT_TYPES = [
     ("day_reopen", "Training Day Reopened"),
     ("report_approval", "Report Approved"),
     ("permission_change", "Permission/Role Change"),
+    # SRS section 6.11 / PROJECT_SPEC section 17: "exceptional
+    # administrative correction of final response/data". The corrective
+    # workflow is settled by DEC-11 (docs/DECISIONS.md): no dedicated
+    # state, a mandatory reason, before/after in the description. This
+    # event records that the one privileged path able to touch a
+    # finalized survey.user_input (self.env.su, see ADR-003) was used.
+    ("response_correction", "Final Survey Response Corrected"),
+    ("personal_data_anonymised", "Personal Data Anonymised"),
 ]
+
+# DEC-11: every administrative correction of a final response must carry
+# a reason, supplied through this context key (see
+# survey.user_input.action_correct_final_response()).
+CORRECTION_REASON_KEY = "correction_reason"
 
 
 class TrainingAuditLog(models.Model):
@@ -30,6 +43,7 @@ class TrainingAuditLog(models.Model):
         ondelete="restrict",
     )
     model_name = fields.Char(string="Model")
+    record_label = fields.Char(string="Record Type", compute="_compute_record_label")
     res_id = fields.Integer(string="Record ID")
     description = fields.Text()
 
@@ -49,7 +63,29 @@ class TrainingAuditLog(models.Model):
         raise UserError(_("Audit log entries cannot be deleted."))
 
     @api.model
+    def _correction_reason(self):
+        return (self.env.context.get(CORRECTION_REASON_KEY) or "").strip()
+
+    @api.model
+    def _require_correction_reason(self):
+        """DEC-11: a correction of a final response without a reason is
+        refused before anything is changed."""
+        reason = self._correction_reason()
+        if not reason:
+            raise UserError(
+                _("A reason is required to correct a final response.")
+            )
+        return reason
+
+    @api.model
     def _log(self, event_type, description, record=None):
+        if event_type == "response_correction":
+            reason = self._correction_reason()
+            if reason:
+                description = "%s %s" % (
+                    description,
+                    _("Reason: %s") % reason,
+                )
         vals = {
             "event_type": event_type,
             "description": description,
@@ -58,3 +94,16 @@ class TrainingAuditLog(models.Model):
             vals["model_name"] = record._name
             vals["res_id"] = record.id
         return self.sudo().create(vals)
+
+    @api.depends("model_name")
+    def _compute_record_label(self):
+        """Business label of the audited record, never the technical model."""
+        labels = {
+            "training.day": _("Training Day"),
+            "training.report": _("Report"),
+            "survey.user_input": _("Survey Response"),
+            "res.users": _("User Account"),
+            "res.partner": _("Participant"),
+        }
+        for entry in self:
+            entry.record_label = labels.get(entry.model_name, "") if entry.model_name else ""

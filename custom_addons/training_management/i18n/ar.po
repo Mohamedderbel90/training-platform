@@ -1,6 +1,3 @@
-# Translation of Odoo Server.
-# This file contains the translation of the following modules:
-# 	* training_management
 #
 msgid ""
 msgstr ""
@@ -22,7 +19,18 @@ msgstr ""
 msgid ""
 "\"%s\" already has submitted responses and cannot be deleted. Archive it "
 "instead."
-msgstr "\"%s\" لديها ردود مُرسلة بالفعل ولا يمكن حذفها. يرجى أرشفتها بدلاً من ذلك."
+msgstr ""
+"\"%s\" لديها ردود مُرسلة بالفعل ولا يمكن حذفها. يرجى أرشفتها بدلاً من ذلك."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_question_answer.py:0
+msgid ""
+"\"%s\" already has submitted responses; its answer options cannot be "
+"changed. Clone the survey as a new version instead."
+msgstr ""
+"\"%s\" لديه ردود مُرسلة؛ لا يمكن تغيير خيارات الإجابة فيه. انسخيه كنسخة "
+"جديدة بدلاً من ذلك."
 
 #. module: training_management
 #. odoo-python
@@ -30,7 +38,9 @@ msgstr "\"%s\" لديها ردود مُرسلة بالفعل ولا يمكن ح�
 msgid ""
 "\"%s\" already has submitted responses; its structure/ownership cannot be "
 "changed. Clone it as a new version instead."
-msgstr "\"%s\" لديها ردود مُرسلة بالفعل؛ لا يمكن تغيير بنيتها أو ملكيتها. يرجى استنساخها كنسخة جديدة بدلاً من ذلك."
+msgstr ""
+"\"%s\" لديها ردود مُرسلة بالفعل؛ لا يمكن تغيير بنيتها أو ملكيتها. يرجى "
+"استنساخها كنسخة جديدة بدلاً من ذلك."
 
 #. module: training_management
 #. odoo-python
@@ -47,7 +57,15 @@ msgid ""
 "\"%s\" belongs to a survey that already has submitted responses; its KPI "
 "category/question type cannot be changed. Clone the survey as a new version "
 "instead."
-msgstr "\"%s\" تابعة لاستبانة لديها ردود مُرسلة بالفعل؛ لا يمكن تغيير فئة المؤشر أو نوع السؤال. يرجى استنساخ الاستبانة كنسخة جديدة بدلاً من ذلك."
+msgstr ""
+"\"%s\" تابعة لاستبانة لديها ردود مُرسلة بالفعل؛ لا يمكن تغيير فئة المؤشر أو "
+"نوع السؤال. يرجى استنساخ الاستبانة كنسخة جديدة بدلاً من ذلك."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "%(base)s Report (v%(version)s)"
+msgstr "تقرير %(base)s (الإصدار %(version)s)"
 
 #. module: training_management
 #. odoo-python
@@ -57,15 +75,155 @@ msgstr "%(field)s يجب أن يشير إلى استبانة يكون فيها s
 
 #. module: training_management
 #. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "%(report)s was approved by %(user)s."
+msgstr "%(report)s تمت الموافقة عليه من قبل %(user)s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/res_users.py:0
+msgid ""
+"%(user)s can hold only one operational role (trainee, supervisor or "
+"trainer); found: %(roles)s."
+msgstr ""
+"يمكن للحساب %(user)s أن يحمل دوراً تشغيلياً واحداً فقط (متدربة أو مشرفة أو "
+"مدربة)؛ الموجود: %(roles)s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/res_users.py:0
+msgid ""
+"%(user)s's training roles were changed by %(actor)s: added %(added)s, "
+"removed %(removed)s."
+msgstr ""
+"%(actor)s قام بتغيير أدوار %(user)s التدريبية: أُضيف %(added)s، وأُزيل "
+"%(removed)s."
+
+#. module: training_management
+#. odoo-python
 #: code:addons/training_management/models/survey_survey.py:0
 msgid "%s (v%s)"
 msgstr "%s (إصدار %s)"
 
 #. module: training_management
 #. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid ""
+"%s has already been generated; its scope/filters cannot be changed in place."
+" Create a new version instead."
+msgstr ""
+"تم إنشاء %s مسبقاً؛ لا يمكن تغيير نطاقه أو عوامل التصفية فيه مباشرة. أنشئي "
+"نسخة جديدة بدلاً من ذلك."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid ""
+"%s is an approved report and is immutable. Create a new version instead of "
+"editing it."
+msgstr "%s تقرير معتمد ولا يمكن تعديله. أنشئي نسخة جديدة بدلاً من التعديل."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "%s is approved and immutable. Create a new version to regenerate it."
+msgstr "%s مُعتمد وغير قابل للتعديل. يرجى إنشاء نسخة جديدة لإعادة إنشائه."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "%s must be an active user with the Supervisor role."
+msgstr "يجب أن يكون %s مستخدماً فعّالاً بدور المشرفة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "%s must be an active user with the Trainer role."
+msgstr "يجب أن يكون %s مستخدماً فعّالاً بدور المدربة."
+
+#. module: training_management
+#: model:mail.template,body_html:training_management.mail_template_daily_task_reminder
+msgid ""
+"<div style=\"font-family: Arial, sans-serif; font-size: 14px; color: #333333;\">\n"
+"    <p>Dear <t t-out=\"object.partner_id.name or ''\">Trainee</t>,</p>\n"
+"    <p>\n"
+"        You have a pending task for\n"
+"        <strong><t t-out=\"object.training_day_id.course_id.name or ''\">Course</t></strong>\n"
+"        on <t t-out=\"object.training_day_id.date or ''\">Date</t>.\n"
+"    </p>\n"
+"    <p>Please complete it in the training portal as soon as possible.</p>\n"
+"</div>\n"
+"            "
+msgstr ""
+"<div style=\"font-family: Arial, sans-serif; font-size: 14px; color: "
+"#333333;\">    <p>عزيزي/عزيزتي <t t-out=\"object.partner_id.name or "
+"''\">المتدرب</t>،</p>    <p>        لديك مهمة معلقة في        <strong><t "
+"t-out=\"object.training_day_id.course_id.name or ''\">الدورة</t></strong>"
+"        بتاريخ <t t-out=\"object.training_day_id.date or ''\">التاريخ</t>."
+"    </p>    <p>يرجى إتمامها في بوابة التدريب في أقرب وقت ممكن.</p></div>"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_dashboard_form
+msgid "<span translation=\"off\">%</span>"
+msgstr "<span translation=\"off\">%</span>"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "<strong>Course</strong>"
+msgstr "<strong>الدورة</strong>"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "<strong>Opportunity (lowest indicator)</strong>"
+msgstr "<strong>فرصة تحسين (أدنى مؤشر)</strong>"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "<strong>Period</strong>"
+msgstr "<strong>الفترة</strong>"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "<strong>Program</strong>"
+msgstr "<strong>البرنامج</strong>"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "<strong>Strength (highest indicator)</strong>"
+msgstr "<strong>نقطة قوة (أعلى مؤشر)</strong>"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "<strong>Training days covered</strong>"
+msgstr "<strong>عدد الأيام التدريبية المشمولة</strong>"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "<strong>Trend (last minus first)</strong>"
+msgstr "<strong>الاتجاه (الأخير ناقص الأول)</strong>"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "<strong>Version</strong>"
+msgstr "<strong>الإصدار</strong>"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "A course report must reference a course."
+msgstr "يجب أن يشير تقرير الدورة إلى دورة."
+
+#. module: training_management
+#. odoo-python
 #: code:addons/training_management/models/training_day.py:0
 msgid "A final response has already been submitted for this training day."
 msgstr "تم إرسال رد نهائي بالفعل لهذا اليوم التدريبي."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "A final, submitted response cannot be changed here."
+msgstr "لا يمكن تغيير رد نهائي تم إرساله من هنا."
 
 #. module: training_management
 #. odoo-python
@@ -79,22 +237,237 @@ msgid "A participant can only be enrolled once per program."
 msgstr "لا يمكن تسجيل نفس المشارك أكثر من مرة في نفس البرنامج."
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/res_partner.py:0
+#: code:addons/training_management/models/training_anonymise_wizard.py:0
+msgid "A reason is required to anonymise a trainee."
+msgstr "السبب مطلوب لإخفاء هوية متدربة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+#: code:addons/training_management/models/training_audit_log.py:0
+#: code:addons/training_management/models/training_response_correction.py:0
+msgid "A reason is required to correct a final response."
+msgstr "السبب مطلوب لتصحيح رد نهائي."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "A reason is required to postpone or cancel the training day on %s."
+msgstr "السبب مطلوب لتأجيل اليوم التدريبي بتاريخ %s أو إلغائه."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "A report can only be created as a draft."
+msgstr "لا يمكن إنشاء التقرير إلا كمسودة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "A response can only be finalized by submitting it."
+msgstr "لا يصبح الرد نهائياً إلا بإرساله."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "A response cannot be attached to a training day."
+msgstr "لا يمكن ربط الرد بيوم تدريبي."
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__absence_rate
+#: model:ir.model.fields,field_description:training_management.field_training_report__absence_rate
+msgid "Absence Rate"
+msgstr "معدل الغياب"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Absence Rate (%)"
+msgstr "معدل الغياب (%)"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__absence_rate_has_data
+#: model:ir.model.fields,field_description:training_management.field_training_report__absence_rate_has_data
+msgid "Absence Rate Has Data"
+msgstr "معدل الغياب يحتوي على بيانات"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
 #: model:ir.model.fields.selection,name:training_management.selection__training_attendance__status__absent
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_attendance_search
 msgid "Absent"
 msgstr "غائب"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__absent_count
+msgid "Absent Count"
+msgstr "عدد الغائبين"
+
+#. module: training_management
+#: model:ir.model,name:training_management.model_res_groups
+msgid "Access Groups"
+msgstr "مجموعات الصلاحيات"
 
 #. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_training_course__active
 #: model:ir.model.fields,field_description:training_management.field_training_day__active
 #: model:ir.model.fields,field_description:training_management.field_training_enrollment__active
 #: model:ir.model.fields,field_description:training_management.field_training_program__active
+#: model:ir.model.fields,field_description:training_management.field_training_report__active
 #: model:ir.model.fields.selection,name:training_management.selection__training_enrollment__state__active
 #: model:ir.model.fields.selection,name:training_management.selection__training_program__state__active
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_enrollment_search
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_program_search
 msgid "Active"
 msgstr "نشط"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/res_partner.py:0
+msgid "Administrator accounts cannot be anonymised."
+msgstr "لا يمكن إخفاء هوية حسابات المسؤولين."
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid ""
+"Also send reminders by SMS. Without a configured provider SMS attempts are "
+"logged as failed, never as sent."
+msgstr ""
+"إرسال التذكيرات أيضاً عبر الرسائل القصيرة. بدون مزود مهيأ تُسجَّل المحاولات "
+"كفاشلة ولا تُسجَّل كمرسلة أبداً."
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid ""
+"Also send reminders by WhatsApp. No WhatsApp provider is available yet, so "
+"attempts are logged as failed."
+msgstr ""
+"إرسال التذكيرات أيضاً عبر واتساب. لا يتوفر مزود واتساب بعد، لذلك تُسجَّل "
+"المحاولات كفاشلة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid ""
+"An answer of the final response for training day %(day)s (%(role)s) was "
+"administratively modified by %(user)s."
+msgstr ""
+"عُدّلت إجابة في الرد النهائي لليوم التدريبي %(day)s (%(role)s) إدارياً "
+"بواسطة %(user)s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid ""
+"An answer was administratively added to the final response for training day "
+"%(day)s (%(role)s) by %(user)s."
+msgstr ""
+"أُضيفت إجابة إدارياً إلى الرد النهائي لليوم التدريبي %(day)s (%(role)s) "
+"بواسطة %(user)s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid ""
+"An answer was administratively removed from the final response for training "
+"day %(day)s (%(role)s) by %(user)s."
+msgstr ""
+"أُزيلت إجابة إدارياً من الرد النهائي لليوم التدريبي %(day)s (%(role)s) "
+"بواسطة %(user)s."
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_dashboard_form
+msgid ""
+"An indicator with no data is hidden, never shown as 0.\n"
+"                        Cancelled and postponed days are not counted."
+msgstr ""
+"المؤشر الذي لا توجد له بيانات يُخفى ولا يظهر صفراً أبداً.\n"
+"                        لا تُحتسب الأيام الملغاة والمؤجلة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/api_common.py:0
+msgid "An unexpected error occurred."
+msgstr "حدث خطأ غير متوقع."
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_anonymise_wizard_form
+msgid "Anonymise"
+msgstr "إخفاء الهوية"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_anonymise_wizard.py:0
+#: model:ir.actions.act_window,name:training_management.action_training_anonymise_enrollment
+#: model:ir.actions.act_window,name:training_management.action_training_anonymise_partner
+#: model:ir.model,name:training_management.model_training_anonymise_wizard
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_anonymise_wizard_form
+msgid "Anonymise Trainee"
+msgstr "إخفاء هوية متدربة"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/res_partner.py:0
+msgid "Anonymised trainee"
+msgstr "متدربة مجهولة الهوية"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction_line__answer_type
+msgid "Answer Type"
+msgstr "نوع الإجابة"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction__line_ids
+msgid "Answers"
+msgstr "الإجابات"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_response_correction_form
+msgid "Apply Correction"
+msgstr "تطبيق التصحيح"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
+msgid "Approval"
+msgstr "الاعتماد"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Approval details can only be set by approving the report."
+msgstr "لا تُحدَّد بيانات الاعتماد إلا باعتماد التقرير."
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
+msgid "Approve"
+msgstr "اعتماد"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_report__state__approved
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_search
+msgid "Approved"
+msgstr "مُعتمد"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__approved_by
+msgid "Approved By"
+msgstr "اعتمده"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__approved_date
+msgid "Approved Date"
+msgstr "تاريخ الاعتماد"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Approved by"
+msgstr "اعتمده"
 
 #. module: training_management
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_course_form
@@ -105,22 +478,57 @@ msgstr "نشط"
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_enrollment_search
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_program_form
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_program_search
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
 msgid "Archived"
 msgstr "مؤرشف"
 
 #. module: training_management
-#: model:res.groups,name:training_management.group_training_assistant_admin
-msgid "Assistant Admin"
-msgstr "مسؤول مساعد"
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "At least one trainer must be assigned to the training day on %s."
+msgstr "يجب إسناد مدربة واحدة على الأقل لليوم التدريبي بتاريخ %s."
 
 #. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_attendance_form
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_attendance_graph
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_attendance_pivot
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_course_form
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_day_form
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_program_form
 msgid "Attendance"
 msgstr "الحضور"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_course__attendance_count
+#: model:ir.model.fields,field_description:training_management.field_training_day__attendance_count
+#: model:ir.model.fields,field_description:training_management.field_training_program__attendance_count
+msgid "Attendance Count"
+msgstr "عدد سجلات الحضور"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__attendance_rate
+#: model:ir.model.fields,field_description:training_management.field_training_report__attendance_rate
+msgid "Attendance Rate"
+msgstr "معدل الحضور"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Attendance Rate (%)"
+msgstr "معدل الحضور (%)"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__attendance_rate_has_data
+#: model:ir.model.fields,field_description:training_management.field_training_report__attendance_rate_has_data
+msgid "Attendance Rate Has Data"
+msgstr "معدل الحضور يحتوي على بيانات"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_course.py:0
+#: code:addons/training_management/models/training_day.py:0
+#: code:addons/training_management/models/training_program.py:0
 #: model:ir.actions.act_window,name:training_management.action_training_attendance
 #: model:ir.model.fields,field_description:training_management.field_training_day__attendance_ids
 #: model:ir.model.fields,field_description:training_management.field_training_enrollment__attendance_ids
@@ -131,12 +539,65 @@ msgid "Attendance Records"
 msgstr "سجلات الحضور"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_attendance.py:0
+msgid "Attendance can only be recorded for an active enrollment."
+msgstr "لا يمكن تسجيل الحضور إلا لتسجيل فعّال."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_attendance.py:0
+msgid ""
+"Attendance of a training day that is not open is history and cannot be "
+"deleted."
+msgstr "حضور يوم تدريبي غير مفتوح سجل تاريخي ولا يمكن حذفه."
+
+#. module: training_management
+#: model:ir.actions.act_window,name:training_management.action_training_audit_log
+#: model:ir.ui.menu,name:training_management.menu_training_audit
+msgid "Audit"
+msgstr "التدقيق"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_audit_log_list
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_audit_log_search
+msgid "Audit Log"
+msgstr "سجل التدقيق"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_audit_log.py:0
+msgid "Audit log entries cannot be deleted."
+msgstr "لا يمكن حذف سجلات التدقيق."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_audit_log.py:0
+msgid "Audit log entries cannot be modified."
+msgstr "لا يمكن تعديل سجلات التدقيق."
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid ""
+"Automatically remind trainees, supervisors and trainers about pending daily "
+"tasks"
+msgstr "تذكير المتدربات والمشرفات والمدربات تلقائياً بالمهام اليومية المعلّقة"
+
+#. module: training_management
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_list
 msgid "Average Score"
 msgstr "متوسط النتيجة"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__body
+msgid "Body"
+msgstr "نص الرسالة"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_anonymise_wizard_form
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_form
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_response_correction_form
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_program_form
 msgid "Cancel"
 msgstr "إلغاء"
 
@@ -147,12 +608,19 @@ msgid "Cancelled"
 msgstr "ملغى"
 
 #. module: training_management
+#: model:ir.model.fields,help:training_management.field_training_dashboard__day_state
+msgid "Cancelled and postponed days are never counted (DEC-22)."
+msgstr "لا تُحتسب الأيام الملغاة والمؤجلة أبداً."
+
+#. module: training_management
 #. odoo-python
 #: code:addons/training_management/models/survey_question.py:0
 msgid ""
 "Cannot add a question to %s: it already has submitted responses. Clone it as"
 " a new version instead."
-msgstr "لا يمكن إضافة سؤال إلى %s: لديها ردود مُرسلة بالفعل. يرجى استنساخها كنسخة جديدة بدلاً من ذلك."
+msgstr ""
+"لا يمكن إضافة سؤال إلى %s: لديها ردود مُرسلة بالفعل. يرجى استنساخها كنسخة "
+"جديدة بدلاً من ذلك."
 
 #. module: training_management
 #. odoo-python
@@ -167,7 +635,9 @@ msgstr "لا يمكن إضافة إجابة إلى رد تم إرساله بال
 #: code:addons/training_management/models/training_day.py:0
 msgid ""
 "Cannot change training day on %(date)s from %(from_state)s to %(to_state)s."
-msgstr "لا يمكن تغيير اليوم التدريبي بتاريخ %(date)s من %(from_state)s إلى %(to_state)s."
+msgstr ""
+"لا يمكن تغيير اليوم التدريبي بتاريخ %(date)s من %(from_state)s إلى "
+"%(to_state)s."
 
 #. module: training_management
 #. odoo-python
@@ -175,13 +645,44 @@ msgstr "لا يمكن تغيير اليوم التدريبي بتاريخ %(date
 msgid ""
 "Cannot open training day on %(date)s from state %(state)s. Use Reopen for a "
 "closed day."
-msgstr "لا يمكن فتح اليوم التدريبي بتاريخ %(date)s من الحالة %(state)s. استخدم إعادة الفتح لليوم المغلق."
+msgstr ""
+"لا يمكن فتح اليوم التدريبي بتاريخ %(date)s من الحالة %(state)s. استخدم إعادة"
+" الفتح لليوم المغلق."
 
 #. module: training_management
 #. odoo-python
 #: code:addons/training_management/models/training_day.py:0
 msgid "Cannot reopen training day on %(date)s: it is %(state)s, not closed."
-msgstr "لا يمكن إعادة فتح اليوم التدريبي بتاريخ %(date)s: حالته %(state)s وليست مغلقة."
+msgstr ""
+"لا يمكن إعادة فتح اليوم التدريبي بتاريخ %(date)s: حالته %(state)s وليست "
+"مغلقة."
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__channel
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_search
+msgid "Channel"
+msgstr "القناة"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "Channel Fallback"
+msgstr "التبديل التلقائي بين القنوات"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_channel_order
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "Channel Order"
+msgstr "ترتيب القنوات"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "Channels"
+msgstr "القنوات"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction_line__option_id
+msgid "Choice"
+msgstr "الاختيار"
 
 #. module: training_management
 #: model_terms:ir.ui.view,arch_db:training_management.view_survey_survey_form_inherit_training
@@ -194,10 +695,28 @@ msgid "Close"
 msgstr "إغلاق"
 
 #. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_dashboard__day_state__closed
 #: model:ir.model.fields.selection,name:training_management.selection__training_day__state__closed
+#: model:ir.model.fields.selection,name:training_management.selection__training_survey_response_kpi__day_state__closed
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_search
 msgid "Closed"
 msgstr "مغلق"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_search
+msgid "Closed Days"
+msgstr "الأيام المغلقة"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__comparison_html
+msgid "Comparison Html"
+msgstr "جدول المقارنة"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__show_comparison
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_dashboard_form
+msgid "Comparison and Trend"
+msgstr "المقارنة والاتجاه"
 
 #. module: training_management
 #: model:ir.model.fields.selection,name:training_management.selection__training_enrollment__state__completed
@@ -207,6 +726,16 @@ msgid "Completed"
 msgstr "مكتمل"
 
 #. module: training_management
+#: model:ir.model,name:training_management.model_res_config_settings
+msgid "Config Settings"
+msgstr "إعدادات التهيئة"
+
+#. module: training_management
+#: model:ir.model,name:training_management.model_res_partner
+msgid "Contact"
+msgstr "جهة الاتصال"
+
+#. module: training_management
 #: model:ir.model.fields.selection,name:training_management.selection__survey_question__kpi_category__content
 #: model:ir.model.fields.selection,name:training_management.selection__training_survey_response_kpi__kpi_category__content
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_search
@@ -214,40 +743,135 @@ msgid "Content"
 msgstr "المحتوى"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__content_score
+#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_content_score
+msgid "Content Score"
+msgstr "درجة المحتوى"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__content_score_has_data
+msgid "Content Score Has Data"
+msgstr "مؤشر المحتوى له بيانات"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+#: code:addons/training_management/models/training_response_correction.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.view_survey_user_input_form_inherit_correction
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_response_correction_form
+msgid "Correct Final Response"
+msgstr "تصحيح رد نهائي"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
 #: model:ir.model.fields,field_description:training_management.field_survey_user_input__course_id
 #: model:ir.model.fields,field_description:training_management.field_training_attendance__course_id
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__course_id
 #: model:ir.model.fields,field_description:training_management.field_training_day__course_id
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__course_id
+#: model:ir.model.fields,field_description:training_management.field_training_report__course_id
 #: model:ir.model.fields,field_description:training_management.field_training_survey_response_kpi__course_id
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_attendance_search
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_search
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_search
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_search
 msgid "Course"
 msgstr "الدورة"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_course.py:0
+msgid ""
+"Course %s has training days linked to it (including archived ones) and "
+"cannot be deleted. Archive it instead."
+msgstr ""
+"الدورة %s مرتبطة بأيام تدريبية (بما فيها المؤرشفة) ولا يمكن حذفها. أرشفيها "
+"بدلاً من ذلك."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "Course Comparison"
+msgstr "مقارنة الدورات"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_program__course_count
+msgid "Course Count"
+msgstr "عدد الدورات"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_report__report_type__course
+msgid "Course Report"
+msgstr "تقرير الدورة"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_program.py:0
 #: model:ir.actions.act_window,name:training_management.action_training_course
 #: model:ir.model.fields,field_description:training_management.field_training_program__course_ids
 #: model:ir.ui.menu,name:training_management.menu_training_course
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_program_form
 msgid "Courses"
 msgstr "الدورات"
 
 #. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
+msgid "Create New Version"
+msgstr "إنشاء نسخة جديدة"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_anonymise_wizard__create_uid
 #: model:ir.model.fields,field_description:training_management.field_training_attendance__create_uid
+#: model:ir.model.fields,field_description:training_management.field_training_audit_log__create_uid
 #: model:ir.model.fields,field_description:training_management.field_training_course__create_uid
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__create_uid
 #: model:ir.model.fields,field_description:training_management.field_training_day__create_uid
 #: model:ir.model.fields,field_description:training_management.field_training_enrollment__create_uid
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__create_uid
 #: model:ir.model.fields,field_description:training_management.field_training_program__create_uid
+#: model:ir.model.fields,field_description:training_management.field_training_report__create_uid
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction__create_uid
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction_line__create_uid
 msgid "Created by"
 msgstr "أنشئ بواسطة"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_anonymise_wizard__create_date
 #: model:ir.model.fields,field_description:training_management.field_training_attendance__create_date
+#: model:ir.model.fields,field_description:training_management.field_training_audit_log__create_date
 #: model:ir.model.fields,field_description:training_management.field_training_course__create_date
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__create_date
 #: model:ir.model.fields,field_description:training_management.field_training_day__create_date
 #: model:ir.model.fields,field_description:training_management.field_training_enrollment__create_date
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__create_date
 #: model:ir.model.fields,field_description:training_management.field_training_program__create_date
+#: model:ir.model.fields,field_description:training_management.field_training_report__create_date
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction__create_date
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction_line__create_date
 msgid "Created on"
 msgstr "تاريخ الإنشاء"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__event_type__daily_task_reminder
+msgid "Daily Task Reminder"
+msgstr "تذكير بالمهمة اليومية"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "Daily Task Reminders"
+msgstr "تذكيرات المهام اليومية"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_dashboard.py:0
+#: model:ir.actions.act_window,name:training_management.action_training_dashboard
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_dashboard_form
+msgid "Dashboard"
+msgstr "لوحة المؤشرات"
 
 #. module: training_management
 #: model:ir.actions.act_window,name:training_management.action_training_survey_response_kpi
@@ -257,11 +881,72 @@ msgstr "لوحة المعلومات / التحليلات"
 
 #. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_training_day__date
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_audit_log_list
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_list
 msgid "Date"
 msgstr "التاريخ"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "Date outside the course"
+msgstr "تاريخ خارج الدورة"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_course.py:0
+msgid "Dates outside the program"
+msgstr "تواريخ خارج البرنامج"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "Day Comparison"
+msgstr "مقارنة الأيام"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_course__day_count
+#: model:ir.model.fields,field_description:training_management.field_training_program__day_count
+msgid "Day Count"
+msgstr "عدد الأيام"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_survey_response_kpi__day_date
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_search
+msgid "Day Date"
+msgstr "تاريخ اليوم"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__day_state
+#: model:ir.model.fields,field_description:training_management.field_training_survey_response_kpi__day_state
+msgid "Day Status"
+msgstr "حالة اليوم"
+
+#. module: training_management
+#: model:ir.model.fields,help:training_management.field_training_report__show_comparison
+msgid ""
+"Day comparison and trend for a course report; course comparison and trend "
+"for a program report."
+msgstr ""
+"مقارنة الأيام والاتجاه في تقرير الدورة؛ ومقارنة الدورات والاتجاه في تقرير "
+"البرنامج."
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__days_count
+msgid "Days Count"
+msgstr "عدد الأيام"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_audit_log__description
+msgid "Description"
+msgstr "الوصف"
+
+#. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_ir_http__display_name
+#: model:ir.model.fields,field_description:training_management.field_res_config_settings__display_name
+#: model:ir.model.fields,field_description:training_management.field_res_groups__display_name
+#: model:ir.model.fields,field_description:training_management.field_res_partner__display_name
 #: model:ir.model.fields,field_description:training_management.field_res_users__display_name
 #: model:ir.model.fields,field_description:training_management.field_survey_question__display_name
 #: model:ir.model.fields,field_description:training_management.field_survey_question_answer__display_name
@@ -269,24 +954,76 @@ msgstr "التاريخ"
 #: model:ir.model.fields,field_description:training_management.field_survey_user_input__display_name
 #: model:ir.model.fields,field_description:training_management.field_survey_user_input_line__display_name
 #: model:ir.model.fields,field_description:training_management.field_training_analytics__display_name
+#: model:ir.model.fields,field_description:training_management.field_training_anonymise_wizard__display_name
 #: model:ir.model.fields,field_description:training_management.field_training_attendance__display_name
+#: model:ir.model.fields,field_description:training_management.field_training_audit_log__display_name
 #: model:ir.model.fields,field_description:training_management.field_training_course__display_name
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__display_name
 #: model:ir.model.fields,field_description:training_management.field_training_day__display_name
 #: model:ir.model.fields,field_description:training_management.field_training_enrollment__display_name
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__display_name
 #: model:ir.model.fields,field_description:training_management.field_training_program__display_name
+#: model:ir.model.fields,field_description:training_management.field_training_report__display_name
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction__display_name
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction_line__display_name
+#: model:ir.model.fields,field_description:training_management.field_training_smart_buttons__display_name
 #: model:ir.model.fields,field_description:training_management.field_training_survey_response_kpi__display_name
 msgid "Display Name"
 msgstr "الاسم المعروض"
 
 #. module: training_management
 #: model:ir.model.fields.selection,name:training_management.selection__training_program__state__draft
+#: model:ir.model.fields.selection,name:training_management.selection__training_report__state__draft
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_search
 msgid "Draft"
 msgstr "مسودة"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "Duplicate answer."
+msgstr "إجابة مكررة."
 
 #. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_survey_survey__effective_from
 msgid "Effective From"
 msgstr "ساري من"
+
+#. module: training_management
+#. odoo-python
+#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__channel__email
+msgid "Email"
+msgstr "البريد الإلكتروني"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__mail_state
+msgid "Email Delivery Status"
+msgstr "حالة تسليم البريد الإلكتروني"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__res_config_settings__training_channel_order__email,sms,whatsapp
+msgid "Email, SMS, WhatsApp"
+msgstr "البريد، الرسائل القصيرة، واتساب"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__res_config_settings__training_channel_order__email,whatsapp,sms
+msgid "Email, WhatsApp, SMS"
+msgstr "البريد، واتساب، الرسائل القصيرة"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_reminders_enabled
+msgid "Enable Daily Task Reminders"
+msgstr "تفعيل تذكيرات المهام اليومية"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_notification_sms_enabled
+msgid "Enable SMS Reminders"
+msgstr "تفعيل تذكيرات الرسائل النصية"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_notification_whatsapp_enabled
+msgid "Enable WhatsApp Reminders"
+msgstr "تفعيل تذكيرات واتساب"
 
 #. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_training_course__end_date
@@ -304,6 +1041,11 @@ msgstr "تاريخ ووقت النهاية"
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_enrollment_form
 msgid "Enrollment"
 msgstr "التسجيل"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_program__enrollment_count
+msgid "Enrollment Count"
+msgstr "عدد المشاركات"
 
 #. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_training_enrollment__enrollment_date
@@ -327,9 +1069,168 @@ msgid "Environment"
 msgstr "البيئة"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__environment_supervisor_score
+msgid "Environment (Supervisor)"
+msgstr "البيئة (المشرفة)"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__environment_score
+msgid "Environment (Trainees)"
+msgstr "البيئة (المتدربات)"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_environment_score
+msgid "Environment Score"
+msgstr "درجة البيئة التدريبية"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__environment_score_has_data
+msgid "Environment Score Has Data"
+msgstr "مؤشر البيئة له بيانات"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__environment_supervisor_score_has_data
+msgid "Environment Supervisor Score Has Data"
+msgstr "مؤشر بيئة المشرفة له بيانات"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_form
+msgid "Error"
+msgstr "خطأ"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__error_message
+msgid "Error Message"
+msgstr "رسالة الخطأ"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_course.py:0
+#: code:addons/training_management/models/training_program.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_course_form
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_program_form
+msgid "Evaluations"
+msgstr "التقييمات"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_audit_log__event_type
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__event_type
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_audit_log_search
+msgid "Event Type"
+msgstr "نوع الحدث"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__excel_attachment_id
+msgid "Excel Export"
+msgstr "تصدير إكسل"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+#: model:ir.model.fields,field_description:training_management.field_training_report__show_summary
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "Executive Summary"
+msgstr "الملخص التنفيذي"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
+msgid "Export Excel"
+msgstr "تصدير إلى إكسل"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__status__failed
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_search
+msgid "Failed"
+msgstr "فشل"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_notification_channel_fallback
+msgid "Fallback to Next Channel on Failure"
+msgstr "التبديل إلى القناة التالية عند الفشل"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_dashboard_form
+msgid "Filters"
+msgstr "عوامل التصفية"
+
+#. module: training_management
+#: model:ir.model,name:training_management.model_training_response_correction
+msgid "Final Response Correction"
+msgstr "تصحيح رد نهائي"
+
+#. module: training_management
+#: model:ir.model,name:training_management.model_training_response_correction_line
+msgid "Final Response Correction Line"
+msgstr "سطر تصحيح رد نهائي"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_audit_log__event_type__response_correction
+msgid "Final Survey Response Corrected"
+msgstr "تم تصحيح رد استبانة نهائي"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid ""
+"Final response for training day %(day)s (%(role)s) was administratively "
+"corrected by %(user)s. Changes: %(changes)s."
+msgstr ""
+"صُحّح الرد النهائي لليوم التدريبي %(day)s (%(role)s) إدارياً بواسطة "
+"%(user)s. التغييرات: %(changes)s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid ""
+"Final response for training day %(day)s (%(role)s) was administratively "
+"deleted by %(user)s."
+msgstr ""
+"حُذف الرد النهائي لليوم التدريبي %(day)s (%(role)s) إدارياً بواسطة %(user)s."
+
+#. module: training_management
+#: model:ir.model.fields,help:training_management.field_training_report__show_comments
+msgid ""
+"Free-text answers of the supervisor, trainers and trainees (without "
+"identity) and repeated comments."
+msgstr ""
+"الإجابات النصية للمشرفة والمدربات والمتدربات (دون هوية) والتعليقات المتكررة."
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__date_from
+msgid "From"
+msgstr "من"
+
+#. module: training_management
 #: model:res.groups,name:training_management.group_training_admin
 msgid "General Supervisor / Admin"
 msgstr "المشرف العام / المدير"
+
+#. module: training_management
+#: model:ir.model,name:training_management.model_training_dashboard
+msgid "General Supervisor Dashboard"
+msgstr "لوحة المشرف العام"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
+msgid "Generate"
+msgstr "إنشاء"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Generate the report before exporting it."
+msgstr "يرجى إنشاء التقرير قبل تصديره."
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_report__state__generated
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_search
+msgid "Generated"
+msgstr "تم الإنشاء"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__generated_date
+msgid "Generated Date"
+msgstr "تاريخ الإنشاء"
 
 #. module: training_management
 #: model:ir.model,name:training_management.model_ir_http
@@ -342,7 +1243,25 @@ msgid "Has Submitted Responses"
 msgstr "لديه ردود مُرسلة"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_reminder_interval_hours
+msgid "Hours Between Reminders"
+msgstr "الساعات بين التذكيرات"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "How many reminders each person may receive per channel."
+msgstr "عدد التذكيرات التي قد تتلقاها كل متدربة في كل قناة."
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "How many times a failed delivery is retried."
+msgstr "عدد مرات إعادة محاولة الإرسال الفاشل."
+
+#. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_ir_http__id
+#: model:ir.model.fields,field_description:training_management.field_res_config_settings__id
+#: model:ir.model.fields,field_description:training_management.field_res_groups__id
+#: model:ir.model.fields,field_description:training_management.field_res_partner__id
 #: model:ir.model.fields,field_description:training_management.field_res_users__id
 #: model:ir.model.fields,field_description:training_management.field_survey_question__id
 #: model:ir.model.fields,field_description:training_management.field_survey_question_answer__id
@@ -350,19 +1269,57 @@ msgstr "لديه ردود مُرسلة"
 #: model:ir.model.fields,field_description:training_management.field_survey_user_input__id
 #: model:ir.model.fields,field_description:training_management.field_survey_user_input_line__id
 #: model:ir.model.fields,field_description:training_management.field_training_analytics__id
+#: model:ir.model.fields,field_description:training_management.field_training_anonymise_wizard__id
 #: model:ir.model.fields,field_description:training_management.field_training_attendance__id
+#: model:ir.model.fields,field_description:training_management.field_training_audit_log__id
 #: model:ir.model.fields,field_description:training_management.field_training_course__id
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__id
 #: model:ir.model.fields,field_description:training_management.field_training_day__id
 #: model:ir.model.fields,field_description:training_management.field_training_enrollment__id
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__id
 #: model:ir.model.fields,field_description:training_management.field_training_program__id
+#: model:ir.model.fields,field_description:training_management.field_training_report__id
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction__id
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction_line__id
+#: model:ir.model.fields,field_description:training_management.field_training_smart_buttons__id
 #: model:ir.model.fields,field_description:training_management.field_training_survey_response_kpi__id
 msgid "ID"
 msgstr "المعرف"
 
 #. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "If a channel fails, try the next enabled channel instead of giving up."
+msgstr "إذا فشلت قناة، جرّب القناة التالية المفعّلة بدلاً من التوقف."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/controllers/auth.py:0
+msgid ""
+"If an account exists for this login, a password reset email has been sent."
+msgstr ""
+"إذا كان هناك حساب مرتبط بهذا الاسم، فقد تم إرسال رسالة إعادة تعيين كلمة "
+"المرور إليه."
+
+#. module: training_management
 #: model:ir.model.fields.selection,name:training_management.selection__training_enrollment__state__inactive
 msgid "Inactive"
 msgstr "غير نشط"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_dashboard_form
+msgid "Indicators"
+msgstr "المؤشرات"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "Interval Between Reminders"
+msgstr "الفاصل بين التذكيرات"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "Invalid answer option for question '%s'."
+msgstr "خيار إجابة غير صالح للسؤال '%s'."
 
 #. module: training_management
 #. odoo-python
@@ -371,9 +1328,32 @@ msgid "Invalid attendance status: %s"
 msgstr "حالة حضور غير صالحة: %s"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/controllers/auth.py:0
+msgid "Invalid login or password."
+msgstr "اسم الدخول أو كلمة المرور غير صحيحة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "KPI"
+msgstr "مؤشر الأداء"
+
+#. module: training_management
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_search
 msgid "KPI Category"
 msgstr "فئة المؤشر"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
+msgid "KPI Snapshot"
+msgstr "لقطة مؤشرات الأداء"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "KPI Summary"
+msgstr "ملخص مؤشرات الأداء"
 
 #. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_survey_question__kpi_category
@@ -382,42 +1362,154 @@ msgid "Kpi Category"
 msgstr "فئة المؤشر"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_content_score_has_data
+msgid "Kpi Content Score Has Data"
+msgstr "درجة المحتوى تحتوي على بيانات"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_environment_score_has_data
+msgid "Kpi Environment Score Has Data"
+msgstr "درجة البيئة التدريبية تحتوي على بيانات"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_environment_supervisor_score_has_data
+msgid "Kpi Environment Supervisor Score Has Data"
+msgstr "مؤشر بيئة المشرفة له بيانات"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_trainer_score_has_data
+msgid "Kpi Trainer Score Has Data"
+msgstr "درجة المدرب تحتوي على بيانات"
+
+#. module: training_management
 #: model:ir.model.fields,help:training_management.field_survey_question_answer__rating_value
 msgid ""
 "Language-independent numeric score (1-5) for the approved descriptive rating"
 " scale. Only set on suggested answers that represent one of the five rating "
 "scale points; left empty otherwise. Used by training.analytics instead of "
 "the translated label text."
-msgstr "قيمة رقمية مستقلة عن اللغة (1-5) لمقياس التقييم الوصفي المعتمد. تُحدد فقط للخيارات التي تمثل إحدى نقاط المقياس الخمس، وتُترك فارغة غير ذلك. تُستخدم بواسطة training.analytics بدلاً من نص التصنيف المترجم."
+msgstr ""
+"قيمة رقمية مستقلة عن اللغة (1-5) لمقياس التقييم الوصفي المعتمد. تُحدد فقط "
+"للخيارات التي تمثل إحدى نقاط المقياس الخمس، وتُترك فارغة غير ذلك. تُستخدم "
+"بواسطة training.analytics بدلاً من نص التصنيف المترجم."
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_anonymise_wizard__write_uid
 #: model:ir.model.fields,field_description:training_management.field_training_attendance__write_uid
+#: model:ir.model.fields,field_description:training_management.field_training_audit_log__write_uid
 #: model:ir.model.fields,field_description:training_management.field_training_course__write_uid
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__write_uid
 #: model:ir.model.fields,field_description:training_management.field_training_day__write_uid
 #: model:ir.model.fields,field_description:training_management.field_training_enrollment__write_uid
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__write_uid
 #: model:ir.model.fields,field_description:training_management.field_training_program__write_uid
+#: model:ir.model.fields,field_description:training_management.field_training_report__write_uid
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction__write_uid
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction_line__write_uid
 msgid "Last Updated by"
 msgstr "آخر تحديث بواسطة"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_anonymise_wizard__write_date
 #: model:ir.model.fields,field_description:training_management.field_training_attendance__write_date
+#: model:ir.model.fields,field_description:training_management.field_training_audit_log__write_date
 #: model:ir.model.fields,field_description:training_management.field_training_course__write_date
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__write_date
 #: model:ir.model.fields,field_description:training_management.field_training_day__write_date
 #: model:ir.model.fields,field_description:training_management.field_training_enrollment__write_date
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__write_date
 #: model:ir.model.fields,field_description:training_management.field_training_program__write_date
+#: model:ir.model.fields,field_description:training_management.field_training_report__write_date
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction__write_date
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction_line__write_date
 msgid "Last Updated on"
 msgstr "تاريخ آخر تحديث"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
 #: model:ir.model.fields.selection,name:training_management.selection__training_attendance__status__late
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_attendance_search
 msgid "Late"
 msgstr "متأخر"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__late_count
+msgid "Late Count"
+msgstr "عدد المتأخرين"
+
+#. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_training_attendance__late_minutes
 msgid "Late Minutes"
 msgstr "دقائق التأخير"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__late_rate
+#: model:ir.model.fields,field_description:training_management.field_training_report__late_rate
+msgid "Late Rate"
+msgstr "معدل التأخر"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Late Rate (%)"
+msgstr "معدل التأخر (%)"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__late_rate_has_data
+#: model:ir.model.fields,field_description:training_management.field_training_report__late_rate_has_data
+msgid "Late Rate Has Data"
+msgstr "معدل التأخر يحتوي على بيانات"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_attendance.py:0
+msgid "Late minutes can only be set when the attendance status is Late."
+msgstr "لا يمكن تحديد دقائق التأخير إلا عندما تكون حالة الحضور متأخرة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_attendance.py:0
+msgid "Late minutes cannot be negative."
+msgstr "لا يمكن أن تكون دقائق التأخير سالبة."
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction_line__line_id
+msgid "Line"
+msgstr "السطر"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__mail_mail_id
+msgid "Mail Mail"
+msgstr "رسالة بريد إلكتروني"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_notification_max_retries
+msgid "Maximum Retry Attempts"
+msgstr "الحد الأقصى لمحاولات إعادة المحاولة"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_form
+msgid "Message"
+msgstr "الرسالة"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "Minimum hours between two reminders (used when more than one)."
+msgstr "أقل عدد ساعات بين تذكيرين (يُستخدم عند أكثر من تذكير)."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_notification.py:0
+msgid "Missing email address for %s."
+msgstr "لا يوجد بريد إلكتروني لـ %s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_notification.py:0
+msgid "Missing phone number for %s."
+msgstr "لا يوجد رقم هاتف لـ %s."
 
 #. module: training_management
 #. odoo-python
@@ -426,10 +1518,33 @@ msgid "Missing required answers for: %s"
 msgstr "إجابات مطلوبة مفقودة لـ: %s"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_audit_log__model_name
+msgid "Model"
+msgstr "النموذج"
+
+#. module: training_management
+#. odoo-python
 #: model:ir.model.fields,field_description:training_management.field_training_course__name
 #: model:ir.model.fields,field_description:training_management.field_training_program__name
+#: model:ir.model.fields,field_description:training_management.field_training_report__name
 msgid "Name"
 msgstr "الاسم"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__narrative_json
+msgid "Narrative Json"
+msgstr "لقطة الأقسام السردية"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_enrollment.py:0
+msgid "New Enrollment"
+msgstr "تسجيل جديد"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__next_version_ids
+msgid "Newer Versions"
+msgstr "الإصدارات الأحدث"
 
 #. module: training_management
 #. odoo-python
@@ -438,10 +1553,129 @@ msgid "No %s survey is configured for this training day."
 msgstr "لا توجد استبانة %s معدة لهذا اليوم التدريبي."
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "No PDF has been generated yet."
+msgstr "لم يتم إنشاء ملف PDF بعد."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_notification.py:0
+msgid "No SMS provider is configured: the message was not sent."
+msgstr "لا يوجد مزود رسائل SMS مهيأ: لم تُرسل الرسالة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_notification.py:0
+msgid "No WhatsApp provider is configured: the message was not sent."
+msgstr "لا يوجد مزود واتساب مهيأ: لم تُرسل الرسالة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_response_correction.py:0
+msgid "No answer was changed."
+msgstr "لم تتغير أي إجابة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_dashboard.py:0
+#: code:addons/training_management/models/training_report.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "No data"
+msgstr "لا توجد بيانات"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__res_config_settings__training_sms_provider_mode__none
+msgid "Not configured (SMS is not sent; attempts are logged as failed)"
+msgstr "غير مهيأ (لا تُرسل SMS وتُسجَّل المحاولات كفاشلة)"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+#: model:ir.model.fields,field_description:training_management.field_training_report__show_comments
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "Notes and Recommendations"
+msgstr "الملاحظات والتوصيات"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_form
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_list
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_search
+msgid "Notification Log"
+msgstr "سجل الإشعارات"
+
+#. module: training_management
+#: model:ir.actions.act_window,name:training_management.action_training_notification_log
+#: model:ir.ui.menu,name:training_management.menu_training_notification
+msgid "Notifications"
+msgstr "الإشعارات"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction_line__number
+msgid "Number"
+msgstr "الرقم"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "Number of Reminders"
+msgstr "عدد التذكيرات"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__res_config_settings__training_sms_provider_mode__odoo_sms
+msgid "Odoo SMS (standard IAP-based sms module)"
+msgstr "رسائل أودو النصية (وحدة sms القياسية القائمة على IAP)"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_response_correction.py:0
+msgid "Only a final (submitted) response can be corrected."
+msgstr "يمكن تصحيح الرد النهائي (المُرسل) فقط."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Only a generated report can be approved."
+msgstr "لا يمكن اعتماد إلا تقرير تم إنشاؤه."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/res_config_settings.py:0
+msgid "Only administrators can change the settings"
+msgstr "المسؤولون فقط يمكنهم تغيير الإعدادات"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_program.py:0
+msgid ""
+"Only draft programs can be deleted. Archive program %s instead of deleting "
+"it."
+msgstr ""
+"يمكن حذف البرامج التي في حالة مسودة فقط. أرشفي البرنامج %s بدلاً من حذفه."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Only draft reports can be deleted. Archive %s instead."
+msgstr "لا يمكن حذف إلا التقارير في حالة المسودة. يرجى أرشفة %s بدلاً من ذلك."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "Only one answer is allowed for question '%s'."
+msgstr "يُسمح بإجابة واحدة فقط للسؤال '%s'."
+
+#. module: training_management
 #: model:ir.model.constraint,message:training_management.constraint_training_attendance_day_enrollment_uniq
 msgid ""
 "Only one attendance record is allowed per participant per training day."
 msgstr "يُسمح بسجل حضور واحد فقط لكل مشارك في كل يوم تدريبي."
+
+#. module: training_management
+#: model:ir.model.constraint,message:training_management.constraint_training_notification_log_day_role_partner_channel_event_uniq
+msgid ""
+"Only one reminder log entry is allowed per training day, role, respondent, "
+"channel, event and reminder number."
+msgstr "يُسمح بسجل تذكير واحد فقط لكل يوم ودور ومستلمة وقناة وحدث ورقم تذكير."
 
 #. module: training_management
 #: model:ir.model.constraint,message:training_management.constraint_survey_user_input_training_day_role_partner_uniq
@@ -449,26 +1683,137 @@ msgid "Only one response is allowed per training day, role and respondent."
 msgstr "يُسمح برد واحد فقط لكل يوم تدريبي ودور ومجيب."
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/res_partner.py:0
+#: code:addons/training_management/models/training_anonymise_wizard.py:0
+msgid "Only the General Supervisor can anonymise a trainee."
+msgstr "المشرف العام وحده يمكنه إخفاء هوية متدربة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+#: code:addons/training_management/models/training_response_correction.py:0
+msgid "Only the General Supervisor can correct a final response."
+msgstr "المشرف العام وحده يمكنه تصحيح رد نهائي."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Only the General Supervisor can generate or export reports."
+msgstr "المشرف العام وحده يمكنه إنشاء التقارير أو تصديرها."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Only the General Supervisor/Admin can approve a report."
+msgstr "فقط المشرف العام/المسؤول يمكنه اعتماد التقرير."
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_dashboard__day_state__open
 #: model:ir.model.fields.selection,name:training_management.selection__training_day__state__open
+#: model:ir.model.fields.selection,name:training_management.selection__training_survey_response_kpi__day_state__open
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_form
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_search
 msgid "Open"
 msgstr "مفتوح"
 
 #. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_search
+msgid "Open Days"
+msgstr "الأيام المفتوحة"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Opportunity (lowest indicator)"
+msgstr "فرصة تحسين (أدنى مؤشر)"
+
+#. module: training_management
 #: model:ir.model.fields,help:training_management.field_survey_question__kpi_category
 msgid ""
 "Optional analytics category. Left empty for questions that do not "
 "participate in KPI calculations (e.g. free-text comments)."
-msgstr "فئة تحليلية اختيارية. تُترك فارغة للأسئلة التي لا تشارك في حساب المؤشرات (مثل الملاحظات النصية الحرة)."
+msgstr ""
+"فئة تحليلية اختيارية. تُترك فارغة للأسئلة التي لا تشارك في حساب المؤشرات "
+"(مثل الملاحظات النصية الحرة)."
 
 #. module: training_management
+#: model:ir.ui.menu,name:training_management.menu_training_dashboard_overview
+msgid "Overview"
+msgstr "نظرة عامة"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__pdf_attachment_id
+msgid "PDF Document"
+msgstr "ملف PDF"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_audit_log.py:0
 #: model:ir.model.fields,field_description:training_management.field_training_enrollment__partner_id
 msgid "Participant"
-msgstr "المشارك"
+msgstr "متدربة"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_program.py:0
+#: model:ir.ui.menu,name:training_management.menu_training_enrollment_participants
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_program_form
+msgid "Participants"
+msgstr "المشاركات"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__status__pending
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_search
+msgid "Pending"
+msgstr "قيد الانتظار"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_audit_log__user_id
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_audit_log_search
+msgid "Performed By"
+msgstr "نفّذه"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Period"
+msgstr "الفترة"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__date_from
+msgid "Period From"
+msgstr "الفترة من"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__date_to
+msgid "Period To"
+msgstr "الفترة إلى"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_audit_log__event_type__permission_change
+msgid "Permission/Role Change"
+msgstr "تغيير الصلاحية/الدور"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_audit_log__event_type__personal_data_anonymised
+msgid "Personal Data Anonymised"
+msgstr "إخفاء هوية البيانات الشخصية"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/res_partner.py:0
+msgid ""
+"Personal data of partner %(partner)s was anonymised by %(user)s. Reason: "
+"%(reason)s"
+msgstr ""
+"تم إخفاء هوية البيانات الشخصية لجهة الاتصال %(partner)s بواسطة %(user)s. "
+"السبب: %(reason)s"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_dashboard__day_state__planned
 #: model:ir.model.fields.selection,name:training_management.selection__training_day__state__planned
+#: model:ir.model.fields.selection,name:training_management.selection__training_survey_response_kpi__day_state__planned
 msgid "Planned"
 msgstr "مخطط"
 
@@ -478,34 +1823,70 @@ msgid "Postpone"
 msgstr "تأجيل"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_day__status_reason
+msgid "Postpone / Cancel Reason"
+msgstr "سبب التأجيل / الإلغاء"
+
+#. module: training_management
 #: model:ir.model.fields.selection,name:training_management.selection__training_day__state__postponed
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_search
 msgid "Postponed"
 msgstr "مؤجل"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_day__postponed_from_date
+msgid "Postponed From Date"
+msgstr "مؤجل من تاريخ"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
 #: model:ir.model.fields.selection,name:training_management.selection__training_attendance__status__present
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_attendance_search
 msgid "Present"
 msgstr "حاضر"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__present_count
+msgid "Present Count"
+msgstr "عدد الحاضرين"
+
+#. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_survey_survey__previous_version_id
+#: model:ir.model.fields,field_description:training_management.field_training_report__previous_report_id
 msgid "Previous Version"
 msgstr "الإصدار السابق"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
 #: model:ir.model.fields,field_description:training_management.field_survey_user_input__program_id
 #: model:ir.model.fields,field_description:training_management.field_training_attendance__program_id
 #: model:ir.model.fields,field_description:training_management.field_training_course__program_id
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__program_id
 #: model:ir.model.fields,field_description:training_management.field_training_enrollment__program_id
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__program_id
+#: model:ir.model.fields,field_description:training_management.field_training_report__program_id
 #: model:ir.model.fields,field_description:training_management.field_training_survey_response_kpi__program_id
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_attendance_search
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_course_search
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_enrollment_search
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_search
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_search
 msgid "Program"
 msgstr "البرنامج"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_program.py:0
+msgid "Program %(name)s cannot change from %(from_state)s to %(to_state)s."
+msgstr "لا يمكن تغيير البرنامج %(name)s من %(from_state)s إلى %(to_state)s."
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_report__report_type__program
+msgid "Program Report"
+msgstr "تقرير البرنامج"
 
 #. module: training_management
 #: model:ir.actions.act_window,name:training_management.action_training_program
@@ -514,9 +1895,107 @@ msgid "Programs"
 msgstr "البرامج"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__provider_reference
+msgid "Provider Reference"
+msgstr "مرجع المزود"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction_line__question_id
+msgid "Question"
+msgstr "السؤال"
+
+#. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_survey_question_answer__rating_value
 msgid "Rating Value"
 msgstr "قيمة التقييم"
+
+#. module: training_management
+#. odoo-python
+#: model:ir.model.fields,field_description:training_management.field_training_anonymise_wizard__reason
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction__reason
+msgid "Reason"
+msgstr "السبب"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_audit_log.py:0
+msgid "Reason: %s"
+msgstr "السبب: %s"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__partner_id
+msgid "Recipient"
+msgstr "المستلم"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_audit_log__res_id
+msgid "Record ID"
+msgstr "معرّف السجل"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_audit_log__record_label
+msgid "Record Type"
+msgstr "نوع السجل"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/api_common.py:0
+msgid "Record not found."
+msgstr "السجل غير موجود."
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_anonymise_wizard_form
+msgid "Reference of the deletion request"
+msgstr "مرجع طلب الحذف"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_reminder_lead_hours
+msgid "Remind Within Hours Before Survey Closes"
+msgstr "التذكير خلال عدد الساعات التي تسبق إغلاق الاستبانة"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "Reminder Lead Time"
+msgstr "مهلة التذكير"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__reminder_no
+msgid "Reminder No"
+msgstr "رقم التذكير"
+
+#. module: training_management
+#: model:mail.template,subject:training_management.mail_template_daily_task_reminder
+msgid "Reminder: pending task for {{ object.training_day_id.course_id.name }}"
+msgstr "تذكير: مهمة معلقة في {{ object.training_day_id.course_id.name }}"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_notification.py:0
+msgid ""
+"Reminder: you have a pending task for %(course)s on %(date)s. Please "
+"complete it in the training portal."
+msgstr ""
+"تذكير: لديكِ مهمة معلّقة للدورة %(course)s بتاريخ %(date)s. يُرجى إكمالها في"
+" بوابة التدريب."
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "Reminders"
+msgstr "التذكيرات"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid ""
+"Reminders are sent only during this many hours before the survey closes. 0 ="
+" no lead-time rule: remind from the moment the survey window opens."
+msgstr ""
+"تُرسل التذكيرات خلال هذا العدد من الساعات قبل إغلاق الاستبانة فقط. 0 = بلا "
+"قيد: التذكير منذ لحظة فتح نافذة الاستبانة."
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_reminder_count
+msgid "Reminders per Channel"
+msgstr "عدد التذكيرات لكل قناة"
 
 #. module: training_management
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_form
@@ -524,7 +2003,66 @@ msgid "Reopen"
 msgstr "إعادة الفتح"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "Repeated comments (identical wording)"
+msgstr "تعليقات متكررة (بنفس الصياغة)"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_audit_log.py:0
+#: code:addons/training_management/models/training_report.py:0
+msgid "Report"
+msgstr "التقرير"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_audit_log__event_type__report_approval
+msgid "Report Approved"
+msgstr "تمت الموافقة على التقرير"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_course__report_count
+msgid "Report Count"
+msgstr "عدد التقارير"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__report_type
+msgid "Report Type"
+msgstr "نوع التقرير"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_course.py:0
+#: model:ir.actions.act_window,name:training_management.action_training_report
+#: model:ir.ui.menu,name:training_management.menu_training_report
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_course_form
+msgid "Reports"
+msgstr "التقارير"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_day_form
+msgid "Required to postpone or cancel"
+msgstr "مطلوب لتأجيل اليوم أو إلغائه"
+
+#. module: training_management
+#: model:ir.model.fields,help:training_management.field_training_day__status_reason
+msgid "Required to postpone or cancel the training day."
+msgstr "مطلوب لتأجيل اليوم التدريبي أو إلغائه."
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__resolved_date_from
+msgid "Resolved Date From"
+msgstr "تاريخ البداية الفعلي"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__resolved_date_to
+msgid "Resolved Date To"
+msgstr "تاريخ النهاية الفعلي"
+
+#. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_survey_user_input__respondent_role
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__respondent_role
 #: model:ir.model.fields,field_description:training_management.field_training_survey_response_kpi__respondent_role
 #: model_terms:ir.ui.view,arch_db:training_management.view_survey_user_input_search_inherit_training
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_search
@@ -532,14 +2070,74 @@ msgid "Respondent Role"
 msgstr "دور المجيب"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction__response_id
 #: model:ir.model.fields,field_description:training_management.field_training_survey_response_kpi__user_input_id
 msgid "Response"
 msgstr "الرد"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_course__response_count
+#: model:ir.model.fields,field_description:training_management.field_training_program__response_count
+msgid "Response Count"
+msgstr "عدد الردود"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__response_rate
+#: model:ir.model.fields,field_description:training_management.field_training_report__response_rate
+msgid "Response Rate"
+msgstr "معدل الاستجابة"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__response_rate_has_data
+#: model:ir.model.fields,field_description:training_management.field_training_report__response_rate_has_data
+msgid "Response Rate Has Data"
+msgstr "معدل الاستجابة يحتوي على بيانات"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_form
+msgid "Retry"
+msgstr "إعادة المحاولة"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "Retry Attempts"
+msgstr "محاولات إعادة الإرسال"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__retry_count
+msgid "Retry Count"
+msgstr "عدد مرات إعادة المحاولة"
+
+#. module: training_management
 #: model_terms:ir.ui.view,arch_db:training_management.view_survey_survey_search_inherit_training
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_search
 msgid "Role"
 msgstr "الدور"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__channel__sms
+msgid "SMS"
+msgstr "رسالة نصية"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_sms_provider_mode
+msgid "SMS Provider"
+msgstr "مزود SMS"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "SMS Reminders"
+msgstr "تذكيرات الرسائل النصية"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__res_config_settings__training_channel_order__sms,email,whatsapp
+msgid "SMS, Email, WhatsApp"
+msgstr "الرسائل القصيرة، البريد، واتساب"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__res_config_settings__training_channel_order__sms,whatsapp,email
+msgid "SMS, WhatsApp, Email"
+msgstr "الرسائل القصيرة، واتساب، البريد"
 
 #. module: training_management
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_form
@@ -552,9 +2150,76 @@ msgid "Score"
 msgstr "النتيجة"
 
 #. module: training_management
+#: model:ir.ui.menu,name:training_management.menu_training_dashboard_scores
+msgid "Score Analysis"
+msgstr "تحليل التقييمات"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
+msgid "Sections to Include"
+msgstr "الأقسام المطلوب تضمينها"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__status__sent
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_search
+msgid "Sent"
+msgstr "تم الإرسال"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__sent_date
+msgid "Sent Date"
+msgstr "تاريخ الإرسال"
+
+#. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_training_course__sequence
 msgid "Sequence"
 msgstr "الترتيب"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid ""
+"Set a new date before reopening the postponed training day (currently %s)."
+msgstr ""
+"حدّدي تاريخاً جديداً قبل إعادة فتح اليوم التدريبي المؤجل (التاريخ الحالي "
+"%s)."
+
+#. module: training_management
+#: model:ir.actions.act_window,name:training_management.action_training_settings
+#: model:ir.ui.menu,name:training_management.menu_training_notification_settings
+#: model:ir.ui.menu,name:training_management.menu_training_settings
+msgid "Settings"
+msgstr "الإعدادات"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__show_attendance
+msgid "Show Attendance"
+msgstr "عرض الحضور"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__show_content_score
+msgid "Show Content Score"
+msgstr "عرض درجة المحتوى"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__show_environment_score
+msgid "Show Environment Score"
+msgstr "عرض درجة البيئة التدريبية"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__show_response_rate
+msgid "Show Response Rate"
+msgstr "عرض معدل الاستجابة"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__show_trainer_score
+msgid "Show Trainer Score"
+msgstr "عرض درجة المدرب"
+
+#. module: training_management
+#: model:ir.model,name:training_management.model_training_smart_buttons
+msgid "Smart button helpers"
+msgstr "مساعدات الأزرار الذكية"
 
 #. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_training_course__start_date
@@ -571,22 +2236,35 @@ msgstr "تاريخ ووقت البداية"
 #: model:ir.model.fields,field_description:training_management.field_training_day__state
 #: model:ir.model.fields,field_description:training_management.field_training_enrollment__state
 #: model:ir.model.fields,field_description:training_management.field_training_program__state
+#: model:ir.model.fields,field_description:training_management.field_training_report__state
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_search
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_enrollment_search
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_program_search
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_search
 msgid "State"
 msgstr "الحالة"
 
 #. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_training_attendance__status
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__status
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_attendance_search
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_search
 msgid "Status"
 msgstr "الحالة"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Strength (highest indicator)"
+msgstr "نقطة قوة (أعلى مؤشر)"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
 #: model:ir.model.fields,field_description:training_management.field_training_day__supervisor_id
 #: model:ir.model.fields.selection,name:training_management.selection__survey_survey__survey_role__supervisor
 #: model:ir.model.fields.selection,name:training_management.selection__survey_user_input__respondent_role__supervisor
+#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__respondent_role__supervisor
 #: model:ir.model.fields.selection,name:training_management.selection__training_survey_response_kpi__respondent_role__supervisor
 #: model:res.groups,name:training_management.group_training_supervisor
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_search
@@ -594,7 +2272,20 @@ msgid "Supervisor"
 msgstr "مشرفة"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_day_form
+msgid "Supervisor Evaluation"
+msgstr "تقييم المشرفة"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_day__supervisor_response_count
+msgid "Supervisor Response Count"
+msgstr "عدد تقييمات المشرفة"
+
+#. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_training_day__supervisor_survey_id
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_search
 msgid "Supervisor Survey"
 msgstr "استبانة المشرفة"
 
@@ -629,6 +2320,18 @@ msgid "Survey Question"
 msgstr "سؤال الاستبانة"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_audit_log.py:0
+msgid "Survey Response"
+msgstr "استجابة الاستبانة"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Survey Response Rate (%)"
+msgstr "معدل الاستجابة للاستبانة (%)"
+
+#. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_survey_survey__survey_role
 msgid "Survey Role"
 msgstr "دور الاستبانة"
@@ -655,6 +2358,84 @@ msgid "Surveys"
 msgstr "الاستبانات"
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction_line__text
+msgid "Text"
+msgstr "النص"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "The %s of a response cannot be changed."
+msgstr "لا يمكن تغيير %s الخاص بالرد."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_notification.py:0
+msgid "The SMS provider did not send the message (%s)."
+msgstr "لم يرسل مزود الرسائل القصيرة الرسالة (%s)."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_course.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_course_form
+msgid "The course dates are outside the program's dates."
+msgstr "تواريخ الدورة خارج تواريخ البرنامج."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "The day's date is outside the course's dates."
+msgstr "تاريخ اليوم خارج تواريخ الدورة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_course.py:0
+msgid "The end date cannot precede the start date for course %s."
+msgstr "لا يمكن أن يسبق تاريخ الانتهاء تاريخ البدء للدورة %s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_program.py:0
+msgid "The end date cannot precede the start date for program %s."
+msgstr "لا يمكن أن يسبق تاريخ الانتهاء تاريخ البدء للبرنامج %s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_attendance.py:0
+msgid "The enrollment does not belong to this training day's program."
+msgstr "التسجيل لا يتبع برنامج هذا اليوم التدريبي."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "The question does not belong to this survey."
+msgstr "السؤال لا يتبع هذه الاستبانة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "The report period's end date cannot precede its start date."
+msgstr "لا يمكن أن يكون تاريخ نهاية فترة التقرير سابقاً لتاريخ بدايتها."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "The selected course does not belong to the selected program."
+msgstr "الدورة المحددة لا تنتمي إلى البرنامج المحدد."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "The survey \"%s\" has no questions and cannot be used by a training day."
+msgstr "الاستبانة \"%s\" بلا أسئلة ولا يمكن استخدامها في يوم تدريبي."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "The survey does not match this training day."
+msgstr "الاستبانة لا تطابق هذا اليوم التدريبي."
+
+#. module: training_management
 #. odoo-python
 #: code:addons/training_management/models/training_day.py:0
 msgid "The survey window has closed."
@@ -665,6 +2446,59 @@ msgstr "انتهت فترة إتاحة الاستبانة."
 #: code:addons/training_management/models/training_day.py:0
 msgid "The survey window has not opened yet."
 msgstr "لم تبدأ فترة إتاحة الاستبانة بعد."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid ""
+"The value for '%(question)s' must be a whole number between %(min)s and "
+"%(max)s."
+msgstr "يجب أن تكون قيمة '%(question)s' عدداً صحيحاً بين %(min)s و%(max)s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "The value for '%s' is out of range."
+msgstr "قيمة '%s' خارج النطاق."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/res_partner.py:0
+msgid "This contact is not an enrolled trainee."
+msgstr "جهة الاتصال هذه ليست متدربة مسجلة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_enrollment.py:0
+msgid ""
+"This enrollment has attendance records linked to it and cannot be deleted. "
+"Archive it instead."
+msgstr ""
+"يحتوي هذا التسجيل على سجلات حضور مرتبطة به ولا يمكن حذفه. قم بأرشفته بدلاً "
+"من ذلك."
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_anonymise_wizard_form
+msgid ""
+"This erases the trainee's name and contact data, disables her\n"
+"                    login and deactivates her enrollments. Attendance, responses and approved\n"
+"                    reports are kept. It cannot be undone."
+msgstr ""
+"يمحو هذا اسم المتدربة وبيانات التواصل معها، ويعطّل تسجيل دخولها\n"
+"                    ويجعل تسجيلاتها غير فعّالة. يبقى الحضور والردود والتقارير\n"
+"                    المعتمدة. لا يمكن التراجع."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/controllers/auth.py:0
+msgid "This field is required."
+msgstr "هذا الحقل مطلوب."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/controllers/auth.py:0
+msgid "This password reset link is invalid or has expired."
+msgstr "رابط إعادة تعيين كلمة المرور غير صالح أو منتهي الصلاحية."
 
 #. module: training_management
 #. odoo-python
@@ -697,8 +2531,32 @@ msgid "This training day is not open for survey submission."
 msgstr "هذا اليوم التدريبي غير مفتوح لإرسال الاستبانة."
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__date_to
+msgid "To"
+msgstr "إلى"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_day__topic
+msgid "Topic"
+msgstr "الموضوع"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "Total"
+msgstr "الإجمالي"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_report__total_attendance_count
+msgid "Total Attendance Count"
+msgstr "إجمالي عدد سجلات الحضور"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_anonymise_wizard__partner_id
 #: model:ir.model.fields.selection,name:training_management.selection__survey_survey__survey_role__trainee
 #: model:ir.model.fields.selection,name:training_management.selection__survey_user_input__respondent_role__trainee
+#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__respondent_role__trainee
 #: model:ir.model.fields.selection,name:training_management.selection__training_survey_response_kpi__respondent_role__trainee
 #: model:res.groups,name:training_management.group_training_trainee
 msgid "Trainee"
@@ -711,13 +2569,34 @@ msgid "Trainee %s is not an active enrollment in this training day's program."
 msgstr "المتدربة %s ليست تسجيلاً نشطاً في برنامج هذا اليوم التدريبي."
 
 #. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_day__trainee_response_count
+msgid "Trainee Response Count"
+msgstr "عدد ردود المتدربات"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_day_form
+msgid "Trainee Responses"
+msgstr "ردود المتدربات"
+
+#. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_training_day__trainee_survey_id
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_search
 msgid "Trainee Survey"
 msgstr "استبانة المتدربة"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Trainees (anonymous)"
+msgstr "المتدربات (دون هوية)"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__trainer_id
 #: model:ir.model.fields.selection,name:training_management.selection__survey_survey__survey_role__trainer
 #: model:ir.model.fields.selection,name:training_management.selection__survey_user_input__respondent_role__trainer
+#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__respondent_role__trainer
 #: model:ir.model.fields.selection,name:training_management.selection__training_survey_response_kpi__respondent_role__trainer
 #: model:res.groups,name:training_management.group_training_trainer
 msgid "Trainer"
@@ -731,11 +2610,43 @@ msgid "Trainer Performance"
 msgstr "أداء المدربة"
 
 #. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_search
+msgid "Trainer Report"
+msgstr "تقرير المدربة"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_day_form
+msgid "Trainer Reports"
+msgstr "تقارير المدربات"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_day__trainer_response_count
+msgid "Trainer Response Count"
+msgstr "عدد تقارير المدربات"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__trainer_score
+#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_trainer_score
+msgid "Trainer Score"
+msgstr "درجة المدرب"
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_dashboard__trainer_score_has_data
+msgid "Trainer Score Has Data"
+msgstr "مؤشر المدربة له بيانات"
+
+#. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_training_day__trainer_survey_id
 msgid "Trainer Survey"
 msgstr "استبانة المدربة"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
 #: model:ir.model.fields,field_description:training_management.field_training_day__trainer_ids
 msgid "Trainers"
 msgstr "المدربات"
@@ -759,13 +2670,18 @@ msgid "Training Courses"
 msgstr "الدورات التدريبية"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_audit_log.py:0
 #: model:ir.model,name:training_management.model_training_day
 #: model:ir.model.fields,field_description:training_management.field_survey_user_input__training_day_id
 #: model:ir.model.fields,field_description:training_management.field_training_attendance__training_day_id
+#: model:ir.model.fields,field_description:training_management.field_training_notification_log__training_day_id
 #: model:ir.model.fields,field_description:training_management.field_training_survey_response_kpi__training_day_id
 #: model_terms:ir.ui.view,arch_db:training_management.view_survey_user_input_search_inherit_training
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_attendance_search
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_form
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_search
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_search
 msgid "Training Day"
 msgstr "اليوم التدريبي"
 
@@ -775,14 +2691,44 @@ msgid "Training Day Attendance"
 msgstr "حضور اليوم التدريبي"
 
 #. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_audit_log__event_type__day_close
+msgid "Training Day Closed"
+msgstr "أُغلق اليوم التدريبي"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_audit_log__event_type__day_reopen
+msgid "Training Day Reopened"
+msgstr "إعادة فتح يوم التدريب"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_course.py:0
+#: code:addons/training_management/models/training_dashboard.py:0
+#: code:addons/training_management/models/training_program.py:0
 #: model:ir.actions.act_window,name:training_management.action_training_day
 #: model:ir.model.fields,field_description:training_management.field_training_course__day_ids
 #: model:ir.ui.menu,name:training_management.menu_training_day
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_course_form
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_calendar
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_list
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_day_search
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_program_form
 msgid "Training Days"
 msgstr "الأيام التدريبية"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_environment_supervisor_score
+msgid "Training Environment Score (Supervisor)"
+msgstr "مؤشر البيئة التدريبية (المشرفة)"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
+msgid "Training Environment Score (Trainees)"
+msgstr "مؤشر البيئة التدريبية (المتدربات)"
 
 #. module: training_management
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_survey_response_kpi_graph
@@ -794,8 +2740,19 @@ msgstr "مؤشرات أداء التدريب"
 
 #. module: training_management
 #: model:ir.ui.menu,name:training_management.menu_training_management_root
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
 msgid "Training Management"
 msgstr "إدارة التدريب"
+
+#. module: training_management
+#: model:ir.actions.server,name:training_management.ir_cron_training_notification_reminders_ir_actions_server
+msgid "Training Management: Send Daily Task Reminders"
+msgstr "إدارة التدريب: إرسال تذكيرات المهام اليومية"
+
+#. module: training_management
+#: model:ir.model,name:training_management.model_training_notification_log
+msgid "Training Notification / Reminder Log"
+msgstr "سجل إشعارات/تذكيرات التدريب"
 
 #. module: training_management
 #: model:ir.model,name:training_management.model_training_program
@@ -815,10 +2772,32 @@ msgid "Training Program Linkage"
 msgstr "ربط البرنامج التدريبي"
 
 #. module: training_management
+#: model:ir.model,name:training_management.model_training_report
+msgid "Training Program/Course Report"
+msgstr "تقرير برنامج/دورة تدريبية"
+
+#. module: training_management
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_program_list
 #: model_terms:ir.ui.view,arch_db:training_management.view_training_program_search
 msgid "Training Programs"
 msgstr "البرامج التدريبية"
+
+#. module: training_management
+#: model:ir.actions.report,name:training_management.action_report_training_report
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
+msgid "Training Report"
+msgstr "تقرير تدريبي"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_list
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_search
+msgid "Training Reports"
+msgstr "التقارير التدريبية"
+
+#. module: training_management
+#: model:ir.model,name:training_management.model_training_audit_log
+msgid "Training Sensitive Event Audit Log"
+msgstr "سجل تدقيق الأحداث الحساسة للتدريب"
 
 #. module: training_management
 #: model:ir.model,name:training_management.model_training_survey_response_kpi
@@ -831,12 +2810,92 @@ msgid "Training Surveys"
 msgstr "استبانات التدريب"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "Training day not found."
+msgstr "لم يتم العثور على اليوم التدريبي."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_attendance.py:0
+msgid ""
+"Training day on %(date)s is not open for attendance changes (current state: "
+"%(state)s)."
+msgstr ""
+"اليوم التدريبي بتاريخ %(date)s غير مفتوح لتغييرات الحضور (الحالة الحالية: "
+"%(state)s)."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "Training day on %(date)s was closed by %(user)s."
+msgstr "أغلق %(user)s اليوم التدريبي بتاريخ %(date)s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "Training day on %(date)s was reopened by %(user)s."
+msgstr "أعاد %(user)s فتح اليوم التدريبي بتاريخ %(date)s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Training days covered"
+msgstr "عدد الأيام التدريبية المشمولة"
+
+#. module: training_management
+#: model:ir.model.fields,help:training_management.field_training_report__show_summary
+msgid ""
+"Training days covered, highest indicators (strengths) and lowest indicators "
+"(opportunities)."
+msgstr ""
+"الأيام التدريبية المشمولة، وأعلى المؤشرات (نقاط القوة) وأدناها (فرص "
+"التحسين)."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid ""
+"Training responses cannot be printed from the survey pages. Use the training"
+" reports instead."
+msgstr ""
+"لا يمكن طباعة ردود التدريب من صفحات الاستبانة. استخدمي تقارير التدريب بدلاً "
+"من ذلك."
+
+#. module: training_management
+#: model:mail.template,name:training_management.mail_template_daily_task_reminder
+msgid "Training: Daily Task Reminder"
+msgstr "التدريب: تذكير بالمهمة اليومية"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_dashboard.py:0
+#: code:addons/training_management/models/training_report.py:0
+msgid "Trend (last minus first)"
+msgstr "الاتجاه (الأخير ناقص الأول)"
+
+#. module: training_management
 #: model:ir.model.fields,help:training_management.field_survey_survey__has_submitted_responses
 msgid ""
 "True once at least one response for this survey version has been finally "
 "submitted (state=done). Used to lock historical structure instead of an "
 "invented survey state."
-msgstr "صحيح بمجرد إرسال رد واحد على الأقل نهائياً لهذا الإصدار من الاستبانة (state=done). تُستخدم لقفل البنية التاريخية بدلاً من ابتكار حالة استبانة جديدة."
+msgstr ""
+"صحيح بمجرد إرسال رد واحد على الأقل نهائياً لهذا الإصدار من الاستبانة "
+"(state=done). تُستخدم لقفل البنية التاريخية بدلاً من ابتكار حالة استبانة "
+"جديدة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "Unassigned Course"
+msgstr "دورة غير مسندة"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_notification.py:0
+msgid "Unknown notification channel: %s"
+msgstr "قناة إشعار غير معروفة: %s"
 
 #. module: training_management
 #. odoo-python
@@ -845,25 +2904,109 @@ msgid "Unknown survey role: %s"
 msgstr "دور استبانة غير معروف: %s"
 
 #. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Untitled"
+msgstr "بدون عنوان"
+
+#. module: training_management
 #: model:ir.model,name:training_management.model_res_users
 msgid "User"
 msgstr "المستخدم"
 
 #. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_enrollment__user_id
+#. odoo-python
+#: code:addons/training_management/models/training_audit_log.py:0
 msgid "User Account"
-msgstr "حساب المستخدم"
+msgstr "حساب مستخدم"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid "Value"
+msgstr "القيمة"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "Values: %s."
+msgstr "القيم: %s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+msgid "Version"
+msgstr "النسخة"
 
 #. module: training_management
 #: model:ir.model.fields,field_description:training_management.field_survey_survey__version_no
+#: model:ir.model.fields,field_description:training_management.field_training_report__version_no
 msgid "Version No"
 msgstr "رقم الإصدار"
 
 #. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_dashboard_form
+msgid "View Days"
+msgstr "عرض الأيام"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
+msgid "View PDF"
+msgstr "عرض ملف PDF"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__channel__whatsapp
+msgid "WhatsApp"
+msgstr "واتساب"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid "WhatsApp Reminders"
+msgstr "تذكيرات واتساب"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__res_config_settings__training_channel_order__whatsapp,email,sms
+msgid "WhatsApp, Email, SMS"
+msgstr "واتساب، البريد، الرسائل القصيرة"
+
+#. module: training_management
+#: model:ir.model.fields.selection,name:training_management.selection__res_config_settings__training_channel_order__whatsapp,sms,email
+msgid "WhatsApp, SMS, Email"
+msgstr "واتساب، الرسائل القصيرة، البريد"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_response_correction_form
+msgid "Why is this final response being corrected?"
+msgstr "لماذا يُصحَّح هذا الرد النهائي؟"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
+msgid ""
+"With fallback on, channels are tried in this order. Email is always on."
+msgstr ""
+"عند تفعيل الانتقال إلى القناة التالية، تُجرَّب القنوات بهذا الترتيب. البريد "
+"الإلكتروني مفعّل دائماً."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_report.py:0
+#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
+msgid ""
+"Withheld: comments are collected only when the General Supervisor generates "
+"the report."
+msgstr "محجوبة: تُجمع التعليقات فقط عند إنشاء التقرير بواسطة المشرف العام."
+
+#. module: training_management
+#: model:ir.model.fields,field_description:training_management.field_training_response_correction_line__wizard_id
+msgid "Wizard"
+msgstr "المعالج"
+
+#. module: training_management
 #. odoo-python
 #: code:addons/training_management/models/training_day.py:0
-msgid "Training day not found."
-msgstr "لم يتم العثور على اليوم التدريبي."
+msgid "You are not actively enrolled in this training day's program."
+msgstr "لستِ مسجلة بشكل فعّال في برنامج هذا اليوم التدريبي."
 
 #. module: training_management
 #. odoo-python
@@ -874,72 +3017,14 @@ msgstr "أنتِ لستِ مدربة مسندة لهذا اليوم التدري
 #. module: training_management
 #. odoo-python
 #: code:addons/training_management/models/training_day.py:0
-msgid "You are not enrolled in this training day's program."
-msgstr "أنتِ غير مسجلة في برنامج هذا اليوم التدريبي."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_day.py:0
 msgid "You are not the assigned supervisor for this training day."
 msgstr "أنتِ لستِ المشرفة المسندة لهذا اليوم التدريبي."
 
 #. module: training_management
 #. odoo-python
 #: code:addons/training_management/models/survey_user_input.py:0
-msgid "question_id %s does not belong to this survey."
-msgstr "question_id %s لا ينتمي إلى هذه الاستبانة."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/api_common.py:0
-msgid "An unexpected error occurred."
-msgstr "حدث خطأ غير متوقع."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/controllers/auth.py:0
-msgid "Invalid login or password."
-msgstr "اسم الدخول أو كلمة المرور غير صحيحة."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_attendance.py:0
-msgid "Late minutes can only be set when the attendance status is Late."
-msgstr "لا يمكن تحديد دقائق التأخير إلا عندما تكون حالة الحضور متأخرة."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_attendance.py:0
-msgid "Late minutes cannot be negative."
-msgstr "لا يمكن أن تكون دقائق التأخير سالبة."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_course.py:0
-msgid "The end date cannot precede the start date for course %s."
-msgstr "لا يمكن أن يسبق تاريخ الانتهاء تاريخ البدء للدورة %s."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_program.py:0
-msgid "The end date cannot precede the start date for program %s."
-msgstr "لا يمكن أن يسبق تاريخ الانتهاء تاريخ البدء للبرنامج %s."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_enrollment.py:0
-msgid ""
-"This enrollment has attendance records linked to it and cannot be deleted. "
-"Archive it instead."
-msgstr ""
-"يحتوي هذا التسجيل على سجلات حضور مرتبطة به ولا يمكن حذفه. قم بأرشفته بدلاً "
-"من ذلك."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/controllers/auth.py:0
-msgid "This field is required."
-msgstr "هذا الحقل مطلوب."
+msgid "You can only create a response for yourself."
+msgstr "يمكنكِ إنشاء رد لنفسكِ فقط."
 
 #. module: training_management
 #. odoo-python
@@ -973,814 +3058,45 @@ msgstr "ليس لديكِ دور المدربة."
 
 #. module: training_management
 #. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "You have not submitted this survey yet."
+msgstr "لم تُرسلي هذه الاستبانة بعد."
+
+#. module: training_management
+#. odoo-python
 #: code:addons/training_management/api_common.py:0
 msgid "Your session has expired. Please log in again."
 msgstr "انتهت صلاحية جلستكِ. يرجى تسجيل الدخول مرة أخرى."
 
 #. module: training_management
 #. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "added %s"
+msgstr "أُضيفت %s"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_course.py:0
+msgid "course_id"
+msgstr "course_id"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_program.py:0
+msgid "course_id.program_id"
+msgstr "course_id.program_id"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_dashboard.py:0
+msgid "id"
+msgstr "المعرّف"
+
+#. module: training_management
+#. odoo-python
 #: code:addons/training_management/controllers/auth.py:0
 msgid "login and password are required."
 msgstr "اسم الدخول وكلمة المرور مطلوبان."
-
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "%(base)s Report (v%(version)s)"
-msgstr "تقرير %(base)s (الإصدار %(version)s)"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "%s is approved and immutable. Create a new version to regenerate it."
-msgstr "%s مُعتمد وغير قابل للتعديل. يرجى إنشاء نسخة جديدة لإعادة إنشائه."
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
-msgid "<strong>Course</strong>"
-msgstr "<strong>الدورة</strong>"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
-msgid "<strong>Period</strong>"
-msgstr "<strong>الفترة</strong>"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
-msgid "<strong>Program</strong>"
-msgstr "<strong>البرنامج</strong>"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
-msgid "<strong>Version</strong>"
-msgstr "<strong>الإصدار</strong>"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "A course report must reference a course."
-msgstr "يجب أن يشير تقرير الدورة إلى دورة."
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__absence_rate
-msgid "Absence Rate"
-msgstr "معدل الغياب"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "Absence Rate (%)"
-msgstr "معدل الغياب (%)"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__absence_rate_has_data
-msgid "Absence Rate Has Data"
-msgstr "معدل الغياب يحتوي على بيانات"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__absent_count
-msgid "Absent Count"
-msgstr "عدد الغائبين"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
-msgid "Approval"
-msgstr "الاعتماد"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
-msgid "Approve"
-msgstr "اعتماد"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_report__state__approved
-#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_search
-msgid "Approved"
-msgstr "مُعتمد"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__approved_by
-msgid "Approved By"
-msgstr "اعتمده"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__approved_date
-msgid "Approved Date"
-msgstr "تاريخ الاعتماد"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__attendance_rate
-msgid "Attendance Rate"
-msgstr "معدل الحضور"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "Attendance Rate (%)"
-msgstr "معدل الحضور (%)"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__attendance_rate_has_data
-msgid "Attendance Rate Has Data"
-msgstr "معدل الحضور يحتوي على بيانات"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_content_score
-msgid "Content Score"
-msgstr "درجة المحتوى"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_report__report_type__course
-msgid "Course Report"
-msgstr "تقرير الدورة"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
-msgid "Create New Version"
-msgstr "إنشاء نسخة جديدة"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_environment_score
-msgid "Environment Score"
-msgstr "درجة البيئة التدريبية"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__excel_attachment_id
-msgid "Excel Export"
-msgstr "تصدير إكسل"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
-msgid "Export Excel"
-msgstr "تصدير إلى إكسل"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
-msgid "Generate"
-msgstr "إنشاء"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "Generate the report before exporting it."
-msgstr "يرجى إنشاء التقرير قبل تصديره."
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_report__state__generated
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_search
-msgid "Generated"
-msgstr "تم الإنشاء"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__generated_date
-msgid "Generated Date"
-msgstr "تاريخ الإنشاء"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
-msgid "KPI"
-msgstr "مؤشر الأداء"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
-msgid "KPI Snapshot"
-msgstr "لقطة مؤشرات الأداء"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
-msgid "KPI Summary"
-msgstr "ملخص مؤشرات الأداء"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_content_score_has_data
-msgid "Kpi Content Score Has Data"
-msgstr "درجة المحتوى تحتوي على بيانات"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_environment_score_has_data
-msgid "Kpi Environment Score Has Data"
-msgstr "درجة البيئة التدريبية تحتوي على بيانات"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_trainer_score_has_data
-msgid "Kpi Trainer Score Has Data"
-msgstr "درجة المدرب تحتوي على بيانات"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__late_count
-msgid "Late Count"
-msgstr "عدد المتأخرين"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__late_rate
-msgid "Late Rate"
-msgstr "معدل التأخر"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "Late Rate (%)"
-msgstr "معدل التأخر (%)"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__late_rate_has_data
-msgid "Late Rate Has Data"
-msgstr "معدل التأخر يحتوي على بيانات"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__next_version_ids
-msgid "Newer Versions"
-msgstr "الإصدارات الأحدث"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "No PDF has been generated yet."
-msgstr "لم يتم إنشاء ملف PDF بعد."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
-msgid "No data"
-msgstr "لا توجد بيانات"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "Only a generated report can be approved."
-msgstr "لا يمكن اعتماد إلا تقرير تم إنشاؤه."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "Only draft reports can be deleted. Archive %s instead."
-msgstr "لا يمكن حذف إلا التقارير في حالة المسودة. يرجى أرشفة %s بدلاً من ذلك."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "Only the General Supervisor/Admin can approve a report."
-msgstr "فقط المشرف العام/المسؤول يمكنه اعتماد التقرير."
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__pdf_attachment_id
-msgid "PDF Document"
-msgstr "ملف PDF"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "Period"
-msgstr "الفترة"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__date_from
-msgid "Period From"
-msgstr "الفترة من"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__date_to
-msgid "Period To"
-msgstr "الفترة إلى"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__present_count
-msgid "Present Count"
-msgstr "عدد الحاضرين"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_report__report_type__program
-msgid "Program Report"
-msgstr "تقرير البرنامج"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "Report"
-msgstr "تقرير"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__report_type
-msgid "Report Type"
-msgstr "نوع التقرير"
-
-#. module: training_management
-#: model:ir.actions.act_window,name:training_management.action_training_report
-#: model:ir.ui.menu,name:training_management.menu_training_report
-msgid "Reports"
-msgstr "التقارير"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__resolved_date_from
-msgid "Resolved Date From"
-msgstr "تاريخ البداية الفعلي"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__resolved_date_to
-msgid "Resolved Date To"
-msgstr "تاريخ النهاية الفعلي"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__response_rate
-msgid "Response Rate"
-msgstr "معدل الاستجابة"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__response_rate_has_data
-msgid "Response Rate Has Data"
-msgstr "معدل الاستجابة يحتوي على بيانات"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
-msgid "Sections to Include"
-msgstr "الأقسام المطلوب تضمينها"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__show_attendance
-msgid "Show Attendance"
-msgstr "عرض الحضور"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__show_content_score
-msgid "Show Content Score"
-msgstr "عرض درجة المحتوى"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__show_environment_score
-msgid "Show Environment Score"
-msgstr "عرض درجة البيئة التدريبية"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__show_response_rate
-msgid "Show Response Rate"
-msgstr "عرض معدل الاستجابة"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__show_trainer_score
-msgid "Show Trainer Score"
-msgstr "عرض درجة المدرب"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "Survey Response Rate (%)"
-msgstr "معدل الاستجابة للاستبانة (%)"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "The report period's end date cannot precede its start date."
-msgstr "لا يمكن أن يكون تاريخ نهاية فترة التقرير سابقاً لتاريخ بدايتها."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "The selected course does not belong to the selected program."
-msgstr "الدورة المحددة لا تنتمي إلى البرنامج المحدد."
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
-msgid "Total"
-msgstr "الإجمالي"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_report__total_attendance_count
-msgid "Total Attendance Count"
-msgstr "إجمالي عدد سجلات الحضور"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-#: model:ir.model.fields,field_description:training_management.field_training_report__kpi_trainer_score
-msgid "Trainer Score"
-msgstr "درجة المدرب"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "Training Environment Score"
-msgstr "درجة البيئة التدريبية"
-
-#. module: training_management
-#: model:ir.model,name:training_management.model_training_report
-msgid "Training Program/Course Report"
-msgstr "تقرير برنامج/دورة تدريبية"
-
-#. module: training_management
-#: model:ir.actions.report,name:training_management.action_report_training_report
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
-msgid "Training Report"
-msgstr "تقرير تدريبي"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_list
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_search
-msgid "Training Reports"
-msgstr "التقارير التدريبية"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "Untitled"
-msgstr "بدون عنوان"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-#: model_terms:ir.ui.view,arch_db:training_management.report_training_report_document
-msgid "Value"
-msgstr "القيمة"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_report_form
-msgid "View PDF"
-msgstr "عرض ملف PDF"
-
-#. module: training_management
-#: model:ir.actions.report,print_report_name:training_management.action_report_training_report
-msgid "object.name"
-msgstr ""
-
-
-#. module: training_management
-#: model:mail.template,body_html:training_management.mail_template_daily_task_reminder
-msgid ""
-"<div style=\"font-family: Arial, sans-serif; font-size: 14px; color: #333333;\">\n"
-"    <p>Dear <t t-out=\"object.partner_id.name or ''\">Trainee</t>,</p>\n"
-"    <p>\n"
-"        You have a pending task for\n"
-"        <strong><t t-out=\"object.training_day_id.course_id.name or ''\">Course</t></strong>\n"
-"        on <t t-out=\"object.training_day_id.date or ''\">Date</t>.\n"
-"    </p>\n"
-"    <p>Please complete it in the training portal as soon as possible.</p>\n"
-"</div>\n"
-"            "
-msgstr "<div style=\"font-family: Arial, sans-serif; font-size: 14px; color: #333333;\">    <p>عزيزي/عزيزتي <t t-out=\"object.partner_id.name or ''\">المتدرب</t>،</p>    <p>        لديك مهمة معلقة في        <strong><t t-out=\"object.training_day_id.course_id.name or ''\">الدورة</t></strong>        بتاريخ <t t-out=\"object.training_day_id.date or ''\">التاريخ</t>.    </p>    <p>يرجى إتمامها في بوابة التدريب في أقرب وقت ممكن.</p></div>"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
-msgid "Also send reminders by SMS"
-msgstr "إرسال التذكيرات عبر الرسائل النصية أيضاً"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
-msgid "Also send reminders by WhatsApp"
-msgstr "إرسال التذكيرات عبر واتساب أيضاً"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_notification_log__body
-msgid "Body"
-msgstr "نص الرسالة"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_notification_log__channel
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_search
-msgid "Channel"
-msgstr "القناة"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
-msgid "Channel Fallback"
-msgstr "التبديل التلقائي بين القنوات"
-
-#. module: training_management
-#: model:ir.model,name:training_management.model_res_config_settings
-msgid "Config Settings"
-msgstr "إعدادات التهيئة"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__event_type__daily_task_reminder
-msgid "Daily Task Reminder"
-msgstr "تذكير بالمهمة اليومية"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
-msgid "Daily Task Reminders"
-msgstr "تذكيرات المهام اليومية"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__channel__email
-msgid "Email"
-msgstr "البريد الإلكتروني"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_notification_log__mail_state
-msgid "Email Delivery Status"
-msgstr "حالة تسليم البريد الإلكتروني"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_notification_reminders_enabled
-msgid "Enable Daily Task Reminders"
-msgstr "تفعيل تذكيرات المهام اليومية"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_notification_sms_enabled
-msgid "Enable SMS Reminders"
-msgstr "تفعيل تذكيرات الرسائل النصية"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_notification_whatsapp_enabled
-msgid "Enable WhatsApp Reminders"
-msgstr "تفعيل تذكيرات واتساب"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_form
-msgid "Error"
-msgstr "خطأ"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_notification_log__error_message
-msgid "Error Message"
-msgstr "رسالة الخطأ"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_notification_log__event_type
-msgid "Event Type"
-msgstr "نوع الحدث"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__status__failed
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_search
-msgid "Failed"
-msgstr "فشل"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_notification_channel_fallback
-msgid "Fallback to Next Channel on Failure"
-msgstr "التبديل إلى القناة التالية عند الفشل"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
-msgid "If a channel fails, try the next enabled channel instead of giving up"
-msgstr "في حال فشل إحدى القنوات، حاول استخدام القناة المفعّلة التالية بدلاً من التوقف"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_notification_log__mail_mail_id
-msgid "Mail Mail"
-msgstr "رسالة بريد إلكتروني"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_notification_max_retries
-#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
-msgid "Maximum Retry Attempts"
-msgstr "الحد الأقصى لمحاولات إعادة المحاولة"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_form
-msgid "Message"
-msgstr "الرسالة"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_notification.py:0
-msgid "Missing email address for %s."
-msgstr "لا يوجد بريد إلكتروني لـ %s."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_notification.py:0
-msgid "Missing phone number for %s."
-msgstr "لا يوجد رقم هاتف لـ %s."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_notification.py:0
-msgid "No WhatsApp provider is configured for this deployment."
-msgstr "لا يوجد مزود واتساب مهيأ لهذا النظام."
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_form
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_list
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_search
-msgid "Notification Log"
-msgstr "سجل الإشعارات"
-
-#. module: training_management
-#: model:ir.actions.act_window,name:training_management.action_training_notification_log
-#: model:ir.ui.menu,name:training_management.menu_training_notification
-msgid "Notifications"
-msgstr "الإشعارات"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__res_config_settings__training_sms_provider_mode__odoo_sms
-msgid "Odoo SMS (standard IAP-based sms module)"
-msgstr "رسائل أودو النصية (وحدة sms القياسية القائمة على IAP)"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__status__pending
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_search
-msgid "Pending"
-msgstr "قيد الانتظار"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_notification_log__provider_reference
-msgid "Provider Reference"
-msgstr "مرجع المزود"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_notification_log__partner_id
-msgid "Recipient"
-msgstr "المستلم"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
-msgid "Reminder Notifications"
-msgstr "إشعارات التذكير"
-
-#. module: training_management
-#: model:mail.template,subject:training_management.mail_template_daily_task_reminder
-msgid "Reminder: pending task for {{ object.training_day_id.course_id.name }}"
-msgstr "تذكير: مهمة معلقة في {{ object.training_day_id.course_id.name }}"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_form
-msgid "Retry"
-msgstr "إعادة المحاولة"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_notification_log__retry_count
-msgid "Retry Count"
-msgstr "عدد مرات إعادة المحاولة"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__channel__sms
-msgid "SMS"
-msgstr "رسالة نصية"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_sms_provider_mode
-#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
-msgid "SMS Provider Mode"
-msgstr "وضع مزود الرسائل النصية"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
-msgid "SMS Reminders"
-msgstr "تذكيرات الرسائل النصية"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__status__sent
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_notification_log_search
-msgid "Sent"
-msgstr "تم الإرسال"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_notification_log__sent_date
-msgid "Sent Date"
-msgstr "تاريخ الإرسال"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__res_config_settings__training_sms_provider_mode__test
-msgid "Test / Log Only (no real SMS is sent)"
-msgstr "اختبار / تسجيل فقط (لا تُرسل رسالة نصية حقيقية)"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__res_config_settings__training_whatsapp_provider_mode__test
-msgid "Test / Log Only (no real WhatsApp message is sent)"
-msgstr "اختبار / تسجيل فقط (لا تُرسل رسالة واتساب حقيقية)"
-
-#. module: training_management
-#: model:ir.actions.server,name:training_management.ir_cron_training_notification_reminders_ir_actions_server
-msgid "Training Management: Send Daily Task Reminders"
-msgstr "إدارة التدريب: إرسال تذكيرات المهام اليومية"
-
-#. module: training_management
-#: model:ir.model,name:training_management.model_training_notification_log
-msgid "Training Notification / Reminder Log"
-msgstr "سجل إشعارات/تذكيرات التدريب"
-
-#. module: training_management
-#: model:mail.template,name:training_management.mail_template_daily_task_reminder
-msgid "Training: Daily Task Reminder"
-msgstr "التدريب: تذكير بالمهمة اليومية"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_notification.py:0
-msgid "Unknown notification channel: %s"
-msgstr "قناة إشعار غير معروفة: %s"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_notification_log__channel__whatsapp
-msgid "WhatsApp"
-msgstr "واتساب"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_res_config_settings__training_whatsapp_provider_mode
-#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
-msgid "WhatsApp Provider Mode"
-msgstr "وضع مزود واتساب"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.res_config_settings_view_form
-msgid "WhatsApp Reminders"
-msgstr "تذكيرات واتساب"
-
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_report.py:0
-msgid "%(report)s was approved by %(user)s."
-msgstr "%(report)s تمت الموافقة عليه من قبل %(user)s."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/res_users.py:0
-msgid ""
-"%(user)s's training roles were changed by %(actor)s: added %(added)s, "
-"removed %(removed)s."
-msgstr "%(actor)s قام بتغيير أدوار %(user)s التدريبية: أُضيف %(added)s، وأُزيل %(removed)s."
-
-#. module: training_management
-#: model:ir.actions.act_window,name:training_management.action_training_audit_log
-#: model:ir.ui.menu,name:training_management.menu_training_audit
-msgid "Audit"
-msgstr "التدقيق"
-
-#. module: training_management
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_audit_log_list
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_audit_log_search
-msgid "Audit Log"
-msgstr "سجل التدقيق"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_audit_log.py:0
-msgid "Audit log entries cannot be deleted."
-msgstr "لا يمكن حذف سجلات التدقيق."
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_audit_log.py:0
-msgid "Audit log entries cannot be modified."
-msgstr "لا يمكن تعديل سجلات التدقيق."
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_audit_log__description
-msgid "Description"
-msgstr "الوصف"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/controllers/auth.py:0
-msgid ""
-"If an account exists for this login, a password reset email has been sent."
-msgstr "إذا كان هناك حساب مرتبط بهذا الاسم، فقد تم إرسال رسالة إعادة تعيين كلمة المرور إليه."
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_audit_log__model_name
-msgid "Model"
-msgstr "النموذج"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_audit_log__user_id
-#: model_terms:ir.ui.view,arch_db:training_management.view_training_audit_log_search
-msgid "Performed By"
-msgstr "نفّذه"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_audit_log__event_type__permission_change
-msgid "Permission/Role Change"
-msgstr "تغيير الصلاحية/الدور"
-
-#. module: training_management
-#: model:ir.model.fields,field_description:training_management.field_training_audit_log__res_id
-msgid "Record ID"
-msgstr "معرّف السجل"
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_audit_log__event_type__report_approval
-msgid "Report Approved"
-msgstr "تمت الموافقة على التقرير"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/controllers/auth.py:0
-msgid "This password reset link is invalid or has expired."
-msgstr "رابط إعادة تعيين كلمة المرور غير صالح أو منتهي الصلاحية."
-
-#. module: training_management
-#: model:ir.model.fields.selection,name:training_management.selection__training_audit_log__event_type__day_reopen
-msgid "Training Day Reopened"
-msgstr "إعادة فتح يوم التدريب"
-
-#. module: training_management
-#: model:ir.model,name:training_management.model_training_audit_log
-msgid "Training Sensitive Event Audit Log"
-msgstr "سجل تدقيق الأحداث الحساسة للتدريب"
-
-#. module: training_management
-#. odoo-python
-#: code:addons/training_management/models/training_day.py:0
-msgid "Training day on %s was reopened by %s."
-msgstr "تمت إعادة فتح يوم التدريب بتاريخ %s من قبل %s."
 
 #. module: training_management
 #. odoo-python
@@ -1789,7 +3105,82 @@ msgid "login is required."
 msgstr "تسجيل الدخول مطلوب."
 
 #. module: training_management
+#: model:ir.actions.report,print_report_name:training_management.action_report_training_report
+msgid "object.name"
+msgstr "object.name"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_program.py:0
+msgid "program_id"
+msgstr "program_id"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "question_id %s does not belong to this survey."
+msgstr "question_id %s لا ينتمي إلى هذه الاستبانة."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/survey_user_input.py:0
+msgid "removed %s"
+msgstr "أُزيلت %s"
+
+#. module: training_management
 #. odoo-python
 #: code:addons/training_management/controllers/auth.py:0
 msgid "token and password are required."
 msgstr "الرمز وكلمة المرور مطلوبان."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "training_day_id"
+msgstr "training_day_id"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_program_form
+msgid "Activate"
+msgstr "تفعيل"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_program_form
+msgid "Complete"
+msgstr "إكمال"
+
+#. module: training_management
+#: model_terms:ir.ui.view,arch_db:training_management.view_training_program_form
+msgid "Cancelling a program is final. Continue?"
+msgstr "إلغاء البرنامج نهائي. هل تريدين المتابعة؟"
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/controllers/auth.py:0
+msgid "Password reset by email is currently unavailable. Please contact your administrator."
+msgstr "إعادة تعيين كلمة المرور عبر البريد الإلكتروني غير متاحة حاليًا. يرجى التواصل مع مسؤول النظام."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "The end time must be after the start time for training day on %(date)s."
+msgstr "يجب أن يكون وقت النهاية بعد وقت البداية لليوم التدريبي بتاريخ %(date)s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "The survey close time must be after the survey open time for training day on %(date)s."
+msgstr "يجب أن يكون وقت إغلاق الاستبانة بعد وقت فتحها لليوم التدريبي بتاريخ %(date)s."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_day.py:0
+msgid "Only planned training days can be deleted. Archive or cancel the training day on %(date)s instead."
+msgstr "لا يُحذف إلا اليوم التدريبي المخطط. أرشفي اليوم التدريبي بتاريخ %(date)s أو ألغيه بدلًا من ذلك."
+
+#. module: training_management
+#. odoo-python
+#: code:addons/training_management/models/training_program.py:0
+#, python-format
+msgid "Program %s has courses or enrollments linked to it (including archived ones) and cannot be deleted. Archive it instead."
+msgstr "البرنامج %s مرتبط بدورات أو تسجيلات (بما فيها المؤرشفة) ولا يمكن حذفه. أرشفيه بدلًا من ذلك."

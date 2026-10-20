@@ -51,7 +51,7 @@ class TrainingSurveyResponseKpi(models.Model):
         ],
         "survey.question": ["kpi_category"],
         "survey.question.answer": ["rating_value"],
-        "training.day": ["course_id"],
+        "training.day": ["course_id", "date", "state"],
         "training.course": ["program_id"],
     }
 
@@ -59,6 +59,16 @@ class TrainingSurveyResponseKpi(models.Model):
     training_day_id = fields.Many2one("training.day", string="Training Day", readonly=True)
     course_id = fields.Many2one("training.course", string="Course", readonly=True)
     program_id = fields.Many2one("training.program", string="Program", readonly=True)
+    day_date = fields.Date(string="Day Date", readonly=True)
+    day_state = fields.Selection(
+        selection=[
+            ("planned", "Planned"),
+            ("open", "Open"),
+            ("closed", "Closed"),
+        ],
+        string="Day Status",
+        readonly=True,
+    )
     respondent_role = fields.Selection(
         selection=[
             ("trainee", "Trainee"),
@@ -87,6 +97,8 @@ class TrainingSurveyResponseKpi(models.Model):
                 ui.training_day_id AS training_day_id,
                 td.course_id AS course_id,
                 tc.program_id AS program_id,
+                td.date AS day_date,
+                td.state AS day_state,
                 ui.respondent_role AS respondent_role,
                 q.kpi_category AS kpi_category,
                 AVG(
@@ -103,6 +115,7 @@ class TrainingSurveyResponseKpi(models.Model):
             JOIN training_day td ON td.id = ui.training_day_id
             JOIN training_course tc ON tc.id = td.course_id
             WHERE ui.state = 'done'
+              AND td.state NOT IN ('cancelled', 'postponed')
               AND uil.skipped IS NOT TRUE
               AND q.kpi_category IS NOT NULL
               AND (
@@ -111,6 +124,7 @@ class TrainingSurveyResponseKpi(models.Model):
               )
             GROUP BY
                 ui.id, ui.training_day_id, td.course_id, tc.program_id,
+                td.date, td.state,
                 ui.respondent_role, q.kpi_category
             """
         )

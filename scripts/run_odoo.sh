@@ -11,6 +11,13 @@ if [ ! -f "$CONF" ]; then
     exit 1
 fi
 
+# Report PDFs need wkhtmltopdf (ADR-010); use the project-local, non-root
+# copy when it exists. Production installs it system-wide (RUNBOOK).
+if [ -x "$HOME/.local/opt/wkhtmltopdf/bin/wkhtmltopdf" ]; then
+    export PATH="$HOME/.local/opt/wkhtmltopdf/bin:$PATH"
+    export LD_LIBRARY_PATH="$HOME/.local/opt/wkhtmltopdf/lib:${LD_LIBRARY_PATH:-}"
+fi
+
 source "$ROOT_DIR/.venv/bin/activate"
 cd "$ROOT_DIR"
 python "$ROOT_DIR/.odoo-core/odoo-bin" -c "$CONF" "$@"

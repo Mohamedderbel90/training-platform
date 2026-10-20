@@ -75,6 +75,35 @@
                         </tbody>
                     </table>
 
+                    <t t-set="nar" t-value="doc.narrative_json or {}"/>
+                    <t t-set="labels" t-value="doc._narrative_labels()"/>
+
+                    <t t-if="doc.show_summary and nar">
+                        <h3>Executive Summary</h3>
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Training days covered</strong></td>
+                                    <td><t t-esc="nar['days_count']"/></td>
+                                </tr>
+                                <tr t-if="nar['highlights']['highest']">
+                                    <td><strong>Strength (highest indicator)</strong></td>
+                                    <td>
+                                        <t t-esc="labels[nar['highlights']['highest']['key']]"/>:
+                                        <t t-esc="'%.2f' % nar['highlights']['highest']['value']"/>
+                                    </td>
+                                </tr>
+                                <tr t-if="nar['highlights']['lowest']">
+                                    <td><strong>Opportunity (lowest indicator)</strong></td>
+                                    <td>
+                                        <t t-esc="labels[nar['highlights']['lowest']['key']]"/>:
+                                        <t t-esc="'%.2f' % nar['highlights']['lowest']['value']"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+
                     <h3 t-if="doc.show_attendance">Attendance</h3>
                     <table t-if="doc.show_attendance" class="table table-bordered">
                         <thead>
@@ -94,6 +123,64 @@
                             </tr>
                         </tbody>
                     </table>
+
+                    <t t-if="doc.show_comparison and nar and nar['comparison']['rows']">
+                        <h3>
+                            <t t-if="nar['comparison']['kind'] == 'day'">Day Comparison</t>
+                            <t t-else="">Course Comparison</t>
+                        </h3>
+                        <table class="table table-bordered table-sm">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th t-foreach="['trainer_performance', 'content', 'environment', 'environment_supervisor', 'attendance_rate']"
+                                        t-as="key"><t t-esc="labels[key]"/></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="nar['comparison']['rows']" t-as="period">
+                                    <td><t t-esc="period['label']"/></td>
+                                    <td t-foreach="['trainer_performance', 'content', 'environment', 'environment_supervisor', 'attendance_rate']"
+                                        t-as="key">
+                                        <t t-if="period[key] is not None"><t t-esc="'%.2f' % period[key]"/></t>
+                                        <t t-else="">No data</t>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Trend (last minus first)</strong></td>
+                                    <td t-foreach="['trainer_performance', 'content', 'environment', 'environment_supervisor', 'attendance_rate']"
+                                        t-as="key">
+                                        <t t-if="nar['trend'].get(key) is not None"><t t-esc="nar['trend'][key]"/></t>
+                                        <t t-else="">No data</t>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+
+                    <t t-if="doc.show_comments and nar">
+                        <h3>Notes and Recommendations</h3>
+                        <p t-if="nar['comments']['withheld']">
+                            Withheld: comments are collected only when the General Supervisor generates the report.
+                        </p>
+                        <t t-foreach="nar['comments']['groups']" t-as="group">
+                            <h4>
+                                <t t-esc="doc._narrative_role_label(group['role'])"/> —
+                                <t t-esc="group['question']"/>
+                            </h4>
+                            <ul>
+                                <li t-foreach="group['answers']" t-as="answer"><t t-esc="answer"/></li>
+                            </ul>
+                        </t>
+                        <t t-if="nar['comments']['repeated']">
+                            <h4>Repeated comments (identical wording)</h4>
+                            <ul>
+                                <li t-foreach="nar['comments']['repeated']" t-as="item">
+                                    <t t-esc="item['text']"/> (×<t t-esc="item['count']"/>)
+                                </li>
+                            </ul>
+                        </t>
+                    </t>
                 </div>
             </t>
         </t>

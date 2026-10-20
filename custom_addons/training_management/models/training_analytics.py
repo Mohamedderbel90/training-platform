@@ -24,11 +24,15 @@ class TrainingAnalytics(models.AbstractModel):
 
     def _resolve_days(
         self, program=None, course=None, day=None, trainer=None,
-        date_from=None, date_to=None,
+        date_from=None, date_to=None, states=None,
     ):
         """training.day recordset matching the given optional filters.
-        Each argument is a recordset (or None to not filter on it)."""
-        domain = []
+        Each argument is a recordset (or None to not filter on it);
+        ``states`` optionally narrows to training-day states (FR-055
+        "status"), never widening past the not-held exclusion below."""
+        # DEC-22: days that were not held (cancelled, or postponed and not
+        # yet reopened) never contribute to any KPI.
+        domain = [("state", "not in", ("cancelled", "postponed"))]
         if day:
             domain.append(("id", "in", day.ids))
         if course:
@@ -41,18 +45,19 @@ class TrainingAnalytics(models.AbstractModel):
             domain.append(("date", ">=", date_from))
         if date_to:
             domain.append(("date", "<=", date_to))
+        if states:
+            domain.append(("state", "in", list(states)))
         return self.env["training.day"].search(domain)
 
     def _survey_input_model(self):
         """survey.user_input as seen by this service.
 
-        Assistant Admin holds delegated report-generation rights
-        (write ACL on training.report) but deliberately no ACL on
-        survey.user_input (SEC-007: individual evaluations are General
-        Supervisor only), so a plain search would make every generated
-        report silently fail. KPI/response-rate output here is aggregate
-        only (no respondent identity), so for the two Back-office admin
-        roles the aggregation reads through sudo(). Everyone else --
+        Only the General Supervisor generates reports, and that role has
+        no direct ACL on survey.user_input rows it does not own
+        (SEC-007), so a plain search could make a generated report
+        silently incomplete. KPI/response-rate output here is aggregate
+        only (no respondent identity), so for the General Supervisor
+        the aggregation reads through sudo(). Everyone else --
         including any authenticated user calling this public service
         method over RPC -- keeps the caller's own ACL/record rules, so
         it can never be used to read other people's responses. The
@@ -60,9 +65,8 @@ class TrainingAnalytics(models.AbstractModel):
         """
         UserInput = self.env["survey.user_input"]
         user = self.env.user
-        if not self.env.su and (
-            user.has_group("training_management.group_training_admin")
-            or user.has_group("training_management.group_training_assistant_admin")
+        if not self.env.su and user.has_group(
+            "training_management.group_training_admin"
         ):
             return UserInput.sudo()
         return UserInput
@@ -141,16 +145,22 @@ class TrainingAnalytics(models.AbstractModel):
 
     def get_kpi(
         self, program=None, course=None, day=None, trainer=None,
-        date_from=None, date_to=None, categories=None,
+        date_from=None, date_to=None, categories=None, respondent_role=None,
+        states=None,
     ):
         """{category: score|None}, pooling all final responses linked to
         training days matching the given filters. Equal weight per
         response; never average-of-day-averages or
-        average-of-course-averages."""
-        days = self._resolve_days(program, course, day, trainer, date_from, date_to)
-        responses = self._survey_input_model().search(
-            [("training_day_id", "in", days.ids), ("state", "=", "done")]
+        average-of-course-averages. ``respondent_role`` optionally
+        restricts to one role's responses (DEC-21: environment is
+        reported separately for trainees and the supervisor)."""
+        days = self._resolve_days(
+            program, course, day, trainer, date_from, date_to, states=states
         )
+        domain = [("training_day_id", "in", days.ids), ("state", "=", "done")]
+        if respondent_role:
+            domain.append(("respondent_role", "=", respondent_role))
+        responses = self._survey_input_model().search(domain)
         return {
             category: self._aggregate_response_scores(responses, category)
             for category in (categories or self.KPI_CATEGORIES)
@@ -162,13 +172,14 @@ class TrainingAnalytics(models.AbstractModel):
 
     def get_attendance_metrics(
         self, program=None, course=None, day=None, date_from=None, date_to=None,
+        trainer=None, states=None,
     ):
         """Counts and rates over training.attendance records for the
         given scope. Rates are None (not 0) when their denominator is
         zero."""
         days = self._resolve_days(
             program=program, course=course, day=day, date_from=date_from,
-            date_to=date_to,
+            date_to=date_to, trainer=trainer, states=states,
         )
         attendances = self.env["training.attendance"].search(
             [("training_day_id", "in", days.ids)]
@@ -195,27 +206,74 @@ class TrainingAnalytics(models.AbstractModel):
 
     def get_trainee_response_rate(
         self, program=None, course=None, day=None, date_from=None, date_to=None,
+        trainer=None, states=None,
     ):
         """Submitted trainee survey responses / (present + late) * 100.
         Absent trainees are excluded from the denominator. None (not 0)
         if attendance has not been recorded (denominator is zero)."""
         days = self._resolve_days(
             program=program, course=course, day=day, date_from=date_from,
-            date_to=date_to,
+            date_to=date_to, trainer=trainer, states=states,
         )
-        eligible_count = self.env["training.attendance"].search_count(
+        # D3 / DEC-17: the target of a day is the trainees recorded present
+        # or late on it (their rows are history, kept whatever the
+        # enrollment is now, DEC-18). Only THEIR final responses count, so
+        # the rate can never exceed 100%.
+        eligible = self.env["training.attendance"].search(
             [
                 ("training_day_id", "in", days.ids),
                 ("status", "in", ("present", "late")),
             ]
         )
-        if not eligible_count:
+        if not eligible:
             return None
-        submitted_count = self._survey_input_model().search_count(
+        targets = {
+            (row.training_day_id.id, row.enrollment_id.partner_id.id)
+            for row in eligible
+        }
+        responses = self._survey_input_model().search(
             [
                 ("training_day_id", "in", days.ids),
                 ("respondent_role", "=", "trainee"),
                 ("state", "=", "done"),
             ]
         )
-        return (submitted_count / eligible_count) * 100.0
+        submitted_count = len(
+            {
+                (response.training_day_id.id, response.partner_id.id)
+                for response in responses
+            }
+            & targets
+        )
+        return (submitted_count / len(targets)) * 100.0
+
+    # ------------------------------------------------------------------
+    # One comparison row (a day, or a course) -- shared by the report
+    # narrative and the General Supervisor dashboard so both show the
+    # same numbers for the same scope (AC-ALN-15).
+    # ------------------------------------------------------------------
+
+    def get_period_figures(self, label, date_from, date_to, scope):
+        pooled = self.get_kpi(
+            date_from=date_from, date_to=date_to,
+            categories=("trainer_performance", "content"), **scope
+        )
+        env_trainee = self.get_kpi(
+            date_from=date_from, date_to=date_to, categories=("environment",),
+            respondent_role="trainee", **scope
+        )["environment"]
+        env_supervisor = self.get_kpi(
+            date_from=date_from, date_to=date_to, categories=("environment",),
+            respondent_role="supervisor", **scope
+        )["environment"]
+        attendance = self.get_attendance_metrics(
+            date_from=date_from, date_to=date_to, **scope
+        )
+        return {
+            "label": label,
+            "trainer_performance": pooled["trainer_performance"],
+            "content": pooled["content"],
+            "environment": env_trainee,
+            "environment_supervisor": env_supervisor,
+            "attendance_rate": attendance["attendance_rate"],
+        }

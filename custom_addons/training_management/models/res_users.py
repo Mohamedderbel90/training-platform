@@ -1,4 +1,5 @@
-from odoo import api, models
+from odoo import _, api, models
+from odoo.exceptions import ValidationError
 
 # Odoo groups are the authoritative role source (PROJECT_SPEC section 7,
 # M4 point 8). The client never supplies a role; it is always derived
@@ -8,12 +9,11 @@ ROLE_GROUPS = {
     "supervisor": "training_management.group_training_supervisor",
     "trainer": "training_management.group_training_trainer",
     "admin": "training_management.group_training_admin",
-    "assistant_admin": "training_management.group_training_assistant_admin",
 }
 
 # Minimal capability tags the Next.js UI needs for routing/rendering
-# decisions. Admin/assistant_admin are intentionally absent: those
-# roles work from Odoo Back-office (PROJECT_SPEC section 2.1), not the
+# decisions. Admin is intentionally absent: that
+# role works from Odoo Back-office (PROJECT_SPEC section 2.1), not the
 # Operational API.
 CAPABILITIES_BY_ROLE = {
     "trainee": ["dashboard.trainee", "survey.submit_own"],
@@ -35,7 +35,7 @@ def _project_groups(env):
 def _log_role_change(env, user, added, removed):
     """One audit entry per user whose project role set changed
     (PROJECT_SPEC section 17: "permission/role changes"). Scoped to this
-    project's own five groups only -- not every res.groups membership
+    project's own four groups only -- not every res.groups membership
     change on the system (M10: docs/adr/ADR-010)."""
     if not (added or removed):
         return
@@ -55,8 +55,30 @@ def _log_role_change(env, user, added, removed):
     )
 
 
+# DEC-09: an account holds one operational role.
+_OPERATIONAL_ROLES = ("trainee", "supervisor", "trainer")
+
+
 class ResUsers(models.Model):
     _inherit = "res.users"
+
+    @api.constrains("group_ids")
+    def _check_single_operational_role(self):
+        groups = {
+            role: self.env.ref(ROLE_GROUPS[role]) for role in _OPERATIONAL_ROLES
+        }
+        for user in self:
+            held = [role for role, group in groups.items() if group in user.group_ids]
+            if len(held) > 1:
+                raise ValidationError(
+                    _("%(user)s can hold only one operational role (trainee, "
+                      "supervisor or trainer); found: %(roles)s.")
+                    % {
+                        "user": user.display_name,
+                        # translated role names, not the internal keys
+                        "roles": ", ".join(groups[role].name for role in held),
+                    }
+                )
 
     @api.model_create_multi
     def create(self, vals_list):

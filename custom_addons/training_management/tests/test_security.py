@@ -92,6 +92,11 @@ class TestTrainingSecurity(TransactionCase):
                 "trainer_ids": [(6, 0, [cls.trainer_user.id])],
                 "survey_open_at": "2026-01-05 12:00:00",
                 "survey_close_at": "2026-01-06 12:00:00",
+                # Open: test_supervisor_can_manage_attendance_for_own_day
+                # below writes attendance with_user(supervisor_user)
+                # (non-superuser), which the OPD-12 day-state gate on
+                # training.attendance now enforces.
+                "state": "open",
             }
         )
         cls.other_day = cls.env["training.day"].create(
